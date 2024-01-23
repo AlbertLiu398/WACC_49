@@ -11,7 +11,7 @@ object lexer {
                 "exit ", "print", "println", "if ", "then ", "else ", "fi", "while ", "do ", "is",
                 "done", "begin", "end", "call", "fst ", "snd ", "newpair", "true", "false",
                 ";" , "(", ")", "{", "}", "[", "]", ",",
-                "!","-", , "len", "ord", "chr", 
+                "!","-", "len", "ord", "chr", 
                 "+", "-", "*", "/", "%","<", ">", "<=", ">=", "=", "==", "!=","&&", "||")
     )
     

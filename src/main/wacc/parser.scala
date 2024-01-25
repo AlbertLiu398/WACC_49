@@ -59,6 +59,7 @@ object parser {
     private lazy val pairElemType = baseTypeElem | arrayTypeElem | "pair"
     private lazy val baseTypeElem = baseType
     private lazy val arrayTypeElem = arrayType
+    
 
     // -------------------------- Expressions --------------------------
     private lazy val expr = Expr.lift(uOper)

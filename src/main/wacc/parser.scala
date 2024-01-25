@@ -7,6 +7,8 @@ import parsley.syntax._
 
 import lexer.implicits.implicitSymbol
 import lexer.{integer, fully}
+import _empty_.Skip
+import _empty_.CallRValue
 
 object parser {
     
@@ -15,20 +17,43 @@ object parser {
 
     // TODO? : All implicits "x" may need to be replaced with lexer.keyword("x")
     // TODO? : Implicits parenthesis "(" ~> x <~ ")" may be replaced with lexer.parens(x)
+    // TODO? : Statements may need more than one parsers
 
     // -------------------------- Statements -------------------------
     private lazy val prog = Program.lift("begin" ~> many(func) , stmt <~ "end")
     private lazy val func = Func.lift(allType, ident, "(" ~> paramList <~ ")", "is" ~> stmt <~ "end")
     private lazy val paramList = ???
     private lazy val param = Param.lift(allType, ident)
-    private lazy val stmt = "skip" | Assignment.lift(allType, ident, "=" ~> rValue)
+    private lazy val stmt = 
+        SeqStmt.lift(stmt <~ ";", stmt) |
+        "skip" ~> Skip |
+        newAssignment.lift(allType, ident, "=" ~> rValue) |
+        Assignment.lift(lValue, "=" ~> rValue) |
+        "read" ~> Read.lift(lValue) |
+        "free" ~> Free.lift(expr) |
+        "return" ~> Return.lift(expr) |
+        "exit" ~> Exit.lift(expr) |
+        "print" ~> Print.lift(expr, false) |
+        "println" ~> Print.lift(expr, true) |
+        If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt) |
+        While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
+        Begin.lift("begin" ~> stmt <~ "end")
+    private lazy val lValue = IdentLValue.lift(ident) | ArrayElemLValue.lift(arrElem) | PairElemLValue.lift(pairElem)
+    private lazy val rValue = 
+        ExprRValue.lift(expr) | 
+        ArrayLiterRValue.lift(arrLiter) | 
+        NewPairRValue.lift("newpair" ~> "(" ~> expr, "," ~> expr <~ ")") |
+        FstPairElemRValue.lift("fst" ~> lValue) |
+        SndPairElemRValue.lift("snd" ~> lValue) |
+        CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")")
+    private lazy val argsList = ???
+    private lazy val arrLiter = ???
 
-
-    // -------------------------- Types ----------- ---------------
+    // -------------------------- Types ---------------------------
     private lazy val allType = BaseType.lift(baseType) | ArrayType.lift(arrayType) | PairType.lift(pairType)
-    private lazy val baseType = lexer."int" | "bool" | "char" | "string"
-    private lazy val arrayType = 
-    private lazy val pairType
+    private lazy val baseType = "int" | "bool" | "char" | "string"
+    private lazy val arrayType = ???
+    private lazy val pairType = ???
 
     
 

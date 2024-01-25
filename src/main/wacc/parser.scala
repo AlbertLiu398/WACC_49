@@ -50,10 +50,14 @@ object parser {
     private lazy val arrLiter = ???
 
     // -------------------------- Types ---------------------------
-    private lazy val allType = BaseType.lift(baseType) | ArrayType.lift(arrayType) | PairType.lift(pairType)
+    private lazy val allType = baseType | arrayType | pairType
     private lazy val baseType = "int" | "bool" | "char" | "string"
-    private lazy val arrayType = ???
-    private lazy val pairType = ???
+    private lazy val arrayType = ArrayType.lift(allType ~> '[' ~> ']')
+    private lazy val pairType = PairType.lift("pair" ~> '(' pairElemType, ',' ~> pairElemType <~ ')')
+
+    private lazy val pairElemType = baseTypeElem | arrayTypeElem | "pair"
+    private lazy val baseTypeElem = baseType
+    private lazy val arrayTypeElem = arrayType
 
     
 

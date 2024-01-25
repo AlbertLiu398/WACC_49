@@ -37,7 +37,6 @@ object lexer {
             positiveSign = numeric.PlusSignPresence.Optional,
             integerNumbersCanBeHexadecimal = true,
 
-            //
             integerNumbersCanBeOctal = false, 
 
             integerNumbersCanBeBinary = false,
@@ -57,16 +56,6 @@ object lexer {
         ),
 
     )
-
-    val keywords: Set[String] = Set(
-        "int ", "bool ", "char ", "string ", "pair ", "null ", "skip", "read ", "free ", "return ", 
-        "exit ", "print", "println", "if ", "then ", "else ", "fi", "while ", "do ", "is",
-        "done", "begin", "end", "call", "fst ", "snd ", "newpair", "true", "false",
-        ";" , "(", ")", "{", "}", "[", "]", ",",
-        "!","-", "len", "ord", "chr", 
-        "+", "-", "*", "/", "%","<", ">", "<=", ">=", "=", "==", "!=","&&", "||"
-    )
-
 
     private val lexer = new Lexer(desc)
 

@@ -9,8 +9,8 @@ object lexer {
     private val desc = LexicalDesc.plain.copy(
         // your configuration goes here
         nameDesc = NameDesc.plain.copy(
-            identifierStart = predicate.Basic(_.isLetter || _ == "_"),
-            identifierLetter = predicate.Basic(_.isLetterOrDigit || _ == "_"),
+            identifierStart = predicate.Basic( c => c.isLetter | c == '_'),
+            identifierLetter = predicate.Basic(c => c.isLetterOrDigit | c == "_"),
         ),
         symbolDesc = SymbolDesc.plain.copy(
             caseSensitive = true,
@@ -77,7 +77,8 @@ object lexer {
     val char = lexer.lexeme.character.ascii
     
     val identifier = lexer.lexeme.names.identifier
-    val newline = lexer.lexeme(newline).void
+    //TODO : not compile yet
+    // val newline: Lexeme[Unit] = lexer.lexeme(newline).void
     def fully[A](p: Parsley[A]): Parsley[A] = lexer.fully(p)
 }
 

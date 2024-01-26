@@ -9,6 +9,8 @@ import lexer.implicits.implicitSymbol
 import lexer.{integer, fully}
 import _empty_.Skip
 import _empty_.CallRValue
+import _empty_.BaseType
+import _empty_.pairElemType
 
 object parser {
     
@@ -50,12 +52,12 @@ object parser {
     private lazy val arrLiter = ???
 
     // -------------------------- Types ---------------------------
-    private lazy val allType = baseType | arrayType | pairType
-    private lazy val baseType = "int" | "bool" | "char" | "string"
+    private lazy val allType = Type.lift(baseType | arrayType | pairType)
+    private lazy val baseType = BaseType.lift("int" | "bool" | "char" | "string")
     private lazy val arrayType = ArrayType.lift(allType <~ '[' <~ ']')
     private lazy val pairType = PairType.lift("pair" ~> '(' ~> pairElemType, ',' ~> pairElemType <~ ')')
 
-    private lazy val pairElemType = baseTypeElem | arrayTypeElem | "pair"
+    private lazy val pairElemType = PairElemType.lift(baseTypeElem | arrayTypeElem | "pair")
     private lazy val baseTypeElem = baseType
     private lazy val arrayTypeElem = arrayType
 

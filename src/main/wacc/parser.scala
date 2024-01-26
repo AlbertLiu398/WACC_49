@@ -6,24 +6,30 @@ import parsley.Parsley._
 import parsley.syntax._
 
 import lexer.implicits.implicitSymbol
-import lexer.{integer, fully}
-
-// import ASTNode.Skip
-// import ASTNode.CallRValue
-// import ASTNode.BaseType
-// import ASTNode.pairElemType
+import lexer.{integer, fully, identifier}
 import ast._
+
 object parser {
-    import parsley.syntax.lift.{Lift1, Lift2, Lift3}
+    import parsley.syntax.lift.{Lift1, Lift2, Lift3, Lift4}
     def parse(input: String): Result[String, BigInt] = parser.parse(input)
     private val parser = fully(prog)
+
+    // -------------------------- Literals -------------------------
+    private lazy val intLiter = integer.map(IntLiter)
+    private lazy val ident = identifier.map(Ident)
+    private lazy val boolLiter = bool.map(BoolLiter)
+    private lazy val charLiter = char.map(CharLiter)
+    private lazy val stringLiter = string.map(StringLiter)
+
+    private lazy val bool = "true" #> true | "false" #> false
+ 
 
     // TODO : All implicits "x" may need to be replaced with lexer.keyword("x")
     // TODO : Implicits parenthesis "(" ~> x <~ ")" may be replaced with lexer.parens(x)
     // TODO : Statements may need more than one parsers
 
     // -------------------------- Statements -------------------------
-    private lazy val prog = Program.lift("begin" ~> many(func) , stmt <~ "end")
+    private lazy val prog : Parsley[Program] = Program.lift("begin" ~> many(func) , stmt <~ "end")
     private lazy val func = Func.lift(allType, ident, "(" ~> paramList <~ ")", "is" ~> stmt <~ "end")
     private lazy val paramList = ???
     private lazy val param = Param.lift(allType, ident)

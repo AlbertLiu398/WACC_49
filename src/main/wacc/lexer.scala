@@ -64,9 +64,9 @@ object lexer {
     val intOrFloat = lexer.lexeme.unsignedCombined.number
     val string = lexer.lexeme.string.ascii
     val char = lexer.lexeme.character.ascii
-    
     val identifier = lexer.lexeme.names.identifier
     val implicits = lexer.lexeme.symbol.implicits
+    val bool = lex
     //TODO : not compile yet
     // val newline: Lexeme[Unit] = lexer.lexeme(newline).void
     def fully[A](p: Parsley[A]): Parsley[A] = lexer.fully(p)

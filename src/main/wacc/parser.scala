@@ -16,9 +16,9 @@ object parser {
     def parse(input: String): Result[String, BigInt] = parser.parse(input)
     private val parser = fully(prog)
 
-    // TODO? : All implicits "x" may need to be replaced with lexer.keyword("x")
-    // TODO? : Implicits parenthesis "(" ~> x <~ ")" may be replaced with lexer.parens(x)
-    // TODO? : Statements may need more than one parsers
+    // TODO : All implicits "x" may need to be replaced with lexer.keyword("x")
+    // TODO : Implicits parenthesis "(" ~> x <~ ")" may be replaced with lexer.parens(x)
+    // TODO : Statements may need more than one parsers
 
     // -------------------------- Statements -------------------------
     private lazy val prog = Program.lift("begin" ~> many(func) , stmt <~ "end")
@@ -52,6 +52,7 @@ object parser {
 
     // -------------------------- Types ---------------------------
     private lazy val allType = baseType | arrayType | pairType
+    private lazy val allType = baseType | arrayType | pairType
     private lazy val baseType = "int" | "bool" | "char" | "string"
     private lazy val arrayType = ArrayType.lift(allType ~> '[' ~> ']')
     private lazy val pairType = PairType.lift("pair" ~> '(' pairElemType, ',' ~> pairElemType <~ ')')
@@ -67,6 +68,11 @@ object parser {
     private lazy val uOper =
     private lazy val bOper = 
     private lazy val arrElem = 
+    // private lazy val expr = Expr.lift(uOper)
+    // private lazy val atom =  ArrayElemLValue.lift(arrElem) | PairElemLValue.lift(pairElem) | ident | integer | char | string
+    private lazy val uOper =  "!" | "-" | "len" | "ord" | "chr"
+    private lazy val bOper = "*" | "/" | "%" | "+" | "-" | "<" | ">" | "<=" | ">=" | "==" | "!=" | "&&" | "||"
+    private lazy val arrElem = ArrElem.lift(ident, '[' ~> expr <~ ']')
 
 
     

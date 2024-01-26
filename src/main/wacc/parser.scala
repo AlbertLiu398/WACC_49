@@ -6,7 +6,7 @@ import parsley.Parsley._
 import parsley.syntax._
 
 import lexer.implicits.implicitSymbol
-import lexer.{integer, fully, identifier}
+import lexer._
 import ast._
 
 object parser {
@@ -17,12 +17,10 @@ object parser {
     // -------------------------- Literals -------------------------
     private lazy val intLiter = integer.map(IntLiter)
     private lazy val ident = identifier.map(Ident)
-    private lazy val boolLiter = bool.map(BoolLiter)
+    private lazy val boolLiter = "true" ~> BoolLiter(true) | "false" ~> BoolLiter(false)
     private lazy val charLiter = char.map(CharLiter)
     private lazy val stringLiter = string.map(StringLiter)
 
-    private lazy val bool = "true" #> true | "false" #> false
- 
 
     // TODO : All implicits "x" may need to be replaced with lexer.keyword("x")
     // TODO : Implicits parenthesis "(" ~> x <~ ")" may be replaced with lexer.parens(x)
@@ -61,8 +59,8 @@ object parser {
     // -------------------------- Types ---------------------------
     private lazy val allType = baseType | arrayType | pairType
     private lazy val baseType = BaseType.lift("int" | "bool" | "char" | "string")
-    private lazy val arrayType = ArrayType.lift(allType <~ '[' <~ ']')
-    private lazy val pairType = PairType.lift("pair" ~> '(' ~> pairElemType, ',' ~> pairElemType <~ ')')
+    private lazy val arrayType = ArrayType.lift(allType <~ "[" <~ "]")
+    private lazy val pairType = PairType.lift("pair" ~> "(" ~> pairElemType, "," ~> pairElemType <~ ")")
 
     private lazy val pairElemType = baseTypeElem | arrayTypeElem | "pair"
     private lazy val baseTypeElem = baseType

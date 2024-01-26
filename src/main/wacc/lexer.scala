@@ -63,10 +63,22 @@ object lexer {
     val floating = lexer.lexeme.floating.number
     val intOrFloat = lexer.lexeme.unsignedCombined.number
     val string = lexer.lexeme.string.ascii
-    val char = lexer.lexeme.character.ascii
+    val graphicCharacter = lexer.lexeme.character.ascii
     val identifier = lexer.lexeme.names.identifier
     val implicits = lexer.lexeme.symbol.implicits
-    val bool = lex
+    val va
+    // val escapeChar = choice(
+    //     '0' ~> '\u0000',
+    //     'b' ~> '\b',
+    //     't' ~> '\t',
+    //     'n' ~> '\n',
+    //     'f' ~> '\f',
+    //     'r' ~> '\r',
+    //     '"' ~> '\"',
+    //     '\'',
+    //     '\\'
+    // )
+
     //TODO : not compile yet
     // val newline: Lexeme[Unit] = lexer.lexeme(newline).void
     def fully[A](p: Parsley[A]): Parsley[A] = lexer.fully(p)

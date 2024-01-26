@@ -34,7 +34,7 @@ object ast{
     case class NewPairRValue(first: Expr, second: Expr) extends RValue
     case class FstPairElemRValue(value: LValue) extends RValue
     case class SndPairElemRValue(value: LValue) extends RValue
-    case class CallRValue(func: String, args: List[Expr]) extends RValue
+    case class CallRValue(func: Ident, args: List[Expr]) extends RValue
 
     sealed trait Stmt extends ASTNode
     case object Skip extends Stmt
@@ -51,13 +51,13 @@ object ast{
     case class SeqStmt(left: Stmt, right: Stmt) extends Stmt
 
     sealed trait Liter extends ASTNode
-    case class IntLiter(value: Int) extends Liter
+    case class IntLiter(value: BigInt) extends Liter
     case class BoolLiter(value: Boolean) extends Liter
     case class CharLiter(value: Char) extends Liter
     case class StringLiter(value: String) extends Liter
 
     case class Ident(value: String) extends ASTNode
-    case class Param(paramType: Type, paramName: String) extends ASTNode
+    case class Param(paramType: Type, paramName: Ident) extends ASTNode
     case class Func(returnType: Type, functionName: Ident, params: List[Param], body: Stmt) extends ASTNode
     case class Program(functions: List[Func], statements: Stmt) extends ASTNode
 

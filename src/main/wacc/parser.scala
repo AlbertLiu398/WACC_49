@@ -7,13 +7,14 @@ import parsley.syntax._
 
 import lexer.implicits.implicitSymbol
 import lexer.{integer, fully}
-import _empty_.Skip
-import _empty_.CallRValue
-import _empty_.BaseType
-import _empty_.pairElemType
+
+// import ASTNode.Skip
+// import ASTNode.CallRValue
+// import ASTNode.BaseType
+// import ASTNode.pairElemType
 
 object parser {
-    
+    import ast._
     def parse(input: String): Result[String, BigInt] = parser.parse(input)
     private val parser = fully(prog)
 

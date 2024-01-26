@@ -12,9 +12,9 @@ import lexer.{integer, fully}
 // import ASTNode.CallRValue
 // import ASTNode.BaseType
 // import ASTNode.pairElemType
-
+import ast._
 object parser {
-    import ast._
+    import parsley.syntax.lift.{Lift1, Lift2, Lift3}
     def parse(input: String): Result[String, BigInt] = parser.parse(input)
     private val parser = fully(prog)
 
@@ -53,12 +53,12 @@ object parser {
     private lazy val arrLiter = ???
 
     // -------------------------- Types ---------------------------
-    private lazy val allType = Type.lift(baseType | arrayType | pairType)
+    private lazy val allType = baseType | arrayType | pairType
     private lazy val baseType = BaseType.lift("int" | "bool" | "char" | "string")
     private lazy val arrayType = ArrayType.lift(allType <~ '[' <~ ']')
     private lazy val pairType = PairType.lift("pair" ~> '(' ~> pairElemType, ',' ~> pairElemType <~ ')')
 
-    private lazy val pairElemType = PairElemType.lift(baseTypeElem | arrayTypeElem | "pair")
+    private lazy val pairElemType = baseTypeElem | arrayTypeElem | "pair"
     private lazy val baseTypeElem = baseType
     private lazy val arrayTypeElem = arrayType
 

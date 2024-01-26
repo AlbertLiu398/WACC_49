@@ -1,6 +1,7 @@
 package wacc
 
 import parsley.Parsley
+import parsley.combinator._
 import parsley.token.{Lexer, predicate}
 import parsley.token.descriptions._
 import scala.collection.mutable.ListBuffer
@@ -66,9 +67,9 @@ object lexer {
     val graphicCharacter = lexer.lexeme.character.ascii
     val identifier = lexer.lexeme.names.identifier
     val implicits = lexer.lexeme.symbol.implicits
-    val va
+    
     // val escapeChar = choice(
-    //     '0' ~> '\u0000',
+    //     '0' >> '\u0000',
     //     'b' ~> '\b',
     //     't' ~> '\t',
     //     'n' ~> '\n',

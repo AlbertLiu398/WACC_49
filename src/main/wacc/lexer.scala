@@ -53,7 +53,6 @@ object lexer {
             characterLiteralEnd = '\'',
             stringEnds = Set(("\"", "\"")),
             multiStringEnds = Set(("\"\"\"", "\"\"\"")),
-            // graphicCharacter = "",
         ),
 
     )

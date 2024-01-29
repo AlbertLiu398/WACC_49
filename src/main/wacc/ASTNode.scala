@@ -36,8 +36,8 @@ object ast{
     case class ArrayLiterRValue(expressions: List[Expr]) extends RValue
     case class CallRValue(func: Ident, args: List[Expr]) extends RValue
     
-    // case class ArgList(es: List[Expr]) extends ASTNode
-    // case class ArrLiter
+    case class ArgList(es: List[Expr]) extends ASTNode
+    case class ArrLiter(e: Expr, es: List[Expr]) extends ASTNode
 
     sealed trait Stmt extends ASTNode
     case object Skip extends Stmt

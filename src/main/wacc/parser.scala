@@ -59,9 +59,9 @@ object parser {
         CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")")
     
     
-    // private lazy val argsList: Parsley[ArgList] = ArgList.lift(lexer.commaSep(expr))
-    // private lazy val arrLiter = ???
-    // private lazy val arrLiterOrExpr
+    private lazy val argsList: Parsley[ArgList] = ArgList.lift(lexer.commaSep(expr))
+    private lazy val arrLiter = ???
+    private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
     // -------------------------- Types ---------------------------
     private lazy val allType: Parsley[Type] = baseType | arrayType | pairType

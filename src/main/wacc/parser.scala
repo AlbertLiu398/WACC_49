@@ -57,14 +57,17 @@ object parser {
     // private lazy val arrLiter = ???
 
     // -------------------------- Types ---------------------------
-    private lazy val allType = baseType | arrayType | pairType
-    private lazy val baseType = BaseType.lift("int" | "bool" | "char" | "string")
-    private lazy val arrayType = ArrayType.lift(allType <~ "[" <~ "]")
-    private lazy val pairType = PairType.lift("pair" ~> "(" ~> pairElemType, "," ~> pairElemType <~ ")")
+    private lazy val allType: Parsley[Type] = baseType | arrayType | pairType
 
-    private lazy val pairElemType = baseTypeElem | arrayTypeElem | "pair"
-    private lazy val baseTypeElem = baseType
-    private lazy val arrayTypeElem = arrayType
+    private lazy val baseType: Parsley[Type] = "int" #> BaseType("int") | "bool" #> BaseType("bool") | "char" #> BaseType("char") | "string" #> BaseType("string")
+    private lazy val arrayType: Parsley[Type] = ArrayType.lift(allType <~ "[" <~ "]")
+    private lazy val pairType: Parsley[Type] = PairType.lift("pair" ~> "(" ~> pairElemType, "," ~> pairElemType <~ ")")
+
+    private lazy val pairElemType: Parsley[PairElemType] = baseTypeElem | arrayTypeElem | pairTypeElem
+    private lazy val baseTypeElem: Parsley[PairElemType] = "int" #> BaseTypeElem("int") | "bool" #> BaseTypeElem("bool") | "char" #> BaseTypeElem("char") | "string" #> BaseTypeElem("string")
+    private lazy val arrayTypeElem: Parsley[PairElemType] = ArrayTypeElem.lift(allType <~ "[" <~ "]")
+    private lazy val pairTypeElem: Parsley[PairElemType] = "pair" #> PairTypeElem
+    
 
 
     // -------------------------- Expressions --------------------------
@@ -72,7 +75,7 @@ object parser {
     // private lazy val atom =  ArrayElemLValue.lift(arrElem) | PairElemLValue.lift(pairElem) | ident | integer | char | string
     private lazy val uOper =  "!" | "-" | "len" | "ord" | "chr"
     private lazy val bOper = "*" | "/" | "%" | "+" | "-" | "<" | ">" | "<=" | ">=" | "==" | "!=" | "&&" | "||"
-    private lazy val arrElem = ArrElem.lift(ident, '[' ~> expr <~ ']')
+    private lazy val arrElem = ArrElem.lift(ident, "[" ~> expr <~ "]")
 
 
     

@@ -31,7 +31,7 @@ object parser {
     // -------------------------- Statements -------------------------
     private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func) , stmt <~ "end")
     private lazy val func: Parsley[Func] = Func.lift(allType, ident, "(" ~> paramList <~ ")", "is" ~> stmt <~ "end")
-    private lazy val paramList = ???
+    private lazy val paramList: Parsley[ParamList] = ParamList.lift(commaSep_(param))
     private lazy val param = Param.lift(allType, ident)
     private lazy val stmt: Parsley[Stmt] = 
         SeqStmt.lift(stmt <~ ";", stmt) |
@@ -47,7 +47,8 @@ object parser {
         If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt) |
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
-    private lazy val lValue: Parsley[LValue] = IdentLValue.lift(ident) | arr | pairElem
+    private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
+    private lazy val lValue: Parsley[LValue] = IdentLValue.lift(ident) | arrl | pairElem
     private lazy val pairElem: Parsley[LValue] = "fst" ~> PairElem.lift("fst", lValue) | "snd" ~> PairElem.lift("snd", lValue)
 
     private lazy val rValue = 
@@ -58,9 +59,8 @@ object parser {
         SndPairElemRValue.lift("snd" ~> lValue) |
         CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")")
     
-    
-    private lazy val argsList: Parsley[ArgList] = ArgList.lift(lexer.commaSep(expr))
-    private lazy val arrLiter = ???
+    private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep_(exprOrArrayLit))
+    private lazy val arrLiter: Parsley[ArrLiter] = "[]" #> ArrLiter(null, List()) <|> ArrLiter.lift("[" ~> exprOrArrayLit, commaSep_(exprOrArrayLit) <~ "]")
     private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
     // -------------------------- Types ---------------------------
@@ -78,14 +78,13 @@ object parser {
 
 
     // -------------------------- Expressions --------------------------
+    // TODO : deal with ATOM !!! 
     private lazy val expr: Parsley[Expr]= UnaryOperation.lift(uOper, expr) | BinaryOperation.lift(bOper, expr, expr) | atom
-    private lazy val atom =  intLiter | boolLiter | charLiter | stringLiter | pairLiter | ident | "(" ~> expr <~ ")" | arr
-    private lazy val uOper =  "!" #> Uopr("!") | "-"  #> Uopr("-") | "len" #> Uopr("len") |  "ord" #> Uopr("ord")| "chr" #> Uopr("chr")
-    private lazy val bOper = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
+    // TODO : add atom type 
+    private lazy val atom =  intLiter | boolLiter | charLiter | stringLiter | pairLiter | ident | arr
+    private lazy val uOper: Parsley[UOper]  =  "!" #> UOper("!") | "-"  #> UOper("-") | "len" #> UOper("len") |  "ord" #> UOper("ord")| "chr" #> UOper("chr")
+    private lazy val bOper: Parsley[BOper] = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
                             "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 
                             ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||")
-    private lazy val arr = ArrElem.lift(ident, some("[" ~> expr <~ "]"))
-
-
-
+    private lazy val arr: Parsley[ArrElem] = ArrElem.lift(ident, some("[" ~> expr <~ "]"))
 }

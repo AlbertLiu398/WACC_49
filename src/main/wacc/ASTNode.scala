@@ -16,29 +16,27 @@ object ast{
     case class UnaryOperation(operator: UnaryOperator, expr: Expr) extends Expr
     case class BinaryOperation(operator: BinaryOperator, left: Expr, right: Expr) extends Expr
     case class Atom(value: String) extends Expr
-    // case class ArrayLiter(e: Expr, eList: List[Expr]) extends Expr
+    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr
+    case class ArrElem(name: Ident, value: List[Expr]) extends Expr
     
     sealed trait UnaryOperator extends ASTNode
-    case class Uopr(name: String) extends UnaryOperator
+    case class UOper(name: String) extends UnaryOperator
 
     sealed trait BinaryOperator extends ASTNode
     case class BOper(name: String) extends BinaryOperator
 
     sealed trait LValue extends ASTNode
     case class IdentLValue(name: Ident) extends LValue
-    case class ArrElem(name: Ident, value: List[Expr]) extends LValue
+    case class ArrElemLValue(name: Ident, value: List[Expr]) extends LValue
     case class PairElemLValue(access: PairElem,lvalue: LValue) extends LValue
     case class PairElem(option: String, values: LValue) extends LValue
 
     sealed trait RValue extends ASTNode
     case class ExprRValue(expr: Expr) extends RValue
     case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue 
-    case class ArrayLiterRValue(expressions: List[Expr]) extends RValue
-    case class CallRValue(func: Ident, args: List[Expr]) extends RValue
+    case class ArrayLiterRValue(expressions: ArrLiter) extends RValue
+    case class CallRValue(func: Ident, args: ArgList) extends RValue
     
-    case class ArgList(es: List[Expr]) extends ASTNode
-    case class ArrLiter(e: Expr, es: List[Expr]) extends ASTNode
-
     sealed trait Stmt extends ASTNode
     case object Skip extends Stmt
     case class NewAssignment(identType: Type, name: Ident, value: ASTNode) extends Stmt
@@ -62,7 +60,9 @@ object ast{
 
     case class Ident(value: String) extends ASTNode
     case class Param(paramType: Type, paramName: Ident) extends ASTNode
-    case class Func(returnType: Type, functionName: Ident, params: List[Param], body: Stmt) extends ASTNode
+    case class ParamList(paramListType: List[Param]) extends ASTNode
+    case class ArgList(exprl: List[Expr]) extends ASTNode
+    case class Func(returnType: Type, functionName: Ident, params: ParamList, body: Stmt) extends ASTNode
     case class Program(functions: List[Func], statements: Stmt) extends ASTNode
 }
 

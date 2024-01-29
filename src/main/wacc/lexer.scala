@@ -66,6 +66,7 @@ object lexer {
     val graphicCharacter = lexer.lexeme.character.ascii
     val identifier = lexer.lexeme.names.identifier
     val implicits = lexer.lexeme.symbol.implicits
+    def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
     // val escapeChar = choice(
     //     '0' #> '\u0000',
     //     'b' #> '\b',

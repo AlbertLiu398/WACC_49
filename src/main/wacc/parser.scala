@@ -19,7 +19,9 @@ object parser {
     private lazy val ident = identifier.map(Ident)
     private lazy val boolLiter = ("true" #> BoolLiter(true)) <|> ("false" #> BoolLiter(false))
     private lazy val charLiter = graphicCharacter.map(CharLiter)
+    // private lazy val charLiter = between(char('\''), "'", character.map(CharLiter))
     private lazy val stringLiter = string.map(StringLiter)
+    private lazy val pairLiter = "null" #> PairLiter
 
 
     // TODO : All implicits "x" may need to be replaced with lexer.keyword("x")
@@ -27,25 +29,29 @@ object parser {
     // TODO : Statements may need more than one parsers
 
     // -------------------------- Statements -------------------------
-    private lazy val prog : Parsley[Program] = Program.lift("begin" ~> many(func) , stmt <~ "end")
-    private lazy val func = Func.lift(allType, ident, "(" ~> paramList <~ ")", "is" ~> stmt <~ "end")
+    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func) , stmt <~ "end")
+    private lazy val func: Parsley[Func] = Func.lift(allType, ident, "(" ~> paramList <~ ")", "is" ~> stmt <~ "end")
     private lazy val paramList = ???
     private lazy val param = Param.lift(allType, ident)
-    private lazy val stmt = 
+    private lazy val stmt: Parsley[Stmt] = 
         SeqStmt.lift(stmt <~ ";", stmt) |
-        "skip" ~> Skip |
-        newAssignment.lift(allType, ident, "=" ~> rValue) |
+        "skip" #> Skip |
+        NewAssignment.lift(allType, ident, "=" ~> rValue) |
         Assignment.lift(lValue, "=" ~> rValue) |
         "read" ~> Read.lift(lValue) |
         "free" ~> Free.lift(expr) |
         "return" ~> Return.lift(expr) |
         "exit" ~> Exit.lift(expr) |
-        "print" ~> Print.lift(expr, false) |
-        "println" ~> Print.lift(expr, true) |
+        "print" ~> Print.lift(expr, pure(false)) |
+        "println" ~> Print.lift(expr, pure(true)) |
         If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt) |
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
-    private lazy val lValue = IdentLValue.lift(ident) | ArrayElemLValue.lift(arrElem) | PairElemLValue.lift(pairElem)
+    private lazy val lValue = IdentLValue.lift(ident) | ArrayElemLValue.lift(arrElem) | pairElem
+    private lazy val pairElem = fstPairElemRValue | sndPairElemRValue
+    private lazy val fstPairElemRValue = FstPairElemRValue(lValue)
+    private lazy val sndPairElemRValue = SndPairElemRValue(lValue)
+
     private lazy val rValue = 
         ExprRValue.lift(expr) | 
         ArrayLiterRValue.lift(arrLiter) | 
@@ -71,23 +77,14 @@ object parser {
 
 
     // -------------------------- Expressions --------------------------
-    // private lazy val expr = Expr.lift(uOper)
-    // private lazy val atom =  ArrayElemLValue.lift(arrElem) | PairElemLValue.lift(pairElem) | ident | integer | char | string
-    private lazy val uOper =  "!" | "-" | "len" | "ord" | "chr"
-    private lazy val bOper = "*" | "/" | "%" | "+" | "-" | "<" | ">" | "<=" | ">=" | "==" | "!=" | "&&" | "||"
-    private lazy val arrElem = ArrElem.lift(ident, "[" ~> expr <~ "]")
+    private lazy val expr = UnaryOperation.lift(uOper, expr) | BinaryOperation.lift(bOper, expr, expr) | atom
+    private lazy val atom =  intLiter | boolLiter | charLiter | stringLiter | pairLiter | ident | "(" ~> expr <~ ")" | arr
+    private lazy val uOper =  "!" #> Uopr("!") | "-"  #> Uopr("-") | "len" #> Uopr("len") |  "ord" #> Uopr("ord")| "chr" #> Uopr("chr")
+    private lazy val bOper = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
+                            "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 
+                            ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||")
+    private lazy val arr = arrElem.lift(ident, some("[" ~> expr <~ "]"))
 
 
-    
 
-
-   
-
-    private val add = (x: BigInt, y: BigInt) => x + y
-    private val sub = (x: BigInt, y: BigInt) => x - y
-
-    private lazy val expr: Parsley[BigInt] =
-        chain.left1(integer | "(" ~> expr <~ ")")(
-            ("+" as add) | ("-" as sub)
-        )
 }

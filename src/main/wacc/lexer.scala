@@ -67,18 +67,18 @@ object lexer {
     val graphicCharacter = lexer.lexeme.character.ascii
     val identifier = lexer.lexeme.names.identifier
     val implicits = lexer.lexeme.symbol.implicits
-    
     // val escapeChar = choice(
-    //     '0' >> '\u0000',
-    //     'b' ~> '\b',
-    //     't' ~> '\t',
-    //     'n' ~> '\n',
-    //     'f' ~> '\f',
-    //     'r' ~> '\r',
-    //     '"' ~> '\"',
+    //     '0' #> '\u0000',
+    //     'b' #> '\b',
+    //     't' #> '\t',
+    //     'n' #> '\n',
+    //     'f' #> '\f',
+    //     'r' #> '\r',
+    //     '"' #> '\"',
     //     '\'',
     //     '\\'
     // )
+    // val character = noneof('\\', '\', '"') <\> ("\\" *> escapeChar)
 
     //TODO : not compile yet
     // val newline: Lexeme[Unit] = lexer.lexeme(newline).void

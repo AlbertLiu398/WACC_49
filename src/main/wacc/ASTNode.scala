@@ -13,27 +13,30 @@ object ast{
     case object PairTypeElem extends PairElemType
 
     sealed trait Expr extends ASTNode
-    case class UnaryOperation(operator: String, expr: Expr) extends Expr
-    case class BinaryOperation(operator: String, left: Expr, right: Expr) extends Expr
+    case class UnaryOperation(operator: UnaryOperator, expr: Expr) extends Expr
+    case class BinaryOperation(operator: BinaryOperator, left: Expr, right: Expr) extends Expr
     case class Atom(value: String) extends Expr
-    case class ArrayElem(ident: String, indices: List[Expr]) extends Expr
-    case class ArrayLiter(expressions: List[Expr]) extends Expr
-    case class PairElemAccess(operation: String, lvalue: LValue) extends Expr
-    case class PairElem(ident: String, elemType: PairElemType) extends Expr
-    case class NewPair(first: Expr, second: Expr) extends Expr
-    case class Call(func: String, args: List[Expr]) extends Expr
+    
+    sealed trait UnaryOperator extends ASTNode
+    case class Uopr(name: String) extends UnaryOperator
+
+    sealed trait BinaryOperator extends ASTNode
+    case class BOper(name: String) extends BinaryOperator
 
     sealed trait LValue extends ASTNode
-    case class IdentLValue(name: String) extends LValue
+    case class IdentLValue(name: Ident) extends LValue
     case class ArrayElemLValue(ident: String, indices: List[Expr]) extends LValue
-    case class PairElemLValue(access: PairElemAccess, lvalue: LValue) extends LValue
+    case class PairElemLValue(access: PairElem,lvalue: LValue) extends LValue
+    
+    sealed trait PairElem extends ASTNode
+    case class FstPairElemRValue(value: LValue) extends PairElem
+    case class SndPairElemRValue(value: LValue) extends PairElem
+    
 
     sealed trait RValue extends ASTNode
     case class ExprRValue(expr: Expr) extends RValue
+    case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue 
     case class ArrayLiterRValue(expressions: List[Expr]) extends RValue
-    case class NewPairRValue(first: Expr, second: Expr) extends RValue
-    case class FstPairElemRValue(value: LValue) extends RValue
-    case class SndPairElemRValue(value: LValue) extends RValue
     case class CallRValue(func: Ident, args: List[Expr]) extends RValue
 
     sealed trait Stmt extends ASTNode
@@ -55,11 +58,12 @@ object ast{
     case class BoolLiter(value: Boolean) extends Liter
     case class CharLiter(value: Char) extends Liter
     case class StringLiter(value: String) extends Liter
+    case object PairLiter extends Liter
 
+    case class arrElem(name: Ident, value: List[Expr]) extends ASTNode
     case class Ident(value: String) extends ASTNode
     case class Param(paramType: Type, paramName: Ident) extends ASTNode
     case class Func(returnType: Type, functionName: Ident, params: List[Param], body: Stmt) extends ASTNode
     case class Program(functions: List[Func], statements: Stmt) extends ASTNode
-
 }
 

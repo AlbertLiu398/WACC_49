@@ -49,14 +49,13 @@ object parser {
         Begin.lift("begin" ~> stmt <~ "end")
     private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
     private lazy val lValue: Parsley[LValue] = IdentLValue.lift(ident) | arrl | pairElem
-    private lazy val pairElem: Parsley[LValue] = "fst" ~> PairElem.lift("fst", lValue) | "snd" ~> PairElem.lift("snd", lValue)
+    private lazy val pairElem = "fst" ~> PairElem.lift(pure("fst"), lValue) | "snd" ~> PairElem.lift(pure("snd"), lValue)
 
     private lazy val rValue = 
         ExprRValue.lift(expr) | 
         ArrayLiterRValue.lift(arrLiter) | 
         NewPairRValue.lift("newpair" ~> "(" ~> expr, "," ~> expr <~ ")") |
-        FstPairElemRValue.lift("fst" ~> lValue) |
-        SndPairElemRValue.lift("snd" ~> lValue) |
+        pairElem |
         CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")")
     
     private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep_(exprOrArrayLit))
@@ -66,7 +65,7 @@ object parser {
     // -------------------------- Types ---------------------------
     private lazy val allType: Parsley[Type] = baseType | arrayType | pairType
 
-    private lazy val baseType: Parsley[Type] = "int" #> BaseType("int") | "bool" #> BaseType("bool") | "char" #> BaseType("char") | "string" #> BaseType("string")
+    private lazy val baseType: Parsley[Type] = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
     private lazy val arrayType: Parsley[Type] = ArrayType.lift(allType <~ "[" <~ "]")
     private lazy val pairType: Parsley[Type] = PairType.lift("pair" ~> "(" ~> pairElemType, "," ~> pairElemType <~ ")")
 
@@ -78,10 +77,8 @@ object parser {
 
 
     // -------------------------- Expressions --------------------------
-    // TODO : deal with ATOM !!! 
     private lazy val expr: Parsley[Expr]= UnaryOperation.lift(uOper, expr) | BinaryOperation.lift(bOper, expr, expr) | atom
-    // TODO : add atom type 
-    private lazy val atom =  intLiter | boolLiter | charLiter | stringLiter | pairLiter | ident | arr
+    private lazy val atom : Parsley[Expr] =  intLiter | boolLiter | charLiter | stringLiter | pairLiter | ident | arr
     private lazy val uOper: Parsley[UOper]  =  "!" #> UOper("!") | "-"  #> UOper("-") | "len" #> UOper("len") |  "ord" #> UOper("ord")| "chr" #> UOper("chr")
     private lazy val bOper: Parsley[BOper] = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
                             "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 

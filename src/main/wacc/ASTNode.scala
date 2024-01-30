@@ -15,7 +15,6 @@ object ast{
     sealed trait Expr extends ASTNode
     case class UnaryOperation(operator: UnaryOperator, expr: Expr) extends Expr
     case class BinaryOperation(operator: BinaryOperator, left: Expr, right: Expr) extends Expr
-    case class Atom(value: String) extends Expr
     case class ArrLiter(e: Expr, es: List[Expr]) extends Expr
     case class ArrElem(name: Ident, value: List[Expr]) extends Expr
     
@@ -28,8 +27,8 @@ object ast{
     sealed trait LValue extends ASTNode
     case class IdentLValue(name: Ident) extends LValue
     case class ArrElemLValue(name: Ident, value: List[Expr]) extends LValue
-    case class PairElemLValue(access: PairElem,lvalue: LValue) extends LValue
-    case class PairElem(option: String, values: LValue) extends LValue
+    
+    case class PairElem(option: String, values: LValue) extends LValue with RValue
 
     sealed trait RValue extends ASTNode
     case class ExprRValue(expr: Expr) extends RValue
@@ -51,14 +50,14 @@ object ast{
     case class Begin(stmt: Stmt) extends Stmt
     case class SeqStmt(left: Stmt, right: Stmt) extends Stmt
 
-    sealed trait Liter extends ASTNode
+    sealed trait Liter extends Expr
     case class IntLiter(value: BigInt) extends Liter
     case class BoolLiter(value: Boolean) extends Liter
     case class CharLiter(value: Char) extends Liter
     case class StringLiter(value: String) extends Liter
     case object PairLiter extends Liter
 
-    case class Ident(value: String) extends ASTNode
+    case class Ident(value: String) extends Expr
     case class Param(paramType: Type, paramName: Ident) extends ASTNode
     case class ParamList(paramListType: List[Param]) extends ASTNode
     case class ArgList(exprl: List[Expr]) extends ASTNode

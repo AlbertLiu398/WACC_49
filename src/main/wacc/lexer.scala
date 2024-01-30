@@ -11,7 +11,7 @@ object lexer {
         // your configuration goes here
         nameDesc = NameDesc.plain.copy(
             identifierStart = predicate.Basic( c => c.isLetter | c == '_'),
-            identifierLetter = predicate.Basic(c => c.isLetterOrDigit | c == "_"),
+            identifierLetter = predicate.Basic(c => c.isLetterOrDigit | c == '_'),
         ),
         symbolDesc = SymbolDesc.plain.copy(
             caseSensitive = true,

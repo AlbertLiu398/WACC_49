@@ -1,9 +1,10 @@
 package wacc
 
 import parsley.{Parsley, Result}
-import parsley.expr.chain
+import parsley.expr._
 import parsley.Parsley._
 import parsley.syntax._
+import scala.language.postfixOps
 
 import lexer.implicits.implicitSymbol
 import lexer._
@@ -64,9 +65,10 @@ object parser {
 
     // -------------------------- Types ---------------------------
     private lazy val allType: Parsley[Type] = baseType | arrayType | pairType
-
+    private lazy val notArrayType: Parsley[Type] = baseType | pairType
     private lazy val baseType: Parsley[Type] = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
-    private lazy val arrayType: Parsley[Type] = ArrayType.lift(allType <~ "[" <~ "]")
+    private lazy val arrayType: Parsley[Type] = chain.postfix(notArrayType)("[]".as(ArrayType))
+
     private lazy val pairType: Parsley[Type] = PairType.lift("pair" ~> "(" ~> pairElemType, "," ~> pairElemType <~ ")")
 
     private lazy val pairElemType: Parsley[PairElemType] = baseTypeElem | arrayTypeElem | pairTypeElem

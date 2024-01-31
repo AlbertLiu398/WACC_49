@@ -48,7 +48,7 @@ object ast{
     case class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) extends Stmt
     case class While(condition: Expr, body: Stmt) extends Stmt
     case class Begin(stmt: Stmt) extends Stmt
-    case class SeqStmt(left: Stmt, right: Stmt) extends Stmt
+    case class SeqStmt(first: Stmt, second: Stmt) extends Stmt
 
     sealed trait Liter extends Expr
     case class IntLiter(value: BigInt) extends Liter

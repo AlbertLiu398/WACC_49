@@ -31,11 +31,10 @@ object parser {
 
     // -------------------------- Statements -------------------------
     private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func) , stmt <~ "end")
-    private lazy val func: Parsley[Func] = Func.lift(allType, ident, "(" ~> paramList <~ ")", "is" ~> stmt <~ "end")
-    private lazy val paramList: Parsley[ParamList] = ParamList.lift(commaSep_(param))
+    private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, paramList, "is" ~> stmt <~ "end"))
+    private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep_(param)) <~ ")"
     private lazy val param = Param.lift(allType, ident)
-    private lazy val stmt: Parsley[Stmt] = 
-        SeqStmt.lift(stmt <~ ";", stmt) |
+    private lazy val stmtAtom: Parsley[Stmt] = 
         "skip" #> Skip |
         NewAssignment.lift(allType, ident, "=" ~> rValue) |
         Assignment.lift(lValue, "=" ~> rValue) |
@@ -48,6 +47,8 @@ object parser {
         If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt) |
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
+    private lazy val stmt = stmtAtom <* notFollowedBy(";") | stmtJoin
+    private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
     private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
     private lazy val lValue: Parsley[LValue] = IdentLValue.lift(ident) | arrl | pairElem
     private lazy val pairElem = "fst" ~> PairElem.lift(pure("fst"), lValue) | "snd" ~> PairElem.lift(pure("snd"), lValue)

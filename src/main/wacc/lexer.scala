@@ -15,12 +15,12 @@ object lexer {
         ),
         symbolDesc = SymbolDesc.plain.copy(
             caseSensitive = true,
-            hardKeywords = Set("null ", "skip", "read ", "free ", "return ", "exit ", "print", "println", 
-            "if ", "then ", "else ", "fi", "while ", "do ", "is","done", "begin", "end", "call", "fst ", 
-            "snd ", "newpair", "true", "false",";" , "(", ")", "{", "}", "[", "]", ","),
+            hardKeywords = Set("null", "skip", "read", "free", "return", "exit", "print", "println", 
+            "if", "then", "else", "fi", "while", "do", "is","done", "begin", "end", "call", "fst ", 
+            "snd", "newpair", "true", "false",";" , "(", ")", "{", "}", "[", "]", ","),
             hardOperators = Set("!","-", "len", "ord", "chr", 
-            "+", "-", "*", "/", "%","<", ">", "<=", ">=", "=", "==", "!=","&&", "||"),
-
+            "+", "-", "*", "/", "%","<", ">", "<=", ">=", "==", "!=","&&", "||"),
+            // "="
         ),
         spaceDesc = SpaceDesc.plain.copy(
             lineCommentStart = "//",

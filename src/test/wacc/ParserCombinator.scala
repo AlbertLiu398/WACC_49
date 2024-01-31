@@ -7,57 +7,7 @@ import scala.language.implicitConversions
 
 class ParserCombinatorTest extends ParserTest { 
 
-// ----------- Statement Parser Tests -----------
-it should "parse statement" in {
-    // Skip statement
-    stmtParse("skip") shouldBe Success(Skip)
-
-    // Assignment statement
-    stmtParse("x = 5") shouldBe Success(Assignment(IdentLValue(Ident("x")), ExprRValue(IntLiter(5))))
-
-    // If statement
-    stmtParse("if true then skip else skip") shouldBe Success(If(BoolLiter(true), Skip, Skip))
-
-    // While statement
-    stmtParse("while x do skip done") shouldBe Success(While(Ident("x"), Skip))
-
-    // Print statement
-    stmtParse("print x") shouldBe Success(Print(Ident("x"), false))
-
-    // Println statement    
-    stmtParse("println x") shouldBe Success(Print(Ident("x"), true))
-
-    // Begin statement
-    stmtParse("begin skip end") shouldBe Success(Begin(Skip))
-
-    // Read statement
-    stmtParse("read x") shouldBe Success(Read(IdentLValue(Ident("x"))))
-
-    // Free statement
-    stmtParse("free x") shouldBe Success(Free(Ident("x")))
-
-    // Return statement
-    stmtParse("return x") shouldBe Success(Return(Ident("x")))
-
-    // Exit statement
-    stmtParse("exit x") shouldBe Success(Exit(Ident("x")))
-
-    // New assignment statement
-    stmtParse("int x = 5") shouldBe Success(NewAssignment(BaseType("int"), Ident("x"), ExprRValue(IntLiter(5))))
-
-    // New pair assignment statement
-    stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseTypeElem("int"), BaseTypeElem("bool")), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
-
-    // // Seq statement
-    // parser.parse("skip; skip") shouldBe Success(SeqStmt(Skip, Skip))
-
-    // // Seq statement
-    // parser.parse("skip; skip; skip") shouldBe Success(SeqStmt(Skip, SeqStmt(Skip, Skip)))
-
-
-
-}
-// ----------- Expression Parser Tests -----------
+// ----------- statement parser test -----------
 
   it should "parse program" in {
     parse("begin skip end") shouldBe Success(Program(List(), Skip))

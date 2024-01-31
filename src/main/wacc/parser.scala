@@ -12,8 +12,38 @@ import ast._
 
 object parser {
     import parsley.syntax.lift.{Lift1, Lift2, Lift3, Lift4}
+
     def parse(input: String) = parser.parse(input)
+    def funcParse(input: String) = funcParser.parse(input)
+    def paramListParse(input: String) = paramListParser.parse(input)
+    def paramParse(input: String) = paramParser.parse(input)
+    def stmtParse(input: String) = stmtParser.parse(input)
+    def lValueParse(input: String) = lValueParser.parse(input)
+    def rValueParse(input: String) = rValueParser.parse(input)
+    def argsListParse(input: String) = argsListParser.parse(input)
+    def arrLiterParse(input: String) = arrLiterParser.parse(input)
+    def pairElemParse(input: String) = pairElemParser.parse(input)
+    def arrlParse(input: String) = arrlParser.parse(input)
+    def allTypeParse(input: String) = allTypeParser.parse(input)
+    def exprParse(input: String) = exprParser.parse(input)
+
+    
+
+    // -------------- Parser --------------
     private val parser = fully(prog)
+    private val funcParser = fully(func)
+    private val paramListParser = fully(paramList)
+    private val paramParser = fully(param)
+    private val stmtParser = fully(stmt)
+    private val lValueParser = fully(lValue)
+    private val rValueParser = fully(rValue)
+    private val argsListParser = fully(argsList)
+        private val arrLiterParser = fully(arrLiter)
+    private val pairElemParser = fully(pairElem)
+    private val arrlParser = fully(arrl)
+    private val allTypeParser = fully(allType)
+    private val exprParser = fully(expr)
+
 
     // -------------------------- Literals -------------------------
     private lazy val intLiter = integer.map(IntLiter)

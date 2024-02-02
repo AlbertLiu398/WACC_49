@@ -1,11 +1,10 @@
 package wacc
-
 import parsley.{Parsley, Result}
 import parsley.expr._
 import parsley.Parsley._
 import parsley.syntax._
 import scala.language.postfixOps
-
+import parsley.character.noneOf
 import lexer.implicits.implicitSymbol
 import lexer._
 import ast._
@@ -117,4 +116,8 @@ object parser {
                             "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 
                             ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||")
     private lazy val arr: Parsley[ArrElem] = ArrElem.lift(ident, some("[" ~> expr <~ "]"))
+
+    // ------------------------- comments -------------------------
+    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
+
 }

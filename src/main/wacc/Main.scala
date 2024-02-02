@@ -2,16 +2,9 @@ package wacc
 
 import parsley.{Success, Failure}
 import scala.io.Source
-import parser._
 object Main {
     def main(args: Array[String]): Unit = {
         println("hello WACC!")
-        
-        // println (paramParse("int x"))
-        // println (parse("begin pair(int , int) p = newpair(10, 3) end"))
-        // println (allTypeParse("pair(int,int)"))
-        println (funcParse("int f(int x) is skip end"))
-  
 
         
         val filePath = "file.txt"

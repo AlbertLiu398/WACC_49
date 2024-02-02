@@ -64,13 +64,13 @@ it should "parse statement" in {
     stmtParse("int x = 5") shouldBe Success(NewAssignment(BaseType("int"), Ident("x"), ExprRValue(IntLiter(5))))
 
     // New pair assignment statement
-    stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseTypeElem("int"), BaseTypeElem("bool")), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
+    stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseType("int"), BaseType("bool")), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
 
-    // // Seq statement
-    // parser.parse("skip; skip") shouldBe Success(SeqStmt(Skip, Skip))
+    // Seq statement
+    stmtParse("skip;skip") shouldBe Success(SeqStmt(Skip, Skip))
 
-    // // Seq statement
-    // parser.parse("skip; skip; skip") shouldBe Success(SeqStmt(Skip, SeqStmt(Skip, Skip)))
+    // Seq statement
+    stmtParse("skip;skip;skip") shouldBe Success(SeqStmt(Skip, SeqStmt(Skip, Skip)))
 }
 
 it should "parse lValue" in {
@@ -146,10 +146,10 @@ it should "parse arrLiter" in {
     allTypeParse("bool[]") shouldBe Success(ArrayType(BaseType("bool")))
     allTypeParse("char[]") shouldBe Success(ArrayType(BaseType("char")))
     allTypeParse("string[]") shouldBe Success(ArrayType(BaseType("string")))
-    allTypeParse("pair(int, bool)") shouldBe Success(PairType(BaseTypeElem("int"), BaseTypeElem("bool")))
-    allTypeParse("pair(int[], bool[])") shouldBe Success(PairType(ArrayTypeElem(ArrayType(BaseType("int"))), ArrayTypeElem(ArrayType(BaseType("bool")))))
-    allTypeParse("pair(int, bool[])") shouldBe Success(PairType(BaseTypeElem("int"), ArrayTypeElem(ArrayType(BaseType("bool")))))
-    allTypeParse("pair(int[], bool)") shouldBe Success(PairType(ArrayTypeElem(ArrayType(BaseType("int"))), BaseTypeElem("bool")))
+    allTypeParse("pair(int, bool)") shouldBe Success(PairType(BaseType("int"), BaseType("bool")))
+    allTypeParse("pair(int[], bool[])") shouldBe Success(PairType(ArrayType(ArrayType(BaseType("int"))), ArrayType(ArrayType(BaseType("bool")))))
+    allTypeParse("pair(int, bool[])") shouldBe Success(PairType(BaseType("int"), ArrayType(ArrayType(BaseType("bool")))))
+    allTypeParse("pair(int[], bool)") shouldBe Success(PairType(ArrayType(ArrayType(BaseType("int"))), BaseType("bool")))
   }
 }
 

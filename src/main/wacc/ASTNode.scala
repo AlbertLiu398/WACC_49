@@ -2,15 +2,13 @@ package wacc
 object ast{
     sealed trait ASTNode
 
-    sealed trait Type extends ASTNode
-    case class BaseType(name: String) extends Type
-    case class ArrayType(elementType: Type) extends Type
+    sealed trait Type extends PairElemType
+    case class BaseType(name: String) extends Type with PairElemType
+    case class ArrayType(elementType: Type) extends Type with PairElemType
     case class PairType(first: PairElemType, second: PairElemType) extends Type
 
     sealed trait PairElemType extends ASTNode
-    case class BaseTypeElem(name: String) extends PairElemType
-    case class ArrayTypeElem(elementType: Type) extends PairElemType
-    case object PairTypeElem extends PairElemType
+    case object PairTypeElem extends PairElemType 
 
     sealed trait Expr extends ASTNode
     case class UnaryOperation(operator: UnaryOperator, expr: Expr) extends Expr

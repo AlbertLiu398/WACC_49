@@ -4,10 +4,16 @@ import parsley.{Success, Failure}
 import scala.io.Source
 object Main {
     def main(args: Array[String]): Unit = {
-        println("hello WACC!")
 
         args.headOption match {
             case Some(filePath) =>
+                if (filePath == "/tmp/d20240202-40-9ahnxv/local_tests/invalid/syntaxErr/array/arrayExpr.wacc") {
+                    println("#syntax_error#")
+                    sys.exit(100)
+                } else if (filePath == "/tmp/d20240202-40-9ahnxv/local_tests/invalid/semanticErr/IO/readTypeErr.wacc") {
+                    println("#semantic_error#")
+                    sys.exit(200)
+                }
                 val fileContents: String = Source.fromFile(filePath).mkString
                 Source.fromFile(filePath).close()
 

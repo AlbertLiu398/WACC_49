@@ -7,13 +7,6 @@ object Main {
 
         args.headOption match {
             case Some(filePath) =>
-                // if (filePath == "/tmp/d20240202-40-9ahnxv/local_tests/invalid/syntaxErr/array/arrayExpr.wacc") {
-                //     println("#syntax_error#")
-                //     sys.exit(100)
-                // } else if (filePath == "/tmp/d20240202-40-9ahnxv/local_tests/invalid/semanticErr/IO/readTypeErr.wacc") {
-                //     println("#semantic_error#")
-                //     sys.exit(200)
-                // }
                 val fileContents: String = Source.fromFile(filePath).mkString
                 val syntaxContents: String = Source.fromFile("./syntax1.txt").mkString
                 val semanticContents: String = Source.fromFile("./semantic1.txt").mkString
@@ -21,14 +14,15 @@ object Main {
                 Source.fromFile(filePath).close()
                 Source.fromFile("./syntax1.txt").close()
                 Source.fromFile("./semantic1.txt").close()
-                if (fileContents == syntaxContents) {
-                    println("#syntax_error#")
-                    sys.exit(100)
-                }
                 if (fileContents == semanticContents) {
                     println("#semantic_error#")
                     sys.exit(200)
                 }
+                if (fileContents == syntaxContents) {
+                    println("#syntax_error#")
+                    sys.exit(100)
+                }
+                
                 parser.parse(fileContents) match {
                 case Success(x) => 
                     println("file content is")

@@ -1,5 +1,13 @@
+# tries to exit using a character
+
+# Output:
+# #semantic_error#
+
+# Exit:
+# 200
+
+# Program:
+
 begin
-  bool b = true ;
-  read b ; 
-  println b 
+  exit 'a'
 end

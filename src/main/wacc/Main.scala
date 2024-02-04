@@ -17,7 +17,7 @@ object Main {
                 val fileContents: String = Source.fromFile(filePath).mkString
                 val syntaxContents: String = Source.fromFile("./syntax1.txt").mkString
                 val semanticContents: String = Source.fromFile("./semantic1.txt").mkString
-                println(semanticContents)
+                println(fileContents)
                 Source.fromFile(filePath).close()
                 Source.fromFile("./syntax1.txt").close()
                 Source.fromFile("./semantic1.txt").close()

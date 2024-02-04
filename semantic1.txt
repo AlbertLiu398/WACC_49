@@ -1,4 +1,4 @@
-# tries to exit using a character
+# attempt to read into a boolean variable
 
 # Output:
 # #semantic_error#
@@ -9,5 +9,7 @@
 # Program:
 
 begin
-  exit 'a'
+  bool b = true ;
+  read b ; 
+  println b 
 end

@@ -4,29 +4,20 @@ import parsley.{Success, Failure}
 import scala.io.Source
 object Main {
     def main(args: Array[String]): Unit = {
+        println("hello WACC!")
+
+        
+        val filePath = "file.txt"
+        val fileContents: String = Source.fromFile(filePath).mkString
+        println(fileContents)
+        Source.fromFile(filePath).close()
 
         args.headOption match {
-            case Some(filePath) =>
-                val fileContents: String = Source.fromFile(filePath).mkString
-                val syntaxContents: String = Source.fromFile("./syntax1.txt").mkString
-                val semanticContents: String = Source.fromFile("./semantic1.txt").mkString
-                Source.fromFile(filePath).close()
-                Source.fromFile("./syntax1.txt").close()
-                Source.fromFile("./semantic1.txt").close()
-                if (fileContents == syntaxContents) {
-                    println("#syntax_error#")
-                    sys.exit(100)
-                }
-                
-                parser.parse(fileContents) match {
-                case Success(x) => 
-                    println("file content is")
-                    println(s"$fileContents = $x")
-                case Failure(msg) => 
-                    println("#semantic_error#")
-                    sys.exit(200)
-                }
-            case None => println("please enter a file name")
+            case Some(expr) => parser.parse(expr) match {
+                case Success(x) => println(s"$expr = $x")
+                case Failure(msg) => println(msg)
+            }
+            case None => println("please enter an expression")
         }
     }
 }

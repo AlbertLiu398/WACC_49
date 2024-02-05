@@ -44,9 +44,6 @@ object parser {
     private val exprParser = fully(expr)
 
 
-
-    // ------------------------- comments -------------------------
-    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
     // -------------------------- Literals -------------------------
     private lazy val intLiter = integer.map(IntLiter)
     private lazy val ident = identifier.map(Ident)
@@ -120,5 +117,7 @@ object parser {
                             ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||")
     private lazy val arr: Parsley[ArrElem] = ArrElem.lift(ident, some("[" ~> expr <~ "]"))
 
+    // ------------------------- comments -------------------------
+    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
 
 }

@@ -23,7 +23,7 @@ object lexer {
             // "="
         ),
         spaceDesc = SpaceDesc.plain.copy(
-            lineCommentStart = "#",
+            lineCommentStart = "//",
             lineCommentAllowsEOF = true,
             multiLineCommentStart = "/*", 
             multiLineCommentEnd = "*/",

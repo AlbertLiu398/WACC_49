@@ -1,10 +1,11 @@
 package wacc
+
 import parsley.{Parsley, Result}
 import parsley.expr._
 import parsley.Parsley._
 import parsley.syntax._
 import scala.language.postfixOps
-import parsley.character.noneOf
+
 import lexer.implicits.implicitSymbol
 import lexer._
 import ast._
@@ -64,7 +65,7 @@ object parser {
     private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep_(param)) <~ ")"
     private lazy val param = Param.lift(allType, ident)
     private lazy val stmtAtom: Parsley[Stmt] = 
-        "skip" #> Skip |
+        "skip" #> Skip|
         NewAssignment.lift(allType, ident, "=" ~> rValue) |
         Assignment.lift(lValue, "=" ~> rValue) |
         "read" ~> Read.lift(lValue) |
@@ -76,7 +77,7 @@ object parser {
         If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt) |
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
-    private lazy val stmt = stmtAtom <* notFollowedBy(";") | stmtJoin
+    private lazy val stmt = atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
     private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
     private lazy val lValue: Parsley[LValue] = IdentLValue.lift(ident) | arrl | pairElem
@@ -94,16 +95,13 @@ object parser {
     private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
     // -------------------------- Types ---------------------------
-    private lazy val allType: Parsley[Type] = baseType | arrayType | pairType
+    private lazy val allType: Parsley[Type] = baseType | arrayType
     private lazy val notArrayType: Parsley[Type] = baseType | pairType
-    private lazy val baseType: Parsley[Type] = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
-    private lazy val arrayType: Parsley[Type] = chain.postfix(notArrayType)("[]".as(ArrayType))
+    private lazy val baseType = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
+    private lazy val arrayType = chain.postfix(notArrayType)("[]".as(ArrayType))
+    private lazy val pairType: Parsley[Type] = "pair" ~> "(" ~> PairType.lift(pairElemType, "," ~> pairElemType) <~ ")"
 
-    private lazy val pairType: Parsley[Type] = PairType.lift("pair" ~> "(" ~> pairElemType, "," ~> pairElemType <~ ")")
-
-    private lazy val pairElemType: Parsley[PairElemType] = baseTypeElem | arrayTypeElem | pairTypeElem
-    private lazy val baseTypeElem: Parsley[PairElemType] = "int" #> BaseTypeElem("int") | "bool" #> BaseTypeElem("bool") | "char" #> BaseTypeElem("char") | "string" #> BaseTypeElem("string")
-    private lazy val arrayTypeElem: Parsley[PairElemType] = ArrayTypeElem.lift(allType <~ "[" <~ "]")
+    private lazy val pairElemType: Parsley[PairElemType] = baseType | pairTypeElem | arrayType
     private lazy val pairTypeElem: Parsley[PairElemType] = "pair" #> PairTypeElem
     
 
@@ -116,8 +114,4 @@ object parser {
                             "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 
                             ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||")
     private lazy val arr: Parsley[ArrElem] = ArrElem.lift(ident, some("[" ~> expr <~ "]"))
-
-    // ------------------------- comments -------------------------
-    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
-
 }

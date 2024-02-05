@@ -26,7 +26,9 @@ object ast{
     case class IdentLValue(name: Ident) extends LValue
     case class ArrElemLValue(name: Ident, value: List[Expr]) extends LValue
     
-    case class PairElem(option: String, values: LValue) extends LValue with RValue
+    sealed trait PairElem extends LValue with RValue
+    case class FstPairElem(values: LValue) extends PairElem 
+    case class SndPairElem(values: LValue) extends PairElem
 
     sealed trait RValue extends ASTNode
     case class ExprRValue(expr: Expr) extends RValue

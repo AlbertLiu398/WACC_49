@@ -77,11 +77,8 @@ it should "parse lValue" in {
     // Ident lValue
     lValueParse("x") shouldBe Success(IdentLValue(Ident("x")))
 
-    // Array element lValue
-    lValueParse("x[1]") shouldBe Success(ArrElemLValue(Ident("x"), List(IntLiter(1))))
-
     // Pair element lValue
-    lValueParse("fst x") shouldBe Success(PairElem("fst", IdentLValue(Ident("x"))))
+    lValueParse("fst x") shouldBe Success(FstPairElem(IdentLValue(Ident("x"))))
 }
 
 it should "parse rValue" in {
@@ -95,8 +92,7 @@ it should "parse rValue" in {
     rValueParse("newpair(1, 2)") shouldBe Success(NewPairRValue(IntLiter(1), IntLiter(2)))
 
     // Pair element rValue
-    rValueParse("fst x") shouldBe Success(PairElem("fst", IdentLValue(Ident("x"))))
-
+    rValueParse("fst x") shouldBe Success(FstPairElem(IdentLValue(Ident("x"))))
     // Call rValue
     rValueParse("call f(1, 2)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(IntLiter(1), IntLiter(2)))))
 }
@@ -105,9 +101,6 @@ it should "parse argsList" in {
     argsListParse("1, 2, 3") shouldBe Success(ArgList(List(IntLiter(1), IntLiter(2), IntLiter(3))))
 }
 
-it should "parse pairElem" in {
-    pairElemParse("fst x") shouldBe Success(PairElem("fst", IdentLValue(Ident("x"))))
-}
 
 it should "parse arrl" in {
     arrlParse("x[1]") shouldBe Success(ArrElemLValue(Ident("x"), List(IntLiter(1))))

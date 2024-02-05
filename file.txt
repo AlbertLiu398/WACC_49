@@ -1,14 +1,4 @@
-# array literals are not first-class expressions
-
-# Output:
-# #syntax_error#
-
-# Exit:
-# 100
-
-# Program:
-
 begin
-  int[] b = [1, 2, 3] ++ [4] ;
-	println b[3]
+  int x = 1;
+  y = fst x
 end

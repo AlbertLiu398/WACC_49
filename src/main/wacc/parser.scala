@@ -79,10 +79,14 @@ object parser {
         Begin.lift("begin" ~> stmt <~ "end")
     private lazy val stmt = atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
+    //using parser bridge and option to avoid amubiguity
     private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
-    private lazy val lValue: Parsley[LValue] = IdentLValue.lift(ident) | arrl | pairElem
-    private lazy val pairElem = "fst" ~> PairElem.lift(pure("fst"), lValue) | "snd" ~> PairElem.lift(pure("snd"), lValue)
-
+    private lazy val lValue: Parsley[LValue] = atomic(IdentLValue.lift(ident) <~ notFollowedBy("[")) | arrl |pairElem
+    private lazy val notPairElem: Parsley[LValue] = atomic(IdentLValue.lift(ident) <~ notFollowedBy("[")) | arrl
+    private lazy val pairElem = fstPairElem | sndPairElem
+    private lazy val fstPairElem = chain.prefix(notPairElem)("fst".as(FstPairElem))
+    private lazy val sndPairElem = chain.prefix(notPairElem)("snd".as(SndPairElem))
+    
     private lazy val rValue = 
         ExprRValue.lift(expr) | 
         ArrayLiterRValue.lift(arrLiter) | 

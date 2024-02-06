@@ -76,7 +76,7 @@ object parser {
         "exit" ~> Exit.lift(expr) |
         "print" ~> Print.lift(expr, pure(false)) |
         "println" ~> Print.lift(expr, pure(true)) |
-        If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt) |
+        If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt <~ "fi") |
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
     private lazy val stmt = atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin

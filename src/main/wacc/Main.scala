@@ -13,15 +13,16 @@ object Main {
 
                 val result = parser.parse(fileContents)
 
-               result match {
-                case Success(x) => 
-                    println("file content is")
-                    println(s"$fileContents = $x")
-                case Failure(msg) => 
-                    println ("#“ + result + ”#")
-                    sys.exit(100)
-                    // println(msg)
-                }
+                result match {
+                    case Success(x) => 
+                        println("file content is")
+                        println(s"$fileContents = $x")
+                    case Failure(msg) => 
+                        println(msg)
+                        println ("# + result + #")
+                        sys.exit(100)
+                        // println(msg)
+                    }
             case None => println("please enter a file name")
         }
     }

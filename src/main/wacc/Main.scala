@@ -11,12 +11,14 @@ object Main {
                 val fileContents: String = Source.fromFile(filePath).mkString
                 Source.fromFile(filePath).close()
 
-                parser.parse(fileContents) match {
+                val result = parser.parse(fileContents)
+
+               result match {
                 case Success(x) => 
                     println("file content is")
                     println(s"$fileContents = $x")
                 case Failure(msg) => 
-                    println ("#syntax error#")
+                    println ("#“ + result + ”#")
                     sys.exit(100)
                     // println(msg)
                 }

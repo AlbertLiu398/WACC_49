@@ -15,7 +15,10 @@ object Main {
                 case Success(x) => 
                     println("file content is")
                     println(s"$fileContents = $x")
-                case Failure(msg) => println(msg)
+                case Failure(msg) => 
+                    println ("#syntax error#")
+                    sys.exit(100)
+                    // println(msg)
                 }
             case None => println("please enter a file name")
         }

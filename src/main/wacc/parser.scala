@@ -113,14 +113,21 @@ object parser {
     private lazy val pairTypeElem: Parsley[PairElemType] = "pair" #> PairTypeElem
 
     // -------------------------- Expressions --------------------------
-    private lazy val expr: Parsley[Expr]=   uExpr | bExpr| atom
-    private lazy val bExpr : Parsley[Expr] = chain.left1(atom)("+".as(Add) | "-".as(Sub) | "*".as(Mul) | "/".as(Div) | "%".as(Mod) | "<".as(LessThan) | ">".as(GreaterThan) | "<=".as(LessThanEq) | ">=".as(GreaterThanEq) | "==".as(Eq) | "!=".as(NotEq) | "&&".as(And) | "||".as(Or))
-                        
+    private lazy val expr: Parsley[Expr]=   operators| atom
+    // private lazy val bExpr : Parsley[Expr] = chain.left1(notUOper)("+".as(Add) | "-".as(Sub) | "*".as(Mul) | "/".as(Div) | "%".as(Mod) 
+    // | "<".as(LessThan) | ">".as(GreaterThan) | "<=".as(LessThanEq) | ">=".as(GreaterThanEq) | "==".as(Eq) | "!=".as(NotEq) | "&&".as(And) | "||".as(Or))
+    // private lazy val uExpr: Parsley[Expr] = chain.prefix(notBOper)("!".as(Negate) | "-".as(Invert) | "len".as(Len) | "ord".as(Ord) | "chr".as(Chr))                  
 
-    private lazy val notUOper: Parsley[Expr] = bExpr| atom
-    private lazy val notBOper: Parsley[Expr] = uExpr| atom
+    // private lazy val notUOper: Parsley[Expr] = bExpr| atom
+    // private lazy val notBOper: Parsley[Expr] = uExpr| atom
 
-    private lazy val uExpr: Parsley[Expr] = chain.prefix(atom)("!".as(Negate) | "-".as(Invert) | "len".as(Len) | "ord".as(Ord) | "chr".as(Chr))
+    private val operators: Parsley[Expr] = precedence(Expr, Expr)(
+        Ops(Prefix)("!" #> Negate,"-" #> Invert,"len" #> Len,"ord" #> Ord,"chr" #> Chr
+        ),
+        Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod, "+" #> Add, "-" #> Sub, ">=" #> GreaterThanEq, "<=" #> LessThanEq,
+        ">" #> GreaterThan, "<" #> LessThan, "==" #> Eq, "!=" #> NotEq, "&&" #> And, "||" #> Or),
+    )
+
     // private lazy val bExpr: Parsley[Expr] = chain.left1(atom)("+".as(Add))
     // private lazy val uExpr = chain.left1(notUOper)("!" #> UOper("!") | "-"  #> UOper("-") | "len" #> UOper("len") |  "ord" #> UOper("ord")| "chr" #> UOper("chr"))
     // private lazy val bExpr = chain.prefix(notBOper)("+" #> BOper("+")| "-" #> BOper("-")| "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||"))

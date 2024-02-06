@@ -1,47 +1,46 @@
-import scala.collection.mutable._
+package wacc
 
-case class SymbolEntry(name: String, varType: String, scope: String)
+import scala.collection.mutable._
+import ast._
+
+case class SymbolEntry(name: String, varType: String)
 
 class SymbolTable {
 
-  private val symbolMap: Map[String, ListBuffer[SymbolEntry]] = Map()
+  private val scopeStack: Stack[Map[String, ListBuffer[SymbolEntry]]] = Stack(Map())
 
-  def insertSymbol(name: String, varType: String, scope: String): Unit = {
-    val symbolEntry = SymbolEntry(name, varType, scope)
-    if (symbolMap.contains(name)) {
-      symbolMap(name) += symbolEntry
+  def insertSymbol(name: String, varType: String): Unit = {
+    val symbolEntry = SymbolEntry(name, varType)
+    val currentScopeMap = scopeStack.top
+    if (currentScopeMap.contains(name)) {
+      // produce error !
     } else {
-      symbolMap(name) = ListBuffer(symbolEntry)
+      currentScopeMap(name) = ListBuffer(symbolEntry)
     }
   }
 
-  def lookupSymbol(name: String, scope: String): Option[SymbolEntry] = {
-    symbolMap.get(name).flatMap { entries =>
-      entries.find(_.scope == scope)
+  def lookupSymbol(name: String): Option[SymbolEntry] = {
+    scopeStack.find(_.contains(name)) match {
+      case Some(scopeMap) => scopeMap.get(name).flatMap(_.headOption)
+      case None => None
     }
+  }
+
+  def enterScope(): Unit = {
+    scopeStack.push(Map())
+  }
+
+  def exitScope(): Unit = {
+    scopeStack.pop()
   }
 
   def displaySymbolTable(): Unit = {
-    for ((name, entries) <- symbolMap) {
-      for (entry <- entries) {
-        println(s"Name: $name, Type: ${entry.varType}, Scope: ${entry.scope}")
+    for (scopeMap <- scopeStack) {
+      for ((name, entries) <- scopeMap) {
+        for (entry <- entries) {
+          println(s"Name: $name, Type: ${entry.varType}")
+        }
       }
     }
   }
 }
-
-// Example usage
-// val symbolTable = new SymbolTable()
-
-// Insert symbols into the symbol table
-// symbolTable.insertSymbol("x", "Int", "Global")
-// symbolTable.insertSymbol("y", "String", "Local")
-// symbolTable.insertSymbol("x", "Double", "Function1")
-
-// Lookup symbols in the symbol table
-// val symbol1 = symbolTable.lookupSymbol("x", "Global")
-// val symbol2 = symbolTable.lookupSymbol("y", "Local")
-// val symbol3 = symbolTable.lookupSymbol("x", "Function1")
-
-// Display the contents of the symbol table
-// symbolTable.displaySymbolTable()

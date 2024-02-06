@@ -7,7 +7,8 @@ import parsley.token.descriptions._
 import scala.collection.mutable.ListBuffer
 // import parsley.token.errors.ErrorConfig
 import parsley.token.errors._
-
+import parsley.Parsley._
+import parsley.character._
 
 
 
@@ -129,18 +130,23 @@ object lexer {
     val identifier = lexer.lexeme.names.identifier
     val implicits = lexer.lexeme.symbol.implicits
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
-    // val escapeChar = choice(
-    //     '0' #> '\u0000',
-    //     'b' #> '\b',
-    //     't' #> '\t',
-    //     'n' #> '\n',
-    //     'f' #> '\f',
-    //     'r' #> '\r',
-    //     '"' #> '\"',
-    //     '\'',
-    //     '\\'
+
+    // val graphicAsciiExceptQuotes: Parsley[Char] = 
+    //     satisfy(c => c != '\\' && c != '\'' && c != '\"')
+    // val escapedChar: Parsley[Char] = char('\\') *> choice(
+    //     char('0')  *> Parsley.pure('\u0000'),
+    //     char('b')  *> Parsley.pure('\b'),
+    //     char('t')  *> Parsley.pure('\t'),
+    //     char('n')  *> Parsley.pure('\n'),
+    //     char('f')  *> Parsley.pure('\f'),
+    //     char('r')  *> Parsley.pure('\r'),
+    //     char('"')  *> Parsley.pure('\"'),
+    //     char('\'') *> Parsley.pure('\''),
+    //     char('\\') *> Parsley.pure('\\')
     // )
-    // val character = noneof('\\', '\', '"') <\> ("\\" *> escapeChar)
+    // val character: Parsley[Char] = escapedChar <|> graphicAsciiExceptQuotes
+
+ 
 
     //TODO : not compile yet
     // val newline: Lexeme[Unit] = lexer.lexeme(newline).void

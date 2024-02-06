@@ -77,7 +77,7 @@ object parser {
         "print" ~> Print.lift(expr, pure(false)) |
         "println" ~> Print.lift(expr, pure(true)) |
         If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt) |
-        While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
+        While.lift("while".debug("while") ~> expr, "do".debug("do") ~> stmt.debug("stmt") <~ "done".debug("done")) |
         Begin.lift("begin" ~> stmt <~ "end")
     private lazy val stmt = atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)

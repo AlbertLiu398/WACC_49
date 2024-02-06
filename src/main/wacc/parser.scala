@@ -83,19 +83,19 @@ object parser {
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
     //using parser bridge and option to avoid amubiguity
     private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
-    private lazy val lValue: Parsley[LValue] = atomic(ident <~ notFollowedBy("[")) | arrl |pairElem
+    private lazy val lValue: Parsley[LValue] = pairElem | atomic(ident <~ notFollowedBy("[")) | arrl
 
-    private lazy val notPairElem: Parsley[LValue] = atomic(IdentLValue.lift(ident) <~ notFollowedBy("[")) | arrl
+    private lazy val notPairElem: Parsley[LValue] = atomic(ident <~ notFollowedBy("[")) | arrl
     private lazy val pairElem = fstPairElem | sndPairElem
     private lazy val fstPairElem = chain.prefix(notPairElem)("fst".as(FstPairElem))
     private lazy val sndPairElem = chain.prefix(notPairElem)("snd".as(SndPairElem))
 
     
-    private lazy val rValue = 
+    private lazy val rValue =
+        pairElem | 
         ExprRValue.lift(expr) | 
         ArrayLiterRValue.lift(arrLiter) | 
         NewPairRValue.lift("newpair" ~> "(" ~> expr, "," ~> expr <~ ")") |
-        pairElem |
         CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")")
     
     private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep_(exprOrArrayLit))

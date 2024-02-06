@@ -83,7 +83,7 @@ it should "parse lValue" in {
 
 it should "parse rValue" in {
     // Expr rValue
-    rValueParse("x") shouldBe Success(ExprRValue(Ident("x")))
+    rValueParse("x") shouldBe Success(Ident("x"))
 
     // Array literal rValue
     rValueParse("[1, 2, 3]") shouldBe Success(ArrayLiterRValue(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3)))))

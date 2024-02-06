@@ -10,7 +10,7 @@ object ast{
     sealed trait PairElemType extends ASTNode
     case object PairTypeElem extends PairElemType 
 
-    sealed trait Expr extends ASTNode
+    sealed trait Expr extends ASTNode with RValue
     // --------- Binary and Unary Operations ---------
     sealed trait UnaryOperation extends Expr
     sealed trait BinaryOperation extends Expr
@@ -36,8 +36,8 @@ object ast{
     case class Chr(expr: Expr) extends UnaryOperation
     
     
-    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr
-    case class ArrElem(name: Ident, value: List[Expr]) extends Expr
+    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr with RValue
+    case class ArrElem(name: Ident, value: List[Expr]) extends Expr with LValue
     
     sealed trait UnaryOperator extends ASTNode
     case class UOper(name: String) extends UnaryOperator
@@ -46,17 +46,13 @@ object ast{
     case class BOper(name: String) extends BinaryOperator
 
     sealed trait LValue extends ASTNode
-    case class IdentLValue(name: Ident) extends LValue
-    case class ArrElemLValue(name: Ident, value: List[Expr]) extends LValue
     
     sealed trait PairElem extends LValue with RValue
     case class FstPairElem(values: LValue) extends PairElem 
     case class SndPairElem(values: LValue) extends PairElem
 
     sealed trait RValue extends ASTNode
-    case class ExprRValue(expr: Expr) extends RValue
     case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue 
-    case class ArrayLiterRValue(expressions: ArrLiter) extends RValue
     case class CallRValue(func: Ident, args: ArgList) extends RValue
     
     sealed trait Stmt extends ASTNode

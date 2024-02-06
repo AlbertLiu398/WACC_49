@@ -31,10 +31,10 @@ it should "parse statement" in {
     stmtParse("skip") shouldBe Success(Skip)
 
     // Assignment statement
-    stmtParse("x = 5") shouldBe Success(Assignment(Ident("x"), ExprRValue(IntLiter(5))))
+    stmtParse("x = 5") shouldBe Success(Assignment(Ident("x"), IntLiter(5)))
 
     // If statement
-    stmtParse("if true then skip else skip") shouldBe Success(If(BoolLiter(true), Skip, Skip))
+    stmtParse("if true then skip else skip fi") shouldBe Success(If(BoolLiter(true), Skip, Skip))
 
     // While statement
     stmtParse("while x do skip done") shouldBe Success(While(Ident("x"), Skip))
@@ -61,7 +61,7 @@ it should "parse statement" in {
     stmtParse("exit x") shouldBe Success(Exit(Ident("x")))
 
     // New assignment statement
-    stmtParse("int x = 5") shouldBe Success(NewAssignment(BaseType("int"), Ident("x"), ExprRValue(IntLiter(5))))
+    stmtParse("int x = 5") shouldBe Success(NewAssignment(BaseType("int"), Ident("x"), IntLiter(5)))
 
     // New pair assignment statement
     stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseType("int"), BaseType("bool")), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
@@ -86,7 +86,7 @@ it should "parse rValue" in {
     rValueParse("x") shouldBe Success(Ident("x"))
 
     // Array literal rValue
-    rValueParse("[1, 2, 3]") shouldBe Success(ArrayLiterRValue(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3)))))
+    rValueParse("[1, 2, 3]") shouldBe Success(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3))))
 
     // New pair rValue
     rValueParse("newpair(1, 2)") shouldBe Success(NewPairRValue(IntLiter(1), IntLiter(2)))
@@ -103,7 +103,7 @@ it should "parse argsList" in {
 
 
 it should "parse arrl" in {
-    arrlParse("x[1]") shouldBe Success(ArrElemLValue(Ident("x"), List(IntLiter(1))))
+    arrlParse("x[1]") shouldBe Success(ArrElem(Ident("x"), List(IntLiter(1))))
 }
 
 it should "parse arrLiter" in {

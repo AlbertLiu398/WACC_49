@@ -119,10 +119,10 @@ it should "parse arrLiter" in {
     exprParse("1") shouldBe Success(IntLiter(1))
 
     // Binary operation
-    exprParse("1 + 2") shouldBe Success(BinaryOperation(BOper("+"), IntLiter(1), IntLiter(2)))
+    exprParse("1 + 2") shouldBe Success(Add(IntLiter(1), IntLiter(2)))
 
     // Unary operation
-    exprParse("-1") shouldBe Success(UnaryOperation(UOper("-"), IntLiter(1)))
+    exprParse("-1") shouldBe Success(Negate(IntLiter(1)))
 
     // atom expression
     exprParse("x") shouldBe Success(Ident("x"))

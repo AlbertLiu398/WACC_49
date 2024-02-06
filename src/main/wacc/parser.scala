@@ -81,10 +81,12 @@ object parser {
     //using parser bridge and option to avoid amubiguity
     private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
     private lazy val lValue: Parsley[LValue] = atomic(ident <~ notFollowedBy("[")) | arrl |pairElem
+    
     private lazy val notPairElem: Parsley[LValue] = atomic(IdentLValue.lift(ident) <~ notFollowedBy("[")) | arrl
     private lazy val pairElem = fstPairElem | sndPairElem
     private lazy val fstPairElem = chain.prefix(notPairElem)("fst".as(FstPairElem))
     private lazy val sndPairElem = chain.prefix(notPairElem)("snd".as(SndPairElem))
+
     
     private lazy val rValue = 
         ExprRValue.lift(expr) | 
@@ -106,8 +108,6 @@ object parser {
 
     private lazy val pairElemType: Parsley[PairElemType] = arrayType | baseType | pairTypeElem
     private lazy val pairTypeElem: Parsley[PairElemType] = "pair" #> PairTypeElem
-    
-
 
     // -------------------------- Expressions --------------------------
     private lazy val expr: Parsley[Expr]=   operators| atom

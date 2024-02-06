@@ -12,28 +12,30 @@ object ast{
 
     sealed trait Expr extends ASTNode
     // --------- Binary and Unary Operations ---------
-    case class Add(expr1: Expr, expr2: Expr) extends Expr
-    case class Sub(expr1: Expr, expr2: Expr) extends Expr
-    case class Mul(expr1: Expr, expr2: Expr) extends Expr
-    case class Div(expr1: Expr, expr2: Expr) extends Expr
-    case class Mod(expr1: Expr, expr2: Expr) extends Expr
-    case class LessThan(expr1: Expr, expr2: Expr) extends Expr
-    case class LessThanEq(expr1: Expr, expr2: Expr) extends Expr
-    case class GreaterThan(expr1: Expr, expr2: Expr) extends Expr
-    case class GreaterThanEq(expr1: Expr, expr2: Expr) extends Expr
-    case class Eq(expr1: Expr, expr2: Expr) extends Expr
-    case class NotEq(expr1: Expr, expr2: Expr) extends Expr
-    case class And(expr1: Expr, expr2: Expr) extends Expr
-    case class Or(expr1: Expr, expr2: Expr) extends Expr
+    sealed trait UnaryOperation extends Expr
+    sealed trait BinaryOperation extends Expr
 
-    case class Invert(expr: Expr) extends Expr
-    case class Negate(expr: Expr) extends Expr
-    case class Len(expr: Expr) extends Expr
-    case class Ord(expr: Expr) extends Expr
-    case class Chr(expr: Expr) extends Expr
+    case class Add(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Sub(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Mul(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Div(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Mod(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class LessThan(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class LessThanEq(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class GreaterThan(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class GreaterThanEq(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Eq(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class NotEq(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class And(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Or(expr1: Expr, expr2: Expr) extends BinaryOperation
+
+    case class Invert(expr: Expr) extends UnaryOperation
+    case class Negate(expr: Expr) extends UnaryOperation
+    case class Len(expr: Expr) extends UnaryOperation
+    case class Ord(expr: Expr) extends UnaryOperation
+    case class Chr(expr: Expr) extends UnaryOperation
     
-    case class UnaryOperation(operator: UnaryOperator, expr: Expr) extends Expr
-    case class BinaryOperation(left: Expr, operator: BinaryOperator, right: Expr) extends Expr
+    
     case class ArrLiter(e: Expr, es: List[Expr]) extends Expr
     case class ArrElem(name: Ident, value: List[Expr]) extends Expr
     

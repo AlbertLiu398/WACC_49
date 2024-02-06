@@ -81,7 +81,7 @@ object parser {
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
     //using parser bridge and option to avoid amubiguity
     private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
-    private lazy val lValue: Parsley[LValue] = atomic(IdentLValue.lift(ident) <~ notFollowedBy("[")) | arrl |pairElem
+    private lazy val lValue: Parsley[LValue] = atomic(ident <~ notFollowedBy("[")) | arrl |pairElem
     private lazy val notPairElem: Parsley[LValue] = atomic(IdentLValue.lift(ident) <~ notFollowedBy("[")) | arrl
     private lazy val pairElem = fstPairElem | sndPairElem
     private lazy val fstPairElem = chain.prefix(notPairElem)("fst".as(FstPairElem))
@@ -99,13 +99,13 @@ object parser {
     private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
     // -------------------------- Types ---------------------------
-    private lazy val allType: Parsley[Type] = baseType | arrayType
+    private lazy val allType: Parsley[Type] = arrayType | notArrayType
     private lazy val notArrayType: Parsley[Type] = baseType | pairType
     private lazy val baseType = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
     private lazy val arrayType = chain.postfix(notArrayType)("[]".as(ArrayType))
     private lazy val pairType: Parsley[Type] = "pair" ~> "(" ~> PairType.lift(pairElemType, "," ~> pairElemType) <~ ")"
 
-    private lazy val pairElemType: Parsley[PairElemType] = baseType | pairTypeElem | arrayType
+    private lazy val pairElemType: Parsley[PairElemType] = arrayType | baseType | pairTypeElem
     private lazy val pairTypeElem: Parsley[PairElemType] = "pair" #> PairTypeElem
     
 

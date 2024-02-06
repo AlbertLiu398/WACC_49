@@ -57,7 +57,7 @@ object ast{
     case class StringLiter(value: String) extends Liter
     case object PairLiter extends Liter
 
-    case class Ident(value: String) extends Expr
+    case class Ident(value: String) extends Expr with LValue
     case class Param(paramType: Type, paramName: Ident) extends ASTNode
     case class ParamList(paramListType: List[Param]) extends ASTNode
     case class ArgList(exprl: List[Expr]) extends ASTNode

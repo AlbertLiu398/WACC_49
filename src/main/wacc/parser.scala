@@ -41,7 +41,7 @@ object parser {
     private val argsListParser = fully(argsList)
     private val arrLiterParser = fully(arrLiter)
     private val pairElemParser = fully(pairElem)
-    private val arrlParser = fully(arrl)
+    private val arrlParser = fully(arr)
     private val allTypeParser = fully(allType)
     private val exprParser = fully(expr)
 //    //-------------------comment ------------
@@ -76,16 +76,15 @@ object parser {
         "exit" ~> Exit.lift(expr) |
         "print" ~> Print.lift(expr, pure(false)) |
         "println" ~> Print.lift(expr, pure(true)) |
-        If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt) |
+        If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt <~ "fi") |
         While.lift("while".debug("while") ~> expr, "do".debug("do") ~> stmt.debug("stmt") <~ "done".debug("done")) |
         Begin.lift("begin" ~> stmt <~ "end")
-    private lazy val stmt = atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin
+    private lazy val stmt =  atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
     //using parser bridge and option to avoid amubiguity
-    private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
-    private lazy val lValue: Parsley[LValue] = pairElem | atomic(ident <~ notFollowedBy("[")) | arrl
+    private lazy val lValue: Parsley[LValue] = pairElem | atomic(ident <~ notFollowedBy("[")) | arr
 
-    private lazy val notPairElem: Parsley[LValue] = atomic(ident <~ notFollowedBy("[")) | arrl
+    private lazy val notPairElem: Parsley[LValue] = atomic(ident <~ notFollowedBy("[")) | arr
     private lazy val pairElem = fstPairElem | sndPairElem
     private lazy val fstPairElem = chain.prefix(notPairElem)("fst".as(FstPairElem))
     private lazy val sndPairElem = chain.prefix(notPairElem)("snd".as(SndPairElem))
@@ -93,8 +92,8 @@ object parser {
     
     private lazy val rValue =
         pairElem | 
-        ExprRValue.lift(expr) | 
-        ArrayLiterRValue.lift(arrLiter) | 
+        expr | 
+        arrLiter | 
         NewPairRValue.lift("newpair" ~> "(" ~> expr, "," ~> expr <~ ")") |
         CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")")
     
@@ -142,5 +141,5 @@ object parser {
     private lazy val bOper: Parsley[BOper] = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
                             "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 
                             ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||")
-    private lazy val arr: Parsley[ArrElem] = ArrElem.lift(ident, some("[" ~> expr <~ "]"))
+    private lazy val arr = ArrElem.lift(ident, some("[" ~> expr <~ "]"))
 }

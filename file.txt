@@ -1,41 +1,41 @@
-# simple input/output loop
-
-# Input: 1 Y 2 Y 3 Y 4 Y 5 Y 142 N
+# multiple string assignments and comparisons
 
 # Output:
-# Please input an integer: echo input: 1
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 2
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 3
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 4
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 5
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 142
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
+# s1 is Hi
+# s2 is Hello
+# They are not the same string.
+# Now make s1 = s2
+# s1 is Hello
+# s2 is Hello
+# They are the same string.
 #
 
 # Program:
 
 begin
-  char continue = 'Y' ;
-  int buff = 0 ;
-  while continue != 'N' do
-    print "Please input an integer: " ;
-    read buff ;
-    print "echo input: " ;
-    println buff ;
-    println "Do you want to continue entering input?" ;
-    println "(enter Y for \'yes\' and N for \'no\')" ;
-    read continue
-  done
+  string s1 = "Hi" ;
+  string s2 = "Hello" ;
+  print "s1 is " ;
+  println s1 ;
+  print "s2 is " ;
+  println s2 ;
+  if s1 == s2 then
+    println "They are the same string."
+  else
+    println "They are not the same string."
+  fi ;
+
+  println "Now make s1 = s2" ;
+  s1 = s2 ;
+
+  print "s1 is " ;
+  println s1 ;
+  print "s2 is " ;
+  println s2 ;
+  if s1 == s2 then
+    println "They are the same string."
+  else
+    println "They are not the same string."
+  fi
 end
 

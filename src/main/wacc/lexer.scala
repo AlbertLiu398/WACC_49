@@ -10,6 +10,7 @@ import parsley.token.errors._
 
 
 
+
 object lexer {
     private val desc = LexicalDesc.plain.copy(
         // your configuration goes here
@@ -27,7 +28,7 @@ object lexer {
             // "="
         ),
         spaceDesc = SpaceDesc.plain.copy(
-            lineCommentStart = "//",
+            lineCommentStart = "#",
             lineCommentAllowsEOF = true,
             multiLineCommentStart = "/*", 
             multiLineCommentEnd = "*/",

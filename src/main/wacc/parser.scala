@@ -5,10 +5,12 @@ import parsley.expr._
 import parsley.Parsley._
 import parsley.syntax._
 import scala.language.postfixOps
+import parsley.debug, debug._ 
 
 import lexer.implicits.implicitSymbol
 import lexer._
 import ast._
+import parsley.character.noneOf
 
 object parser {
     import parsley.syntax.lift.{Lift1, Lift2, Lift3, Lift4}
@@ -42,7 +44,8 @@ object parser {
     private val arrlParser = fully(arrl)
     private val allTypeParser = fully(allType)
     private val exprParser = fully(expr)
-
+//    //-------------------comment ------------
+//    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
 
     // -------------------------- Literals -------------------------
     private lazy val intLiter = integer.map(IntLiter)
@@ -59,7 +62,7 @@ object parser {
     // TODO : Statements may need more than one parsers
 
     // -------------------------- Statements -------------------------
-    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func) , stmt <~ "end")
+    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func), stmt <~ "end")
     private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, paramList, "is" ~> stmt <~ "end"))
     private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep_(param)) <~ ")"
     private lazy val param = Param.lift(allType, ident)
@@ -81,7 +84,7 @@ object parser {
     //using parser bridge and option to avoid amubiguity
     private lazy val arrl: Parsley[ArrElemLValue] = ArrElemLValue.lift(ident, some("[" ~> expr <~ "]"))
     private lazy val lValue: Parsley[LValue] = atomic(ident <~ notFollowedBy("[")) | arrl |pairElem
-    
+
     private lazy val notPairElem: Parsley[LValue] = atomic(IdentLValue.lift(ident) <~ notFollowedBy("[")) | arrl
     private lazy val pairElem = fstPairElem | sndPairElem
     private lazy val fstPairElem = chain.prefix(notPairElem)("fst".as(FstPairElem))

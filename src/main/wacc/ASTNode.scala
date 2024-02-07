@@ -57,8 +57,8 @@ object ast{
     
     sealed trait Stmt extends ASTNode
     case object Skip extends Stmt
-    case class NewAssignment(identType: Type, name: Ident, value: ASTNode) extends Stmt
-    case class Assignment(lvalue: LValue, rvalue: ASTNode) extends Stmt
+    case class NewAssignment(identType: Type, name: Ident, value: RValue) extends Stmt
+    case class Assignment(lvalue: LValue, rvalue: RValue) extends Stmt
     case class Read(lvalue: LValue) extends Stmt
     case class Free(expr: Expr) extends Stmt
     case class Return(expr: Expr) extends Stmt

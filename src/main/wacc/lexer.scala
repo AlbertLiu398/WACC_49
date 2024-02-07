@@ -55,6 +55,7 @@ object lexer {
         textDesc = text.TextDesc.plain.copy(
             escapeSequences = text.EscapeDesc.plain.copy(
                 escBegin = '\\',
+                literals = Set('0', 'b', 't', 'n', 'f', 'r', '"', '\'', '\\'),
             ),
             characterLiteralEnd = '\'',
             stringEnds = Set(("\"", "\"")),
@@ -129,20 +130,21 @@ object lexer {
     val graphicCharacter = lexer.lexeme.character.ascii
     val identifier = lexer.lexeme.names.identifier
     val implicits = lexer.lexeme.symbol.implicits
+    def commaSep1_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep1(p)
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
 
-    // val graphicAsciiExceptQuotes: Parsley[Char] = 
-    //     satisfy(c => c != '\\' && c != '\'' && c != '\"')
+    val graphicAsciiExceptQuotes: Parsley[Char] = 
+        satisfy(c => c != '\\' && c != '\'' && c != '"')
     // val escapedChar: Parsley[Char] = char('\\') *> choice(
-    //     char('0')  *> Parsley.pure('\u0000'),
-    //     char('b')  *> Parsley.pure('\b'),
-    //     char('t')  *> Parsley.pure('\t'),
-    //     char('n')  *> Parsley.pure('\n'),
-    //     char('f')  *> Parsley.pure('\f'),
-    //     char('r')  *> Parsley.pure('\r'),
-    //     char('"')  *> Parsley.pure('\"'),
-    //     char('\'') *> Parsley.pure('\''),
-    //     char('\\') *> Parsley.pure('\\')
+    //     char('0')  *> pure('\u0000'),
+    //     char('b')  *> pure('\b'),
+    //     char('t')  *> pure('\t'),
+    //     char('n')  *> pure('\n'),
+    //     char('f')  *> pure('\f'),
+    //     char('r')  *> pure('\r'),
+    //     char('"')  *> pure('\"'),
+    //     char('\'') *> pure('\''),
+    //     char('\\') *> pure('\\')
     // )
     // val character: Parsley[Char] = escapedChar <|> graphicAsciiExceptQuotes
 

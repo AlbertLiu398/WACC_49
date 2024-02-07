@@ -108,6 +108,7 @@ it should "parse arrl" in {
 
 it should "parse arrLiter" in {
     arrLiterParse("[]") shouldBe Success(ArrLiter(null, List()))
+    arrLiterParse("[1]") shouldBe Success(ArrLiter(IntLiter(1), List()))
     arrLiterParse("[1, 2, 3]") shouldBe Success(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3))))
 }
 
@@ -143,6 +144,7 @@ it should "parse arrLiter" in {
     allTypeParse("pair(int[], bool[])") shouldBe Success(PairType(ArrayType(BaseType("int")), ArrayType(BaseType("bool"))))
     allTypeParse("pair(int, bool[])") shouldBe Success(PairType(BaseType("int"), ArrayType(BaseType("bool"))))
     allTypeParse("pair(int[], bool)") shouldBe Success(PairType(ArrayType(BaseType("int")), BaseType("bool")))
+    allTypeParse("pair(pair(int, bool), pair(bool, int))") shouldBe Success(PairType(PairType(BaseType("int"), BaseType("bool")), PairType(BaseType("bool"), BaseType("int"))))
   }
 }
 

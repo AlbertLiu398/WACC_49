@@ -15,9 +15,33 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case Program(funcList, stmts) =>
         for (func <- funcList) {
-          checkFunc(func)
+          semanticCheck(func)
         }
         semanticCheck(stmts)
+
+      case n@Func(returnType, functionName, params, body) =>
+        symbolTable.insertSymbol(functionName, "func")
+
+        symbolTable.enterScope()
+        symbolTable.enterFunc(returnType)
+
+        // semanticCheck(params) MAY NOT NEED TO CHECK PARAMS ????????
+        semanticCheck(body)
+
+        symbolTable.exitFunc()
+        symbolTable.exitScope()
+
+      case n@Return(expr) =>
+        semanticCheck(expr)
+        if (!symbolTable.isInFunc()) {
+          errors.append(SemanticError("unexpected return statement"))
+        }
+        if (expr.getType == symbolTable.getFuncType) {
+          errors.append(SemanticError("return type does not match"))
+        }
+
+        // TODO consider if, for, while
+
 
       case n@SeqStmt(first, second) =>
         semanticCheck(first)
@@ -26,34 +50,12 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Begin(stmt) =>
         semanticCheck(stmt)
 
-      case n@Func(returnType, functionName, params, body) =>
-        semanticCheck(params)
-
-        //symbolTable.enterScope()
-        //params.paramListType.foreach(param => symbolTable.addVariable(param.paramName.value, param.paramType))
-        semanticCheck(body)
-        //symbolTable.exitScope()
-
       case n@ParamList(params) =>
         params.foreach(semanticCheck)
 
       case n@Assignment(lvalue, rvalue) =>
         // Check LValue and RValue
-        semanticCheck(lvalue)
-        semanticCheck(rvalue)
-
-      case n@IdentLValue(name) =>
-        // Check if the variable exists in the symbol table
-        //if (!symbolTable.isDefined(name.value)) {
-        //  errors += SemanticError(s"Variable '${name.value}' is not defined.")
-        //}
-
-      case n@UnaryOperation(operator, expr) =>
-        semanticCheck(expr)
-
-      case n@BinaryOperation(operator, left, right) =>
-        semanticCheck(left)
-        semanticCheck(right)
+        
 
       case n@ArrLiter(e, es) =>
         semanticCheck(e)
@@ -85,18 +87,12 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Free(expr) =>
         semanticCheck(expr)
 
-      case n@Return(expr) =>
-        semanticCheck(expr)
-
       case n@Exit(expr) =>
         semanticCheck(expr)
 
       case n@NewPairRValue(exprL, exprR) =>
         semanticCheck(exprL)
         semanticCheck(exprR)
-
-      case n@ArrayLiterRValue(expressions) =>
-        semanticCheck(expressions)
 
       case n@CallRValue(func, args) =>
         semanticCheck(func)
@@ -116,9 +112,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Param(_, _) => // Parameters don't need semantic checks
 
-      case n@PairElem(_, values) =>
-        semanticCheck(values)
-
       case _ =>
       // Handle other cases if necessary
     }
@@ -126,8 +119,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
   }
 
   private def checkFunc(func: Func): Unit = {
+    // return type check
 
+    // return code check
+
+    // return what check
   }
+
 
   private def typeCheck(var1: ASTNode, var2: ASTNode): Boolean = {
     true

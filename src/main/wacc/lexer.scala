@@ -133,8 +133,8 @@ object lexer {
     def commaSep1_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep1(p)
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
 
-    val graphicAsciiExceptQuotes: Parsley[Char] = 
-        satisfy(c => c != '\\' && c != '\'' && c != '"')
+    // val graphicAsciiExceptQuotes: Parsley[Char] = 
+    //     satisfy(c => c != '\\' && c != '\'' && c != '"')
     // val escapedChar: Parsley[Char] = char('\\') *> choice(
     //     char('0')  *> pure('\u0000'),
     //     char('b')  *> pure('\b'),

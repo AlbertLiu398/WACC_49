@@ -10,10 +10,16 @@ object ast{
     sealed trait PairElemType extends ASTNode
     case object PairTypeElem extends PairElemType 
 
-    sealed trait Expr extends ASTNode with RValue
+    sealed trait Expr extends ASTNode with RValue {
+        def getType: String
+    }
     // --------- Binary and Unary Operations ---------
-    sealed trait UnaryOperation extends Expr
-    sealed trait BinaryOperation extends Expr
+    sealed trait UnaryOperation extends Expr {
+        val getType: String = ""
+    }
+    sealed trait BinaryOperation extends Expr {
+        val getType: String = ""
+    }
 
     case class Add(expr1: Expr, expr2: Expr) extends BinaryOperation
     case class Sub(expr1: Expr, expr2: Expr) extends BinaryOperation
@@ -36,8 +42,12 @@ object ast{
     case class Chr(expr: Expr) extends UnaryOperation
     
     
-    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr with RValue
-    case class ArrElem(name: Ident, value: List[Expr]) extends Expr with LValue
+    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr with RValue {
+        val getType: String = ""
+    }
+    case class ArrElem(name: Ident, value: List[Expr]) extends Expr with LValue {
+        val getType: String = ""
+    }
     
     sealed trait UnaryOperator extends ASTNode
     case class UOper(name: String) extends UnaryOperator
@@ -70,13 +80,25 @@ object ast{
     case class SeqStmt(first: Stmt, second: Stmt) extends Stmt
 
     sealed trait Liter extends Expr
-    case class IntLiter(value: BigInt) extends Liter
-    case class BoolLiter(value: Boolean) extends Liter
-    case class CharLiter(value: Char) extends Liter
-    case class StringLiter(value: String) extends Liter
-    case object PairLiter extends Liter
+    case class IntLiter(value: BigInt) extends Liter {
+        val getType = "int"
+    }
+    case class BoolLiter(value: Boolean) extends Liter {
+        val getType = "bool" 
+    }
+    case class CharLiter(value: Char) extends Liter {
+        val getType = "char" 
+    }
+    case class StringLiter(value: String) extends Liter {
+        val getType = "string" 
+    }
+    case object PairLiter extends Liter {
+        val getType = "pair" 
+    }
 
-    case class Ident(value: String) extends Expr with LValue
+    case class Ident(value: String) extends Expr with LValue {
+        val getType: String = ""
+    }
     case class Param(paramType: Type, paramName: Ident) extends ASTNode
     case class ParamList(paramListType: List[Param]) extends ASTNode
     case class ArgList(exprl: List[Expr]) extends ASTNode

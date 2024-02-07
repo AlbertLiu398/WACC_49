@@ -53,17 +53,54 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@ParamList(params) =>
         params.foreach(semanticCheck)
 
+
+      case n@NewAssignment(identType, name, value) =>
+        semanticCheck(name)
+        semanticCheck(value)
+        if (identType.getType != value.getType) {
+          errors.append(SemanticError("assiment type mismatch"))
+        }
+        symbolTable.insertSymbol(lvalue, identType.getType) //should change type of SymbolTable to LValue
+
       case n@Assignment(lvalue, rvalue) =>
         // Check LValue and RValue
-        
+        semanticCheck(lvalue)
+        semanticCheck(rvalue)
+        //should change type of SymbolTable to LValue
+        symbolTable.lookupSymbol(lvalue) match {
+          case Some(symbolEntry) =>
+            if (symbolEntry.varType != rvalue.getType) {
+              errors.append(SemanticError("assiment type mismatch"))
+            }
+          case None => 
+            errors.append(SemanticError("assiment value not exist"))
+        }
+
 
       case n@ArrLiter(e, es) =>
-        semanticCheck(e)
-        es.foreach(semanticCheck)
+        val ess = e::es
+        ess.foreach(semanticCheck)
+        if (ess.map(_.getType).distinct != 1) {
+          errors.append(SemanticError("list elements type mismatch"))
+        }
+        else {
+          n.getType = e.getType
+        }
 
       case n@ArrElem(name, value) =>
-        semanticCheck(name)
+        //check ident exist in symbolTable
+        symbolTable.lookupSymbol(name) match {
+                  case Some(symbolEntry) =>
+                    n.getType = symbolEntry.varType
+                  case None => 
+                    errors.append(SemanticError("array not exist"))
+                }
+        //check each expr
         value.foreach(semanticCheck)
+        //check each expr is type int
+        if (!value.forall(x=> x.getType == "int")) {
+          errors.append(SemanticError("index should be an Int"))
+        }
 
       case n@If(condition, thenBranch, elseBranch) =>
         semanticCheck(condition)
@@ -77,10 +114,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Print(expr, _) =>
         semanticCheck(expr)
 
-      case n@NewAssignment(identType, name, value) =>
-        semanticCheck(name)
-        semanticCheck(value)
-
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
 
@@ -93,10 +126,179 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@NewPairRValue(exprL, exprR) =>
         semanticCheck(exprL)
         semanticCheck(exprR)
+        n.getType = s"pair(${exprL.getType}, ${exprR.getType})"
 
       case n@CallRValue(func, args) =>
         semanticCheck(func)
         semanticCheck(args)
+        //need to check each args's type is correct
+
+        n.getType = ??? //set the type to func's resturn type
+        
+
+      case n@ArgList(exprl) =>
+        exprl.foreach(semanticCheck)
+      
+      //-------Type-------
+      case n@BaseType(name) => //doing nothing
+      case n@ArrayType(elementType) =>
+      case n@PairType(first, second) =>
+      
+      case n@PairType(first, second) =>
+
+      // ---------EXPR---------
+        // ---------binary---------
+      case n@Add(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      
+      case n@Sub(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@Mul(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      
+      case n@Div(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@Mod(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@LessThan(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@LessThanEq(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@GreaterThan(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@GreaterThanEq(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@Eq(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@NotEq(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@And(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+      case n@Or(expr1, expr2) =>
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (expr1.getType != expr2.getType) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          n.getType = expr1.getType
+        }
+          // ---------unary---------
+      case n@Invert(expr) => 
+        semanticCheck(expr)
+        n.getType = expr.getType
+      case n@Negate(expr) => 
+        semanticCheck(expr)
+        n.getType = expr.getType
+      case n@Len(expr) => 
+        semanticCheck(expr)
+        n.getType = expr.getType
+      case n@Ord(expr) => 
+        semanticCheck(expr)
+        n.getType = expr.getType
+      case n@Chr(expr) => 
+        semanticCheck(expr)
+        n.getType = expr.getType
+      
+      case n@FstPairElem(values) =>
+        symbolTable.lookupSymbol(values) match {
+          case Some(symbolEntry) =>
+            n.getType = getTypeForPair(symbolEntry.varType, 1)
+          case None => 
+            errors.append(SemanticError("Value not exist"))
+        }
+      
+      case n@FstPairElem(values) =>
+        symbolTable.lookupSymbol(values) match {
+          case Some(symbolEntry) =>
+            n.getType = getTypeForPair(symbolEntry.varType, 2)
+          case None => 
+            errors.append(SemanticError("Value not exist"))
+        }
 
       case n@IntLiter(_) => // Literals don't need semantic checks
 
@@ -132,4 +334,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
   }
 
   def getSemanticErrors: List[SemanticError] = errors.toList
+
+  //function to getType of Pair, input a string with form "pair(Type, Type)"
+  //and a number which 1 represent fst, 2 respresent snd
+  private def getTypeForPair(str: String, number: Int): String = {
+    val startIndex = str.indexOf('(')
+    val endIndex = str.indexOf(')')
+    val substring = str.substring(startIndex + 1, endIndex)
+
+    // Split the substring using comma and get the first part
+    val typesArray = substring.split(',')
+    if (number == 1) return typesArray(0)
+    else return typesArray(1)
+  }
+
 }

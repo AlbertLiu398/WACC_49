@@ -63,12 +63,14 @@ object parser {
 
     // -------------------------- Statements -------------------------
     private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func), stmt <~ "end")
-    private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, paramList, "is" ~> stmt <~ "end"))
+    private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> stmt. <~ "end")) |
+                                           atomic(Func.lift(allType, ident , paramList, "is" ~> stmt <~ "end")) 
+                                          
     private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep1_(param)) <~ ")"
     private lazy val param = Param.lift(allType, ident)
     private lazy val stmtAtom: Parsley[Stmt] = 
         "skip" #> Skip|
-        NewAssignment.lift(allType, ident, "=" ~> rValue) |
+        NewAssignment.lift(allType, ident, "="~> rValue) |
         Assignment.lift(lValue, "=" ~> rValue) |
         "read" ~> Read.lift(lValue) |
         "free" ~> Free.lift(expr) |
@@ -97,7 +99,7 @@ object parser {
         expr|
         arrLiter
       
-    private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit))
+    private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit)) |  ArgList.lift(pure(List()))
     private lazy val arrLiter: Parsley[ArrLiter] 
       = "[]" #> ArrLiter(null, List()) | 
          atomic(ArrLiter.lift("[" ~> expr <~ notFollowedBy(",") <~ "]", pure(List()))) |

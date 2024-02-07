@@ -21,11 +21,12 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Func(returnType, functionName, params, body) =>
         symbolTable.insertSymbol(functionName, "func")
+        semanticCheck(returnType)
 
         symbolTable.enterScope()
         symbolTable.enterFunc(returnType)
 
-        // semanticCheck(params) MAY NOT NEED TO CHECK PARAMS ????????
+        // semanticCheck(params)
         semanticCheck(body)
 
         symbolTable.exitFunc()
@@ -42,10 +43,16 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
         // TODO consider if, for, while
 
+        // TODO consider difference in exit and return
+
 
       case n@SeqStmt(first, second) =>
         semanticCheck(first)
         semanticCheck(second)
+        first match {
+          case Return(_) => errors.append(SemanticError("return is not last statement of function"))
+          case _ =>
+        }
 
       case n@Begin(stmt) =>
         semanticCheck(stmt)
@@ -106,10 +113,12 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(condition)
         semanticCheck(thenBranch)
         semanticCheck(elseBranch)
+        //scoping
 
       case n@While(condition, body) =>
         semanticCheck(condition)
         semanticCheck(body)
+        //scoping
 
       case n@Print(expr, _) =>
         semanticCheck(expr)
@@ -118,9 +127,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(lvalue)
 
       case n@Free(expr) =>
-        semanticCheck(expr)
-
-      case n@Exit(expr) =>
         semanticCheck(expr)
 
       case n@NewPairRValue(exprL, exprR) =>
@@ -318,19 +324,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       // Handle other cases if necessary
     }
       
-  }
-
-  private def checkFunc(func: Func): Unit = {
-    // return type check
-
-    // return code check
-
-    // return what check
-  }
-
-
-  private def typeCheck(var1: ASTNode, var2: ASTNode): Boolean = {
-    true
   }
 
   def getSemanticErrors: List[SemanticError] = errors.toList

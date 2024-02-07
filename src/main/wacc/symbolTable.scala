@@ -39,19 +39,9 @@ class SymbolTable {
 
   def enterFunc(returnType: Type): Unit = {
     inFunc = true
-    funcType = enterFuncHelper(returnType)
+    funcType = returnType.getType
   }
 
-  private def enterFuncHelper(returnType: Type): String = {
-    returnType match {
-      case BaseType(name) =>
-        return name
-      case ArrayType(elementType) =>
-        return "arr[" + enterFuncHelper(elementType) + "]"
-      case PairType(first, second) =>
-        return "pair" // TODO
-    }
-  }
 
   def exitFunc(): Unit = {
     inFunc = false

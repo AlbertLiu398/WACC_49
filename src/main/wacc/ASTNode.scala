@@ -9,7 +9,7 @@ object ast{
         override def getType: String = name
     }
     case class ArrayType(elementType: Type) extends Type with PairElemType{
-        override def getType: String = elementType.getType
+        override def getType: String = "arr[" + elementType.getType + "]"
     }
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
         override def getType: String = s"pair(${first.getType}, ${second.getType})"
@@ -54,10 +54,10 @@ object ast{
     case class Chr(expr: Expr) extends UnaryOperation
     
     
-    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr with RValue {
+    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr with RValue { //
         var getType: String = ""
     }
-    case class ArrElem(name: Ident, value: List[Expr]) extends Expr with LValue {
+    case class ArrElem(name: Ident, value: List[Expr]) extends Expr with LValue { //
         var getType: String = ""
     }
     
@@ -80,20 +80,20 @@ object ast{
     sealed trait RValue extends ASTNode {
         var getType: String = ""
     }
-    case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue
-    case class CallRValue(func: Ident, args: ArgList) extends RValue
+    case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue //
+    case class CallRValue(func: Ident, args: ArgList) extends RValue //
     
     sealed trait Stmt extends ASTNode
     case object Skip extends Stmt
-    case class NewAssignment(identType: Type, name: Ident, value: RValue) extends Stmt
-    case class Assignment(lvalue: LValue, rvalue: RValue) extends Stmt
+    case class NewAssignment(identType: Type, name: Ident, value: RValue) extends Stmt //
+    case class Assignment(lvalue: LValue, rvalue: RValue) extends Stmt //
     case class Read(lvalue: LValue) extends Stmt //
     case class Free(expr: Expr) extends Stmt //
     case class Return(expr: Expr) extends Stmt //
-    case class Exit(expr: Expr) extends Stmt //
-    case class Print(expr: Expr, newline: Boolean) extends Stmt
-    case class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) extends Stmt
-    case class While(condition: Expr, body: Stmt) extends Stmt
+    case class Exit(expr: Expr) extends Stmt 
+    case class Print(expr: Expr, newline: Boolean) extends Stmt //
+    case class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) extends Stmt //
+    case class While(condition: Expr, body: Stmt) extends Stmt //
     case class Begin(stmt: Stmt) extends Stmt //
     case class SeqStmt(first: Stmt, second: Stmt) extends Stmt //
 
@@ -118,8 +118,8 @@ object ast{
         val getType: String = ""
     }
     case class Param(paramType: Type, paramName: Ident) extends ASTNode
-    case class ParamList(paramListType: List[Param]) extends ASTNode
+    case class ParamList(paramListType: List[Param]) extends ASTNode //
     case class ArgList(exprl: List[Expr]) extends ASTNode //
-    case class Func(returnType: Type, functionName: Ident, params: ParamList, body: Stmt) extends ASTNode
-    case class Program(functions: List[Func], statements: Stmt) extends ASTNode
+    case class Func(returnType: Type, functionName: Ident, params: ParamList, body: Stmt) extends ASTNode //
+    case class Program(functions: List[Func], statements: Stmt) extends ASTNode //
 }

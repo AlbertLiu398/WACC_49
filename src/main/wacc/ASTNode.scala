@@ -10,11 +10,34 @@ object ast{
     sealed trait PairElemType extends ASTNode
     case object PairTypeElem extends PairElemType 
 
-    sealed trait Expr extends ASTNode
-    case class UnaryOperation(operator: UnaryOperator, expr: Expr) extends Expr
-    case class BinaryOperation(operator: BinaryOperator, left: Expr, right: Expr) extends Expr
-    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr
-    case class ArrElem(name: Ident, value: List[Expr]) extends Expr
+    sealed trait Expr extends ASTNode with RValue
+    // --------- Binary and Unary Operations ---------
+    sealed trait UnaryOperation extends Expr
+    sealed trait BinaryOperation extends Expr
+
+    case class Add(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Sub(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Mul(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Div(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Mod(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class LessThan(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class LessThanEq(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class GreaterThan(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class GreaterThanEq(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Eq(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class NotEq(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class And(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class Or(expr1: Expr, expr2: Expr) extends BinaryOperation
+
+    case class Invert(expr: Expr) extends UnaryOperation
+    case class Negate(expr: Expr) extends UnaryOperation
+    case class Len(expr: Expr) extends UnaryOperation
+    case class Ord(expr: Expr) extends UnaryOperation
+    case class Chr(expr: Expr) extends UnaryOperation
+    
+    
+    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr with RValue
+    case class ArrElem(name: Ident, value: List[Expr]) extends Expr with LValue
     
     sealed trait UnaryOperator extends ASTNode
     case class UOper(name: String) extends UnaryOperator
@@ -23,15 +46,13 @@ object ast{
     case class BOper(name: String) extends BinaryOperator
 
     sealed trait LValue extends ASTNode
-    case class IdentLValue(name: Ident) extends LValue
-    case class ArrElemLValue(name: Ident, value: List[Expr]) extends LValue
     
-    case class PairElem(option: String, values: LValue) extends LValue with RValue
+    sealed trait PairElem extends LValue with RValue
+    case class FstPairElem(values: LValue) extends PairElem 
+    case class SndPairElem(values: LValue) extends PairElem
 
     sealed trait RValue extends ASTNode
-    case class ExprRValue(expr: Expr) extends RValue
     case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue 
-    case class ArrayLiterRValue(expressions: ArrLiter) extends RValue
     case class CallRValue(func: Ident, args: ArgList) extends RValue
     
     sealed trait Stmt extends ASTNode
@@ -55,7 +76,7 @@ object ast{
     case class StringLiter(value: String) extends Liter
     case object PairLiter extends Liter
 
-    case class Ident(value: String) extends Expr
+    case class Ident(value: String) extends Expr with LValue
     case class Param(paramType: Type, paramName: Ident) extends ASTNode
     case class ParamList(paramListType: List[Param]) extends ASTNode
     case class ArgList(exprl: List[Expr]) extends ASTNode

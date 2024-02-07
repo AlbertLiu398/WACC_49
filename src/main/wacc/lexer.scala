@@ -5,6 +5,12 @@ import parsley.combinator._
 import parsley.token.{Lexer, predicate}
 import parsley.token.descriptions._
 import scala.collection.mutable.ListBuffer
+// import parsley.token.errors.ErrorConfig
+import parsley.token.errors._
+import parsley.Parsley._
+import parsley.character._
+
+
 
 object lexer {
     private val desc = LexicalDesc.plain.copy(
@@ -23,7 +29,7 @@ object lexer {
             // "="
         ),
         spaceDesc = SpaceDesc.plain.copy(
-            lineCommentStart = "//",
+            lineCommentStart = "#",
             lineCommentAllowsEOF = true,
             multiLineCommentStart = "/*", 
             multiLineCommentEnd = "*/",
@@ -53,10 +59,67 @@ object lexer {
             characterLiteralEnd = '\'',
             stringEnds = Set(("\"", "\"")),
             multiStringEnds = Set(("\"\"\"", "\"\"\"")),
-        ),
-
+        )
     )
 
+    // val errConfig = new ErrorConfig {
+    //     override def labelSymbol = Map(
+    //         ">" -> LabelAndReason(
+    //             reason = "unclosed angle bracket",
+    //             label = "closing angle bracket",
+    //         ),
+    //         "}" -> LabelAndReason(
+    //             reason = "unclosed brace",
+    //             label = "closing brace",
+    //         ),
+    //         ")" -> LabelAndReason(
+    //             reason = "unclosed parenthesis",
+    //             label = "closing parenthesis",
+    //         ),
+    //         "]" -> LabelAndReason(
+    //             reason = "unclosed square bracket",
+    //             label = "closing square bracket",
+    //         ),
+    //         ":" -> LabelAndReason(
+    //             reason = "unexpected colon",
+    //             label = "colon",
+    //         ),
+    //         "," -> LabelAndReason(
+    //             reason = "unexpected comma",
+    //             label = "comma",
+    //         ),
+    //         "." -> LabelAndReason(
+    //             reason = "unexpected dot",
+    //             label = "dot",
+    //         ),
+    //         "<" -> LabelAndReason(
+    //             reason = "unexpected open angle bracket",
+    //             label = "open angle bracket",
+    //         ),
+    //         "{" -> LabelAndReason(
+    //             reason = "unexpected open brace",
+    //             label = "open brace",
+    //         ),
+    //         "(" -> LabelAndReason(
+    //             reason = "unexpected (",
+    //             label = "open parenthesis",
+    //         ),
+
+    //         "[" -> LabelAndReason(
+    //             reason = "unexpected open square bracket",
+    //             label = "open square bracket",
+    //         ),
+            
+    //         ";" -> LabelAndReason(
+    //             reason = "unexpected semicolon",
+    //             label = "semicolon",
+    //         ) 
+    //     )
+    // }
+
+
+
+    // private val lexer = new Lexer(desc,errConfig)
     private val lexer = new Lexer(desc)
 
     val integer = lexer.lexeme.natural.number
@@ -67,18 +130,23 @@ object lexer {
     val identifier = lexer.lexeme.names.identifier
     val implicits = lexer.lexeme.symbol.implicits
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
-    // val escapeChar = choice(
-    //     '0' #> '\u0000',
-    //     'b' #> '\b',
-    //     't' #> '\t',
-    //     'n' #> '\n',
-    //     'f' #> '\f',
-    //     'r' #> '\r',
-    //     '"' #> '\"',
-    //     '\'',
-    //     '\\'
+
+    // val graphicAsciiExceptQuotes: Parsley[Char] = 
+    //     satisfy(c => c != '\\' && c != '\'' && c != '\"')
+    // val escapedChar: Parsley[Char] = char('\\') *> choice(
+    //     char('0')  *> Parsley.pure('\u0000'),
+    //     char('b')  *> Parsley.pure('\b'),
+    //     char('t')  *> Parsley.pure('\t'),
+    //     char('n')  *> Parsley.pure('\n'),
+    //     char('f')  *> Parsley.pure('\f'),
+    //     char('r')  *> Parsley.pure('\r'),
+    //     char('"')  *> Parsley.pure('\"'),
+    //     char('\'') *> Parsley.pure('\''),
+    //     char('\\') *> Parsley.pure('\\')
     // )
-    // val character = noneof('\\', '\', '"') <\> ("\\" *> escapeChar)
+    // val character: Parsley[Char] = escapedChar <|> graphicAsciiExceptQuotes
+
+ 
 
     //TODO : not compile yet
     // val newline: Lexeme[Unit] = lexer.lexeme(newline).void

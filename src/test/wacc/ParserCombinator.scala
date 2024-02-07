@@ -31,10 +31,10 @@ it should "parse statement" in {
     stmtParse("skip") shouldBe Success(Skip)
 
     // Assignment statement
-    stmtParse("x = 5") shouldBe Success(Assignment(IdentLValue(Ident("x")), ExprRValue(IntLiter(5))))
+    stmtParse("x = 5") shouldBe Success(Assignment(Ident("x"), IntLiter(5)))
 
     // If statement
-    stmtParse("if true then skip else skip") shouldBe Success(If(BoolLiter(true), Skip, Skip))
+    stmtParse("if true then skip else skip fi") shouldBe Success(If(BoolLiter(true), Skip, Skip))
 
     // While statement
     stmtParse("while x do skip done") shouldBe Success(While(Ident("x"), Skip))
@@ -49,7 +49,7 @@ it should "parse statement" in {
     stmtParse("begin skip end") shouldBe Success(Begin(Skip))
 
     // Read statement
-    stmtParse("read x") shouldBe Success(Read(IdentLValue(Ident("x"))))
+    stmtParse("read x") shouldBe Success(Read(Ident("x")))
 
     // Free statement
     stmtParse("free x") shouldBe Success(Free(Ident("x")))
@@ -61,7 +61,7 @@ it should "parse statement" in {
     stmtParse("exit x") shouldBe Success(Exit(Ident("x")))
 
     // New assignment statement
-    stmtParse("int x = 5") shouldBe Success(NewAssignment(BaseType("int"), Ident("x"), ExprRValue(IntLiter(5))))
+    stmtParse("int x = 5") shouldBe Success(NewAssignment(BaseType("int"), Ident("x"), IntLiter(5)))
 
     // New pair assignment statement
     stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseType("int"), BaseType("bool")), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
@@ -75,28 +75,24 @@ it should "parse statement" in {
 
 it should "parse lValue" in {
     // Ident lValue
-    lValueParse("x") shouldBe Success(IdentLValue(Ident("x")))
-
-    // Array element lValue
-    lValueParse("x[1]") shouldBe Success(ArrElemLValue(Ident("x"), List(IntLiter(1))))
+    lValueParse("x") shouldBe Success(Ident("x"))
 
     // Pair element lValue
-    lValueParse("fst x") shouldBe Success(PairElem("fst", IdentLValue(Ident("x"))))
+    lValueParse("fst x") shouldBe Success(FstPairElem(Ident("x")))
 }
 
 it should "parse rValue" in {
     // Expr rValue
-    rValueParse("x") shouldBe Success(ExprRValue(Ident("x")))
+    rValueParse("x") shouldBe Success(Ident("x"))
 
     // Array literal rValue
-    rValueParse("[1, 2, 3]") shouldBe Success(ArrayLiterRValue(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3)))))
+    rValueParse("[1, 2, 3]") shouldBe Success(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3))))
 
     // New pair rValue
     rValueParse("newpair(1, 2)") shouldBe Success(NewPairRValue(IntLiter(1), IntLiter(2)))
 
     // Pair element rValue
-    rValueParse("fst x") shouldBe Success(PairElem("fst", IdentLValue(Ident("x"))))
-
+    rValueParse("fst x") shouldBe Success(FstPairElem(Ident("x")))
     // Call rValue
     rValueParse("call f(1, 2)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(IntLiter(1), IntLiter(2)))))
 }
@@ -105,12 +101,9 @@ it should "parse argsList" in {
     argsListParse("1, 2, 3") shouldBe Success(ArgList(List(IntLiter(1), IntLiter(2), IntLiter(3))))
 }
 
-it should "parse pairElem" in {
-    pairElemParse("fst x") shouldBe Success(PairElem("fst", IdentLValue(Ident("x"))))
-}
 
 it should "parse arrl" in {
-    arrlParse("x[1]") shouldBe Success(ArrElemLValue(Ident("x"), List(IntLiter(1))))
+    arrlParse("x[1]") shouldBe Success(ArrElem(Ident("x"), List(IntLiter(1))))
 }
 
 it should "parse arrLiter" in {
@@ -126,10 +119,10 @@ it should "parse arrLiter" in {
     exprParse("1") shouldBe Success(IntLiter(1))
 
     // Binary operation
-    exprParse("1 + 2") shouldBe Success(BinaryOperation(BOper("+"), IntLiter(1), IntLiter(2)))
+    exprParse("1 + 2") shouldBe Success(Add(IntLiter(1), IntLiter(2)))
 
     // Unary operation
-    exprParse("-1") shouldBe Success(UnaryOperation(UOper("-"), IntLiter(1)))
+    exprParse("-1") shouldBe Success(Negate(IntLiter(1)))
 
     // atom expression
     exprParse("x") shouldBe Success(Ident("x"))
@@ -147,9 +140,9 @@ it should "parse arrLiter" in {
     allTypeParse("char[]") shouldBe Success(ArrayType(BaseType("char")))
     allTypeParse("string[]") shouldBe Success(ArrayType(BaseType("string")))
     allTypeParse("pair(int, bool)") shouldBe Success(PairType(BaseType("int"), BaseType("bool")))
-    allTypeParse("pair(int[], bool[])") shouldBe Success(PairType(ArrayType(ArrayType(BaseType("int"))), ArrayType(ArrayType(BaseType("bool")))))
-    allTypeParse("pair(int, bool[])") shouldBe Success(PairType(BaseType("int"), ArrayType(ArrayType(BaseType("bool")))))
-    allTypeParse("pair(int[], bool)") shouldBe Success(PairType(ArrayType(ArrayType(BaseType("int"))), BaseType("bool")))
+    allTypeParse("pair(int[], bool[])") shouldBe Success(PairType(ArrayType(BaseType("int")), ArrayType(BaseType("bool"))))
+    allTypeParse("pair(int, bool[])") shouldBe Success(PairType(BaseType("int"), ArrayType(BaseType("bool"))))
+    allTypeParse("pair(int[], bool)") shouldBe Success(PairType(ArrayType(BaseType("int")), BaseType("bool")))
   }
 }
 

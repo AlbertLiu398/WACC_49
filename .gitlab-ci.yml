@@ -1,7 +1,6 @@
 stages:
   - build
   - test
-  - deploy
 
 build:
   stage: build
@@ -14,18 +13,8 @@ build:
 test:
   stage: test
   script:
-   - echo "test"
+   - scala-cli test .
   tags:
     - shell
 
-deploy_vm:
-  stage: deploy
-  script:
-    - tmux kill-session -t web || true
-    - make clean
-    - make 
-    - export PORT=5001
-    - tmux new-session -d -s web "echo deploying; ./wacc"
-  tags:
-    - shell
 

@@ -82,20 +82,20 @@ object parser {
     private lazy val stmt =  atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
     //using parser bridge and option to avoid amubiguity
-    private lazy val lValue: Parsley[LValue] = pairElem | arr | atomic(ident <~ notFollowedBy("["))
+    private lazy val lValue: Parsley[LValue] = pairElem |atomic(ident <~ notFollowedBy("[")) | arr 
 
     private lazy val notPairElem: Parsley[LValue] = atomic(ident<~ notFollowedBy("[")) | arr
     private lazy val pairElem = fstPairElem | sndPairElem
-    private lazy val fstPairElem = chain.prefix(notPairElem)("fst".as(FstPairElem))
-    private lazy val sndPairElem = chain.prefix(notPairElem)("snd".as(SndPairElem))
+    private lazy val fstPairElem = chain.prefix1(notPairElem)("fst".as(FstPairElem))
+    private lazy val sndPairElem = chain.prefix1(notPairElem)("snd".as(SndPairElem))
 
     
     private lazy val rValue =
         NewPairRValue.lift("newpair" ~> "(" ~> expr, "," ~> expr <~ ")") |
         CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")") |
         pairElem |
-        expr |
-        arrLiter 
+        expr|
+        arrLiter
       
     private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit))
     private lazy val arrLiter: Parsley[ArrLiter] 
@@ -117,14 +117,6 @@ object parser {
     // -------------------------- Expressions --------------------------
     
     private lazy val expr: Parsley[Expr]= operators | atom
-    // private lazy val a = operators
-    // private lazy val bExpr : Parsley[Expr] = chain.left1(notUOper)("+".as(Add) | "-".as(Sub) | "*".as(Mul) | "/".as(Div) | "%".as(Mod) 
-    // | "<".as(LessThan) | ">".as(GreaterThan) | "<=".as(LessThanEq) | ">=".as(GreaterThanEq) | "==".as(Eq) | "!=".as(NotEq) | "&&".as(And) | "||".as(Or))
-    // private lazy val uExpr: Parsley[Expr] = chain.prefix(notBOper)("!".as(Negate) | "-".as(Invert) | "len".as(Len) | "ord".as(Ord) | "chr".as(Chr))                  
-
-    // private lazy val notUOper: Parsley[Expr] = bExpr| atom
-    // private lazy val notBOper: Parsley[Expr] = uExpr| atom
-
     private lazy val operators: Parsley[Expr] = precedence(atom, atom)(
         Ops(Prefix)("!" as Invert,"-" #> Negate,"len" #> Len,"ord" #> Ord,"chr" #> Chr),
         Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod, "+" #> Add, "-" #> Sub, ">=" #> GreaterThanEq, "<=" #> LessThanEq,

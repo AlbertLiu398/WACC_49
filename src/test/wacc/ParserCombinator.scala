@@ -45,6 +45,7 @@ it should "parse statement" in {
 
     // Println statement    
     stmtParse("println x") shouldBe Success(Print(Ident("x"), true))
+    // stmtParse("println (a)") shouldBe Success(Print(Ident("a"), true))
 
     // Begin statement
     stmtParse("begin skip end") shouldBe Success(Begin(Skip))

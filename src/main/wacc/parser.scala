@@ -98,7 +98,10 @@ object parser {
         arrLiter 
       
     private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit))
-    private lazy val arrLiter: Parsley[ArrLiter] = "[]" #> ArrLiter(null, List()) | ArrLiter.lift("[" ~> expr <~ ",", commaSep_(expr) <~ "]") | atomic(ArrLiter.lift("[" ~> expr, pure(List()) <~ "]"))
+    private lazy val arrLiter: Parsley[ArrLiter] 
+      = "[]" #> ArrLiter(null, List()) | 
+         atomic(ArrLiter.lift("[" ~> expr <~ notFollowedBy(",") <~ "]", pure(List()))) |
+         ArrLiter.lift("[" ~> expr <~ ",", commaSep_(expr) <~ "]")
     private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
     // -------------------------- Types ---------------------------

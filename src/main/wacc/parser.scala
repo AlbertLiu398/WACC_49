@@ -129,7 +129,7 @@ object parser {
     // UnaryOperation.lift(uOper, expr) |
 
     // -----------------------------
-    private lazy val atom : Parsley[Expr] = atomic(ident <~ notFollowedBy("[")) | arr | intLiter | boolLiter | charLiter | stringLiter | pairLiter 
+    private lazy val atom : Parsley[Expr] =  "(" ~> expr <~ ")"| atomic(ident <~ notFollowedBy("[")) | arr | intLiter | boolLiter | charLiter | stringLiter | pairLiter 
     private lazy val uOper: Parsley[UOper]  =  "!" #> UOper("!") | "-"  #> UOper("-") | "len" #> UOper("len") |  "ord" #> UOper("ord")| "chr" #> UOper("chr")
     private lazy val bOper: Parsley[BOper] = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
                             "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 

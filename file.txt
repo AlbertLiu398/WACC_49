@@ -1,18 +1,16 @@
-# moderate complexity array manipulations
+# evaluating boolean operator precedence
 
 # Output:
-# #addrs# = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+# true
+# false
 #
 
 # Program:
 
 begin
-  int[] a = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] ;
-  int i = 0 ;
-  while i < 1
-  do
-    a[i] = i ;
-    i = i + 1
-  done ;
-  print a 
+  bool a = false ;
+  bool b = false ;
+  bool c = true ;
+  println a && b || c ;
+  println a && (b || c)
 end

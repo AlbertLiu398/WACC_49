@@ -84,7 +84,7 @@ object parser {
     //using parser bridge and option to avoid amubiguity
     private lazy val lValue: Parsley[LValue] = pairElem | arr | atomic(ident <~ notFollowedBy("["))
 
-    private lazy val notPairElem: Parsley[LValue] = atomic(ident <~ notFollowedBy("[")) | arr
+    private lazy val notPairElem: Parsley[LValue] = atomic(ident<~ notFollowedBy("[")) | arr
     private lazy val pairElem = fstPairElem | sndPairElem
     private lazy val fstPairElem = chain.prefix(notPairElem)("fst".as(FstPairElem))
     private lazy val sndPairElem = chain.prefix(notPairElem)("snd".as(SndPairElem))
@@ -93,8 +93,8 @@ object parser {
     private lazy val rValue =
         NewPairRValue.lift("newpair" ~> "(" ~> expr, "," ~> expr <~ ")") |
         CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")") |
+        pairElem |
         expr |
-        pairElem | 
         arrLiter 
       
     private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit))

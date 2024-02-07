@@ -5,6 +5,7 @@
 # Program:
 
 begin
-  int[] a = [0, 1]
+  int y = 0;
+  int x = fst y
 end
 

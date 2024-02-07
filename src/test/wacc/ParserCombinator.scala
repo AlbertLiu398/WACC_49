@@ -41,6 +41,7 @@ it should "parse statement" in {
 
     // Print statement
     stmtParse("print x") shouldBe Success(Print(Ident("x"), false))
+    stmtParse(("print a[i]")) shouldBe Success(Print(ArrElem(Ident("a"), List(Ident("i"))), false))
 
     // Println statement    
     stmtParse("println x") shouldBe Success(Print(Ident("x"), true))

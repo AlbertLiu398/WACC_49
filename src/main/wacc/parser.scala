@@ -98,7 +98,7 @@ object parser {
         arrLiter 
       
     private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit))
-    private lazy val arrLiter: Parsley[ArrLiter] = "[]" #> ArrLiter(null, List()) | ArrLiter.lift("[" ~> expr <~ ",", commaSep_(expr) <~ "]") | atomic(ArrLiter.lift("[" ~> exprOrArrayLit, pure(List()) <~ "]"))
+    private lazy val arrLiter: Parsley[ArrLiter] = "[]" #> ArrLiter(null, List()) | ArrLiter.lift("[" ~> expr <~ ",", commaSep_(expr) <~ "]") | atomic(ArrLiter.lift("[" ~> expr, pure(List()) <~ "]"))
     private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
     // -------------------------- Types ---------------------------
@@ -134,9 +134,7 @@ object parser {
     // UnaryOperation.lift(uOper, expr) |
 
     // -----------------------------
-
-
-    private lazy val atom : Parsley[Expr] =  ident | intLiter | boolLiter | charLiter | stringLiter | pairLiter | arr
+    private lazy val atom : Parsley[Expr] = atomic(ident <~ notFollowedBy("[")) | arr | intLiter | boolLiter | charLiter | stringLiter | pairLiter 
     private lazy val uOper: Parsley[UOper]  =  "!" #> UOper("!") | "-"  #> UOper("-") | "len" #> UOper("len") |  "ord" #> UOper("ord")| "chr" #> UOper("chr")
     private lazy val bOper: Parsley[BOper] = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
                             "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 

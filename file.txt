@@ -1,40 +1,32 @@
-# simple input/output loop
-
-# Input: 1 Y 2 Y 3 Y 4 Y 5 Y 142 N
+# moderate complexity array manipulations
 
 # Output:
-# Please input an integer: echo input: 1
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 2
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 3
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 4
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 5
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
-# Please input an integer: echo input: 142
-# Do you want to continue entering input?
-# (enter Y for 'yes' and N for 'no')
+# #addrs# = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 #
 
 # Program:
 
 begin
-  char continue = 'Y' ;
-  int buff = 0 ;
-  while continue != 'N' do
-    print "Please input an integer: " ;
-    read buff ;
-    print "echo input: " ;
-    println buff ;
-    println "Do you want to continue entering input?" ;
-    println "(enter Y for \'yes\' and N for \'no\')" ;
-    read continue
-  done
+  int[] a = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] ;
+  int i = 0 ;
+  while i < 10
+  do
+    a[i] = i ;
+    i = i + 1
+  done ;
+  print a ;
+  print " = {" ;
+  i = 0 ;
+  while i < 10
+  do
+    print a[i] ;
+    if i < 9
+    then
+      print ", "
+    else
+      skip
+    fi ;
+    i = i + 1
+  done ;
+  println "}"
 end

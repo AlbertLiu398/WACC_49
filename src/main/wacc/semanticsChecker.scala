@@ -65,9 +65,14 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@NewAssignment(identType, name, value) =>
         semanticCheck(value)
-        if (identType.getType != value.getType) {
-          errors.append(SemanticError("assignment type mismatch"))
+        value match {
+          case ArrLiter(StringLiter("empty"), es) => 
+          case _ =>
+            if (identType.getType != value.getType) {
+              errors.append(SemanticError("assignment type mismatch"))
+            }
         }
+        
         value match {
           case NewPairRValue(exprL, exprR) =>
             symbolTable.insertSymbolwithValue(name, identType.getType, List(exprL.getType, exprR.getType))

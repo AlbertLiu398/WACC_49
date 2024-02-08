@@ -7,7 +7,7 @@ import parsley.expr.infix
 case class SymbolEntry(name: Ident, varType: String, value: List[String])
 
 
-//function: list = params type
+//function: list = params type, return type
 //Pair: List[0] = fst type, List[1] = snd type
 class SymbolTable {
 

@@ -14,17 +14,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
     ast match {
 
       case Program(funcList, stmts) =>
+        symbolTable.enterScope()
         for (func <- funcList) {
           semanticCheck(func)
         }
         semanticCheck(stmts)
+        symbolTable.exitScope()
 
       case n@Func(returnType, functionName, params, body) =>
         semanticCheck(returnType)
-
-        symbolTable.enterScope()
         semanticCheck(params)
-        symbolTable.insertSymbolwithValue(functionName, "func", params.getType)
+        symbolTable.insertSymbolwithValue(functionName, "func", params.getType :+ returnType.getType)
+        symbolTable.enterScope()
         symbolTable.enterFunc(returnType)
         semanticCheck(body)
         symbolTable.exitFunc()
@@ -35,7 +36,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         if (!symbolTable.isInFunc()) {
           errors.append(SemanticError("unexpected return statement"))
         }
-        if (compareType(expr.getType,symbolTable.getFuncType)) {
+        if (!compareType(expr.getType, symbolTable.getFuncType)) {
           errors.append(SemanticError("return type does not match"))
         }
       
@@ -165,12 +166,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
         //need to check each args's type is correct
         symbolTable.lookupSymbol(func) match {
           case Some(symbolEntry) =>
-            if (symbolEntry.value.length == args.exprl.length) {
-              for (i <- 0 to symbolEntry.value.length) {
+            if (symbolEntry.value.length - 1 == args.exprl.length) {
+              for (i <- 0 to args.exprl.length - 1) {
                 if (!compareType(symbolEntry.value(i), args.exprl(i).getType)) {
                   errors.append(SemanticError("function parameters type mismatch"))
                 }
               }
+              n.getType = symbolEntry.value(symbolEntry.value.length - 1)
             } else {
               errors.append(SemanticError("function has too many/few parameters"))
             }

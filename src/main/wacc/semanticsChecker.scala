@@ -351,5 +351,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
   def getSemanticErrors: List[SemanticError] = errors.toList
   
+  def refreshSymbolTable(): Unit  = {
+    errors.clear()
+  }
 
 }

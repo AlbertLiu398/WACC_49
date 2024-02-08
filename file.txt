@@ -1,10 +1,10 @@
+# create a pair (int, pair (int, int) )
 
-# basic escaped character printing
 # Output:
-# An escaped character example is "
-#
+
 # Program:
+
 begin
-  print "An escaped character example is " ;
-  println '\"'
+  
+  pair(int, pair(int, int)[]) q = newpair(1, p)
 end

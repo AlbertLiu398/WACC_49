@@ -62,7 +62,7 @@ object parser {
     // TODO : Statements may need more than one parsers
 
     // -------------------------- Statements -------------------------
-    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func), stmt <~ "end")
+    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func).debug("function"), stmt <~ "end")
     private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> stmt <~ "end")) |
                                            atomic(Func.lift(allType, ident, paramList, "is" ~> stmt <~ "end")) 
                                           
@@ -110,13 +110,13 @@ object parser {
     private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
     // -------------------------- Types ---------------------------
-    private lazy val allType: Parsley[Type] = arrayType | notArrayType
+    private lazy val allType: Parsley[Type] = atomic(arrayType) | notArrayType
     private lazy val notArrayType: Parsley[Type] = baseType | pairType 
     private lazy val baseType = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
-    private lazy val arrayType = chain.postfix(notArrayType)("[]".as(ArrayType))
+    private lazy val arrayType = chain.postfix1(notArrayType)("[]".as(ArrayType))
     private lazy val pairType: Parsley[Type] = "pair" ~> "(" ~> PairType.lift(pairElemType, "," ~> pairElemType <~ ")")
 
-    private lazy val pairElemType: Parsley[PairElemType] =   pairTypeElem | arrayType | baseType
+    private lazy val pairElemType: Parsley[PairElemType] =  pairTypeElem| atomic(baseType <~ notFollowedBy("[")) | arrayType
     private lazy val pairTypeElem: Parsley[PairElemType] = atomic("pair" #> PairTypeElem <~ notFollowedBy("("))
 
     // -------------------------- Expressions --------------------------

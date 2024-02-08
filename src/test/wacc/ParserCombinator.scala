@@ -68,12 +68,13 @@ it should "parse statement" in {
 
     // New pair assignment statement
     stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseType("int"), BaseType("bool")), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
+    stmtParse("pair(pair, pair) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(PairTypeElem, PairTypeElem), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
 
-    // // Seq statement
-    // parser.parse("skip; skip") shouldBe Success(SeqStmt(Skip, Skip))
+    // Seq statement
+    stmtParse("skip; skip") shouldBe Success(SeqStmt(Skip, Skip))
 
-    // // Seq statement
-    // parser.parse("skip; skip; skip") shouldBe Success(SeqStmt(Skip, SeqStmt(Skip, Skip)))
+    // Seq statement
+    stmtParse("skip; skip; skip") shouldBe Success(SeqStmt(Skip, SeqStmt(Skip, Skip)))
 }
 
 it should "parse lValue" in {
@@ -82,6 +83,7 @@ it should "parse lValue" in {
 
     // Pair element lValue
     lValueParse("fst x") shouldBe Success(FstPairElem(Ident("x")))
+    lValueParse("snd fst x") shouldBe Success(SndPairElem(FstPairElem(Ident("x"))))
 }
 
 it should "parse rValue" in {
@@ -147,7 +149,9 @@ it should "parse arrLiter" in {
     allTypeParse("pair(int[], bool[])") shouldBe Success(PairType(ArrayType(BaseType("int")), ArrayType(BaseType("bool"))))
     allTypeParse("pair(int, bool[])") shouldBe Success(PairType(BaseType("int"), ArrayType(BaseType("bool"))))
     allTypeParse("pair(int[], bool)") shouldBe Success(PairType(ArrayType(BaseType("int")), BaseType("bool")))
-    allTypeParse("pair(pair(int, bool), pair(bool, int))") shouldBe Success(PairType(PairType(BaseType("int"), BaseType("bool")), PairType(BaseType("bool"), BaseType("int"))))
+    allTypeParse("pair(pair(int, bool)[], pair(bool, int)[])") shouldBe Success(PairType(ArrayType(PairType(BaseType("int"), BaseType("bool"))), ArrayType(PairType(BaseType("bool"), BaseType("int")))))
+    allTypeParse("pair(int, pair(int, char)[])") shouldBe Success(PairType(BaseType("int"), ArrayType(PairType(BaseType("int"), BaseType("char"))))
+    ) 
   }
 }
 

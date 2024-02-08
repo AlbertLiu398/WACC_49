@@ -16,6 +16,7 @@ class ParserCombinatorTest extends ParserTest {
 it should "parse function" in {
     funcParse("int f(int x) is skip end") shouldBe Success(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Skip))
 }
+// it should 
 
 it should "parse paramList" in {
   paramListParse("(int x, bool y)") shouldBe Success(ParamList(List(Param(BaseType("int"), Ident("x")), Param(BaseType("bool"), Ident("y")))))
@@ -46,6 +47,8 @@ it should "parse statement" in {
     // Println statement    
     stmtParse("println x") shouldBe Success(Print(Ident("x"), true))
     stmtParse("println (a)") shouldBe Success(Print(Ident("a"), true))
+    stmtParse("println 1-+2") shouldBe Success(Print(Sub(IntLiter(1), Positive(IntLiter(2))), true))
+
 
     // Begin statement
     stmtParse("begin skip end") shouldBe Success(Begin(Skip))
@@ -67,12 +70,13 @@ it should "parse statement" in {
 
     // New pair assignment statement
     stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseType("int"), BaseType("bool")), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
+    stmtParse("pair(pair, pair) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(PairTypeElem, PairTypeElem), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
 
-    // // Seq statement
-    // parser.parse("skip; skip") shouldBe Success(SeqStmt(Skip, Skip))
+    // Seq statement
+    stmtParse("skip; skip") shouldBe Success(SeqStmt(Skip, Skip))
 
-    // // Seq statement
-    // parser.parse("skip; skip; skip") shouldBe Success(SeqStmt(Skip, SeqStmt(Skip, Skip)))
+    // Seq statement
+    stmtParse("skip; skip; skip") shouldBe Success(SeqStmt(Skip, SeqStmt(Skip, Skip)))
 }
 
 it should "parse lValue" in {
@@ -81,6 +85,7 @@ it should "parse lValue" in {
 
     // Pair element lValue
     lValueParse("fst x") shouldBe Success(FstPairElem(Ident("x")))
+    lValueParse("snd fst x") shouldBe Success(SndPairElem(FstPairElem(Ident("x"))))
 }
 
 it should "parse rValue" in {
@@ -109,7 +114,7 @@ it should "parse arrl" in {
 }
 
 it should "parse arrLiter" in {
-    arrLiterParse("[]") shouldBe Success(ArrLiter(null, List()))
+    arrLiterParse("[]") shouldBe Success(ArrLiter(StringLiter("empty"), List()))
     arrLiterParse("[1]") shouldBe Success(ArrLiter(IntLiter(1), List()))
     arrLiterParse("[1, 2, 3]") shouldBe Success(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3))))
 }
@@ -123,12 +128,17 @@ it should "parse arrLiter" in {
 
     // Binary operation
     exprParse("1 + 2") shouldBe Success(Add(IntLiter(1), IntLiter(2)))
+    exprParse("1 -+ 2") shouldBe Success(Sub(IntLiter(1), Positive(IntLiter(2))))
+    exprParse("1 - 2 - 5") shouldBe Success(Sub(Sub(IntLiter(1), IntLiter(2)), IntLiter(5)))
+    // exprParse("p && q && r") shouldBe Success(And(Ident("p"),(And(Ident("q"), Ident("r")))))
+    
 
     // Unary operation
     exprParse("-1") shouldBe Success(Negate(IntLiter(1)))
 
     // atom expression
     exprParse("x") shouldBe Success(Ident("x"))
+
 
   }
 
@@ -146,7 +156,9 @@ it should "parse arrLiter" in {
     allTypeParse("pair(int[], bool[])") shouldBe Success(PairType(ArrayType(BaseType("int")), ArrayType(BaseType("bool"))))
     allTypeParse("pair(int, bool[])") shouldBe Success(PairType(BaseType("int"), ArrayType(BaseType("bool"))))
     allTypeParse("pair(int[], bool)") shouldBe Success(PairType(ArrayType(BaseType("int")), BaseType("bool")))
-    allTypeParse("pair(pair(int, bool), pair(bool, int))") shouldBe Success(PairType(PairType(BaseType("int"), BaseType("bool")), PairType(BaseType("bool"), BaseType("int"))))
+    allTypeParse("pair(pair(int, bool)[], pair(bool, int)[])") shouldBe Success(PairType(ArrayType(PairType(BaseType("int"), BaseType("bool"))), ArrayType(PairType(BaseType("bool"), BaseType("int")))))
+    allTypeParse("pair(int, pair(int, char)[])") shouldBe Success(PairType(BaseType("int"), ArrayType(PairType(BaseType("int"), BaseType("char"))))
+    ) 
   }
 }
 

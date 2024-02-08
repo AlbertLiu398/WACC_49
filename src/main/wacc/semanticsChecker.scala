@@ -72,8 +72,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
         value match {
           case NewPairRValue(exprL, exprR) =>
             symbolTable.insertSymbolwithValue(name, identType.getType, List(exprL.getType, exprR.getType))
+          case _ =>
+            symbolTable.insertSymbol(name, identType.getType)
         }
-        symbolTable.insertSymbol(name, identType.getType)
 
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
@@ -322,7 +323,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
             errors.append(SemanticError("Value not exist"))
         }
       
-      case n@FstPairElem(values) =>
+      case n@SndPairElem(values) =>
         symbolTable.lookupSymbol(values) match {
           case Some(symbolEntry) =>
             n.getType = symbolEntry.value(1)
@@ -341,8 +342,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@PairLiter => // Literals don't need semantic checks
 
       case n@Ident(_) => // Identifiers don't need semantic checks
-
-      case n@Param(_, _) => // Parameters don't need semantic checks
 
       case _ =>
       // Handle other cases if necessary

@@ -3,16 +3,16 @@ object ast{
     sealed trait ASTNode
 
     sealed trait Type extends PairElemType {
-        def getType:String
+        var getType:String
     }
     case class BaseType(name: String) extends Type with PairElemType{
-        override def getType: String = name
+        var getType: String = name
     }
     case class ArrayType(elementType: Type) extends Type with PairElemType{
-        override def getType: String = elementType.getType + "[]"
+        var getType: String =  elementType.getType + "[]"
     }
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
-        override def getType: String = s"pair(${first.getType}, ${second.getType})"
+        var getType: String =  s"pair(${first.getType}, ${second.getType})"
     }
 
     sealed trait PairElemType extends ASTNode{
@@ -80,11 +80,13 @@ object ast{
     }
 
     sealed trait RValue extends ASTNode {
+        var getType: String
+    }
+    case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue { //
         var getType: String = ""
     }
-    case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue //
     case class CallRValue(func: Ident, args: ArgList) extends RValue { //
-        val getType: String = ""
+        var getType: String = ""
     }
     
     sealed trait Stmt extends ASTNode
@@ -101,25 +103,27 @@ object ast{
     case class Begin(stmt: Stmt) extends Stmt //
     case class SeqStmt(first: Stmt, second: Stmt) extends Stmt //
 
-    sealed trait Liter extends Expr
+    sealed trait Liter extends Expr {
+        var getType: String
+    }
     case class IntLiter(value: BigInt) extends Liter {
-        val getType = "int"
+        var getType = "int"
     }
     case class BoolLiter(value: Boolean) extends Liter {
-        val getType = "bool" 
+        var getType = "bool" 
     }
     case class CharLiter(value: Char) extends Liter {
-        val getType = "char" 
+        var getType = "char" 
     }
     case class StringLiter(value: String) extends Liter {
-        val getType = "string" 
+        var getType = "string" 
     }
     case object PairLiter extends Liter {
-        val getType = "pair" 
+        var getType = "pair" 
     }
 
     case class Ident(value: String) extends Expr with LValue {
-        val getType: String = ""
+        var getType: String = ""
     }
     case class Param(paramType: Type, paramName: Ident) extends ASTNode {
         val getType: String = paramType.getType

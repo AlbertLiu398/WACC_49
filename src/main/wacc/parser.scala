@@ -62,7 +62,7 @@ object parser {
     // TODO : Statements may need more than one parsers
 
     // -------------------------- Statements -------------------------
-    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func).debug("function"), stmt <~ "end")
+    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func), stmt <~ "end")
     private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> stmt <~ "end")) |
                                            atomic(Func.lift(allType, ident, paramList, "is" ~> stmt <~ "end")) 
                                           

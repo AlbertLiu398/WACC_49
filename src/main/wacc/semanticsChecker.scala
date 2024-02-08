@@ -78,15 +78,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
         semanticCheck(rvalue)
-
-        symbolTable.lookupSymbol(lvalue) match {
-          case Some(symbolEntry) =>
-            if (symbolEntry.varType != rvalue.getType) {
-              errors.append(SemanticError("assignment type mismatch"))
-            }
-          case None => 
-            errors.append(SemanticError("assignment value not exist"))
+        if (lvalue.getType != rvalue.getType) {
+          errors.append(SemanticError("assignment type mismatch"))
         }
+      
 
       case n@ArrLiter(e, es) =>
         val ess = e::es
@@ -102,7 +97,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@ArrElem(name, value) =>
         symbolTable.lookupSymbol(name) match {
           case Some(symbolEntry) =>
-            n.getType = symbolEntry.varType
+            
+            n.getType = symbolEntry.varType.dropRight(value.length * 2)
           case None => 
             errors.append(SemanticError("array not exist"))
         }

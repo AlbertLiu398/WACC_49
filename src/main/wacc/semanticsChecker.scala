@@ -92,7 +92,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         val ess = e::es
         if (e != StringLiter("empty")) {
           ess.foreach(semanticCheck)
-          if (ess.map(_.getType).distinct != 1) {
+          if (ess.map(_.getType).distinct.length != 1) {
             errors.append(SemanticError("list elements type mismatch"))
           }
         }

@@ -17,14 +17,14 @@ object Main {
 
                 result match {
                     case Success(prog) => 
-                        // println(s"$fileContents = $prog")
-                        // val semanticchecker = new semanticsChecker(new SymbolTable)
-                        // semanticchecker.semanticCheck(prog)
-                        // val errors = semanticchecker.getSemanticErrors
-                        // if (!errors.isEmpty) {
-                        //     errors.foreach(println(_))
-                        //     sys.exit(200)
-                        // }
+                        println(s"$fileContents = $prog")
+                        val semanticchecker = new semanticsChecker(new SymbolTable)
+                        semanticchecker.semanticCheck(prog)
+                        val errors = semanticchecker.getSemanticErrors
+                        if (!errors.isEmpty) {
+                            errors.foreach(println(_))
+                            sys.exit(200)
+                        }
                         
                     case Failure(msg) => 
                         println(msg)

@@ -1,10 +1,10 @@
-# function return type and name are conflated
 
+# basic escaped character printing
 # Output:
-# #syntax_error#
-
-# Exit:
-# 100
-begin 
-  intx = 1
+# An escaped character example is "
+#
+# Program:
+begin
+  print "An escaped character example is " ;
+  println '\"'
 end

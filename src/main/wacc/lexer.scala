@@ -11,6 +11,7 @@ import scala.collection.mutable.ListBuffer
 import parsley.token.errors._
 import parsley.Parsley._
 import parsley.character._
+import parsley.debug, debug._ 
 
 
 
@@ -139,7 +140,7 @@ object lexer {
         graphicCharacter.filter(c => c != '\\' && c != '\'' && c != '\"')
 
     val escapedChar: Parsley[Char] = char('\\') *> choice(
-        char('0')  *> pure('\u0000'),
+        char('0')  *> pure('\u0000').debug("escapedChar 1"),
         char('b')  *> pure('\b'),
         char('t')  *> pure('\t'),
         char('n')  *> pure('\n'),

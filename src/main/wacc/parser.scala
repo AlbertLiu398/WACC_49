@@ -51,8 +51,8 @@ object parser {
     private lazy val intLiter = integer.map(IntLiter)
     private lazy val ident = identifier.map(Ident)
     private lazy val boolLiter = ("true" #> BoolLiter(true)) <|> ("false" #> BoolLiter(false))
-    private lazy val charLiter =  graphicCharacter.map(CharLiter)
-    // private lazy val charLiter = between(char('\''), "'", character.map(CharLiter))
+    private lazy val charLiter =  lexer.character.map(CharLiter)
+   
     private lazy val stringLiter = string.map(StringLiter)
     private lazy val pairLiter = "null" #> PairLiter
 

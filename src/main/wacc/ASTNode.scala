@@ -31,6 +31,8 @@ object ast{
 
     case class Invert(expr: Expr) extends UnaryOperation
     case class Negate(expr: Expr) extends UnaryOperation
+    case class Positive(expr: Expr) extends UnaryOperation
+    
     case class Len(expr: Expr) extends UnaryOperation
     case class Ord(expr: Expr) extends UnaryOperation
     case class Chr(expr: Expr) extends UnaryOperation

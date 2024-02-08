@@ -123,7 +123,7 @@ object parser {
     
     private lazy val expr: Parsley[Expr]= operators | atom
     private lazy val operators: Parsley[Expr] = precedence(atom, atom)(
-        Ops(Prefix)("!" as Invert,"-" #> Negate,"len" #> Len,"ord" #> Ord,"chr" #> Chr),
+        Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr, "+" #> Positive),
         Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod, "+" #> Add, "-" #> Sub, ">=" #> GreaterThanEq, "<=" #> LessThanEq,
         ">" #> GreaterThan, "<" #> LessThan, "==" #> Eq, "!=" #> NotEq, "&&" #> And, "||" #> Or),
     )

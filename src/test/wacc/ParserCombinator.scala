@@ -126,12 +126,17 @@ it should "parse arrLiter" in {
 
     // Binary operation
     exprParse("1 + 2") shouldBe Success(Add(IntLiter(1), IntLiter(2)))
+    exprParse("1 -+ 2") shouldBe Success(Sub(IntLiter(1), Positive(IntLiter(2))))
+    exprParse("1 - 2 - 5") shouldBe Success(Sub(Sub(IntLiter(1), IntLiter(2)), IntLiter(5)))
+    // exprParse("p && q && r") shouldBe Success(And(Ident("p"),(And(Ident("q"), Ident("r")))))
+    
 
     // Unary operation
     exprParse("-1") shouldBe Success(Negate(IntLiter(1)))
 
     // atom expression
     exprParse("x") shouldBe Success(Ident("x"))
+
 
   }
 

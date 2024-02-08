@@ -136,9 +136,9 @@ object lexer {
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
 
     val graphicAsciiExceptQuotes: Parsley[Char] = 
-        graphicCharacter.filter(c => c != '\\' && c != '\'' && c != '"')
+        graphicCharacter.filter(c => c != '\\' && c != '\'' && c != '\"')
 
-    val escapedChar: Parsley[Char] = char('\\') *> choice(
+    val escapedChar: Parsley[Char] = char('\\') *> choice(xs
         char('0')  *> pure('\u0000'),
         char('b')  *> pure('\b'),
         char('t')  *> pure('\t'),

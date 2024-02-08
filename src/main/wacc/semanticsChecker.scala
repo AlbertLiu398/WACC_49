@@ -20,15 +20,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(stmts)
 
       case n@Func(returnType, functionName, params, body) =>
-        symbolTable.insertSymbol(functionName, "func")
         semanticCheck(returnType)
 
         symbolTable.enterScope()
+        semanticCheck(params)
+        symbolTable.insertSymbolwithValue(functionName, "func", params.getType)
         symbolTable.enterFunc(returnType)
-
-        // semanticCheck(params)
         semanticCheck(body)
-
         symbolTable.exitFunc()
         symbolTable.exitScope()
 
@@ -40,11 +38,12 @@ class semanticsChecker(symbolTable: SymbolTable) {
         if (expr.getType == symbolTable.getFuncType) {
           errors.append(SemanticError("return type does not match"))
         }
-
-        // TODO consider if, for, while
-
-        // TODO consider difference in exit and return
-
+      
+      case n@Exit(expr)=>
+        semanticCheck(expr)
+        if  (expr.getType != "int") {
+          errors.append(SemanticError("exit code need to be Int"))
+        }
 
       case n@SeqStmt(first, second) =>
         semanticCheck(first)
@@ -59,65 +58,80 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@ParamList(params) =>
         params.foreach(semanticCheck)
-
+      
+      case n@Param(paramType, paramName) =>
+        semanticCheck(paramType)
+        symbolTable.insertSymbol(paramName, paramType.getType)
 
       case n@NewAssignment(identType, name, value) =>
         semanticCheck(name)
         semanticCheck(value)
         if (identType.getType != value.getType) {
-          errors.append(SemanticError("assiment type mismatch"))
+          errors.append(SemanticError("assignment type mismatch"))
         }
-        symbolTable.insertSymbol(lvalue, identType.getType) //should change type of SymbolTable to LValue
+        value match {
+          case NewPairRValue(exprL, exprR) =>
+            symbolTable.insertSymbolwithValue(name, identType.getType, List(exprL.getType, exprR.getType))
+        }
+        symbolTable.insertSymbol(name, identType.getType)
 
       case n@Assignment(lvalue, rvalue) =>
-        // Check LValue and RValue
         semanticCheck(lvalue)
         semanticCheck(rvalue)
-        //should change type of SymbolTable to LValue
+
         symbolTable.lookupSymbol(lvalue) match {
           case Some(symbolEntry) =>
             if (symbolEntry.varType != rvalue.getType) {
-              errors.append(SemanticError("assiment type mismatch"))
+              errors.append(SemanticError("assignment type mismatch"))
             }
           case None => 
-            errors.append(SemanticError("assiment value not exist"))
+            errors.append(SemanticError("assignment value not exist"))
         }
-
 
       case n@ArrLiter(e, es) =>
         val ess = e::es
-        ess.foreach(semanticCheck)
-        if (ess.map(_.getType).distinct != 1) {
-          errors.append(SemanticError("list elements type mismatch"))
+        if (e != StringLiter("empty")) {
+          ess.foreach(semanticCheck)
+          if (ess.map(_.getType).distinct != 1) {
+            errors.append(SemanticError("list elements type mismatch"))
+          }
         }
-        else {
-          n.getType = e.getType
-        }
+        n.getType = e.getType + "[]"
+
 
       case n@ArrElem(name, value) =>
-        //check ident exist in symbolTable
         symbolTable.lookupSymbol(name) match {
-                  case Some(symbolEntry) =>
-                    n.getType = symbolEntry.varType
-                  case None => 
-                    errors.append(SemanticError("array not exist"))
-                }
-        //check each expr
+          case Some(symbolEntry) =>
+            n.getType = symbolEntry.varType
+          case None => 
+            errors.append(SemanticError("array not exist"))
+        }
         value.foreach(semanticCheck)
-        //check each expr is type int
         if (!value.forall(x=> x.getType == "int")) {
           errors.append(SemanticError("index should be an Int"))
         }
 
       case n@If(condition, thenBranch, elseBranch) =>
         semanticCheck(condition)
+        if (condition.getType != "bool") {
+          errors.append(SemanticError("condition need to be a boolean"))
+        }
+        symbolTable.enterScope()
         semanticCheck(thenBranch)
+        symbolTable.exitScope()
+        symbolTable.enterScope()
         semanticCheck(elseBranch)
+        symbolTable.exitScope()
         //scoping
 
       case n@While(condition, body) =>
         semanticCheck(condition)
+        if (condition.getType != "bool") {
+          errors.append(SemanticError("condition need to be a boolean"))
+        }
+        symbolTable.enterScope()
         semanticCheck(body)
+        symbolTable.exitScope()
         //scoping
 
       case n@Print(expr, _) =>
@@ -138,8 +152,20 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(func)
         semanticCheck(args)
         //need to check each args's type is correct
-
-        n.getType = ??? //set the type to func's resturn type
+        symbolTable.lookupSymbol(func) match {
+          case Some(symbolEntry) =>
+            if (symbolEntry.value.length == args.exprl.length) {
+              for (i <- 0 to symbolEntry.value.length) {
+                if (symbolEntry.value(i) != args.exprl(i).getType) {
+                  errors.append(SemanticError("function parameters type mismatch"))
+                }
+              }
+            } else {
+              errors.append(SemanticError("function has too many/few parameters"))
+            }
+          case None => 
+            errors.append(SemanticError("function not exist"))
+        }
         
 
       case n@ArgList(exprl) =>
@@ -148,8 +174,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       //-------Type-------
       case n@BaseType(name) => //doing nothing
       case n@ArrayType(elementType) =>
-      case n@PairType(first, second) =>
-      
       case n@PairType(first, second) =>
 
       // ---------EXPR---------
@@ -293,7 +317,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@FstPairElem(values) =>
         symbolTable.lookupSymbol(values) match {
           case Some(symbolEntry) =>
-            n.getType = getTypeForPair(symbolEntry.varType, 1)
+            n.getType = symbolEntry.value(0)
           case None => 
             errors.append(SemanticError("Value not exist"))
         }
@@ -301,7 +325,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@FstPairElem(values) =>
         symbolTable.lookupSymbol(values) match {
           case Some(symbolEntry) =>
-            n.getType = getTypeForPair(symbolEntry.varType, 2)
+            n.getType = symbolEntry.value(1)
           case None => 
             errors.append(SemanticError("Value not exist"))
         }
@@ -327,18 +351,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
   }
 
   def getSemanticErrors: List[SemanticError] = errors.toList
-
-  //function to getType of Pair, input a string with form "pair(Type, Type)"
-  //and a number which 1 represent fst, 2 respresent snd
-  private def getTypeForPair(str: String, number: Int): String = {
-    val startIndex = str.indexOf('(')
-    val endIndex = str.indexOf(')')
-    val substring = str.substring(startIndex + 1, endIndex)
-
-    // Split the substring using comma and get the first part
-    val typesArray = substring.split(',')
-    if (number == 1) return typesArray(0)
-    else return typesArray(1)
-  }
+  
 
 }

@@ -9,7 +9,7 @@ object ast{
         override def getType: String = name
     }
     case class ArrayType(elementType: Type) extends Type with PairElemType{
-        override def getType: String = "arr[" + elementType.getType + "]"
+        override def getType: String = elementType.getType + "[]"
     }
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
         override def getType: String = s"pair(${first.getType}, ${second.getType})"
@@ -81,7 +81,9 @@ object ast{
         var getType: String = ""
     }
     case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue //
-    case class CallRValue(func: Ident, args: ArgList) extends RValue //
+    case class CallRValue(func: Ident, args: ArgList) extends RValue { //
+        val getType: String = ""
+    }
     
     sealed trait Stmt extends ASTNode
     case object Skip extends Stmt
@@ -117,8 +119,12 @@ object ast{
     case class Ident(value: String) extends Expr with LValue {
         val getType: String = ""
     }
-    case class Param(paramType: Type, paramName: Ident) extends ASTNode
-    case class ParamList(paramListType: List[Param]) extends ASTNode //
+    case class Param(paramType: Type, paramName: Ident) extends ASTNode {
+        val getType: String = paramType.getType
+    }
+    case class ParamList(paramListType: List[Param]) extends ASTNode {
+        val getType: List[String] = paramListType.map(_.getType)
+    }
     case class ArgList(exprl: List[Expr]) extends ASTNode //
     case class Func(returnType: Type, functionName: Ident, params: ParamList, body: Stmt) extends ASTNode //
     case class Program(functions: List[Func], statements: Stmt) extends ASTNode //

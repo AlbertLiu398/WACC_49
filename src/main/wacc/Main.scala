@@ -17,7 +17,7 @@ object Main {
 
                 result match {
                     case Success(prog) => 
-                        // println(s"$fileContents = $prog")
+                        println(s"$fileContents = $prog")
                         // val semanticchecker = new semanticsChecker(new SymbolTable)
                         // semanticchecker.semanticCheck(prog)
                         // val errors = semanticchecker.getSemanticErrors
@@ -28,7 +28,6 @@ object Main {
                         
                     case Failure(msg) => 
                         println(msg)
-                        println ("# + result + #")
                         sys.exit(100)
                         // println(msg)
                     }

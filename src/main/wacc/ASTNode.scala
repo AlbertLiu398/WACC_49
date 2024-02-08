@@ -2,36 +2,18 @@ package wacc
 object ast{
     sealed trait ASTNode
 
-    sealed trait Type extends PairElemType {
-        def getType:String
-    }
-    case class BaseType(name: String) extends Type with PairElemType{
-        override def getType: String = name
-    }
-    case class ArrayType(elementType: Type) extends Type with PairElemType{
-        override def getType: String = elementType.getType + "[]"
-    }
-    case class PairType(first: PairElemType, second: PairElemType) extends Type{
-        override def getType: String = s"pair(${first.getType}, ${second.getType})"
-    }
+    sealed trait Type extends PairElemType
+    case class BaseType(name: String) extends Type with PairElemType
+    case class ArrayType(elementType: Type) extends Type with PairElemType
+    case class PairType(first: PairElemType, second: PairElemType) extends Type
 
-    sealed trait PairElemType extends ASTNode{
-        def getType:String
-    }
-    case object PairTypeElem extends PairElemType{
-        override def getType: String =  "pair"
-    }
+    sealed trait PairElemType extends ASTNode
+    case object PairTypeElem extends PairElemType 
 
-    sealed trait Expr extends ASTNode with RValue {
-        def getType: String
-    }
+    sealed trait Expr extends ASTNode with RValue
     // --------- Binary and Unary Operations ---------
-    sealed trait UnaryOperation extends Expr { //
-        var getType: String = ""
-    }
-    sealed trait BinaryOperation extends Expr { //
-        var getType: String = ""
-    }
+    sealed trait UnaryOperation extends Expr
+    sealed trait BinaryOperation extends Expr
 
     case class Add(expr1: Expr, expr2: Expr) extends BinaryOperation
     case class Sub(expr1: Expr, expr2: Expr) extends BinaryOperation
@@ -56,12 +38,8 @@ object ast{
     case class Chr(expr: Expr) extends UnaryOperation
     
     
-    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr with RValue { //
-        var getType: String = ""
-    }
-    case class ArrElem(name: Ident, value: List[Expr]) extends Expr with LValue { //
-        var getType: String = ""
-    }
+    case class ArrLiter(e: Expr, es: List[Expr]) extends Expr with RValue
+    case class ArrElem(name: Ident, value: List[Expr]) extends Expr with LValue
     
     sealed trait UnaryOperator extends ASTNode
     case class UOper(name: String) extends UnaryOperator
@@ -72,62 +50,38 @@ object ast{
     sealed trait LValue extends ASTNode
     
     sealed trait PairElem extends LValue with RValue
-    case class FstPairElem(values: LValue) extends PairElem{
-        var getType: String = ""
-    }
-    case class SndPairElem(values: LValue) extends PairElem{
-        var getType: String = ""
-    }
+    case class FstPairElem(values: LValue) extends PairElem 
+    case class SndPairElem(values: LValue) extends PairElem
 
-    sealed trait RValue extends ASTNode {
-        var getType: String = ""
-    }
-    case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue //
-    case class CallRValue(func: Ident, args: ArgList) extends RValue { //
-        val getType: String = ""
-    }
+    sealed trait RValue extends ASTNode
+    case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue 
+    case class CallRValue(func: Ident, args: ArgList) extends RValue
     
     sealed trait Stmt extends ASTNode
     case object Skip extends Stmt
-    case class NewAssignment(identType: Type, name: Ident, value: RValue) extends Stmt //
-    case class Assignment(lvalue: LValue, rvalue: RValue) extends Stmt //
-    case class Read(lvalue: LValue) extends Stmt //
-    case class Free(expr: Expr) extends Stmt //
-    case class Return(expr: Expr) extends Stmt //
-    case class Exit(expr: Expr) extends Stmt 
-    case class Print(expr: Expr, newline: Boolean) extends Stmt //
-    case class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) extends Stmt //
-    case class While(condition: Expr, body: Stmt) extends Stmt //
-    case class Begin(stmt: Stmt) extends Stmt //
-    case class SeqStmt(first: Stmt, second: Stmt) extends Stmt //
+    case class NewAssignment(identType: Type, name: Ident, value: RValue) extends Stmt
+    case class Assignment(lvalue: LValue, rvalue: RValue) extends Stmt
+    case class Read(lvalue: LValue) extends Stmt
+    case class Free(expr: Expr) extends Stmt
+    case class Return(expr: Expr) extends Stmt
+    case class Exit(expr: Expr) extends Stmt
+    case class Print(expr: Expr, newline: Boolean) extends Stmt
+    case class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) extends Stmt
+    case class While(condition: Expr, body: Stmt) extends Stmt
+    case class Begin(stmt: Stmt) extends Stmt
+    case class SeqStmt(first: Stmt, second: Stmt) extends Stmt
 
     sealed trait Liter extends Expr
-    case class IntLiter(value: BigInt) extends Liter {
-        val getType = "int"
-    }
-    case class BoolLiter(value: Boolean) extends Liter {
-        val getType = "bool" 
-    }
-    case class CharLiter(value: Char) extends Liter {
-        val getType = "char" 
-    }
-    case class StringLiter(value: String) extends Liter {
-        val getType = "string" 
-    }
-    case object PairLiter extends Liter {
-        val getType = "pair" 
-    }
+    case class IntLiter(value: BigInt) extends Liter
+    case class BoolLiter(value: Boolean) extends Liter
+    case class CharLiter(value: Char) extends Liter
+    case class StringLiter(value: String) extends Liter
+    case object PairLiter extends Liter
 
-    case class Ident(value: String) extends Expr with LValue {
-        val getType: String = ""
-    }
-    case class Param(paramType: Type, paramName: Ident) extends ASTNode {
-        val getType: String = paramType.getType
-    }
-    case class ParamList(paramListType: List[Param]) extends ASTNode {
-        val getType: List[String] = paramListType.map(_.getType)
-    }
-    case class ArgList(exprl: List[Expr]) extends ASTNode //
-    case class Func(returnType: Type, functionName: Ident, params: ParamList, body: Stmt) extends ASTNode //
-    case class Program(functions: List[Func], statements: Stmt) extends ASTNode //
+    case class Ident(value: String) extends Expr with LValue
+    case class Param(paramType: Type, paramName: Ident) extends ASTNode
+    case class ParamList(paramListType: List[Param]) extends ASTNode
+    case class ArgList(exprl: List[Expr]) extends ASTNode
+    case class Func(returnType: Type, functionName: Ident, params: ParamList, body: Stmt) extends ASTNode
+    case class Program(functions: List[Func], statements: Stmt) extends ASTNode
 }

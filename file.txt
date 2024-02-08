@@ -1,9 +1,11 @@
-# empty array declaration
+# -+ should be recognised as two separate symbols
 
 # Output:
+# -1
+#
 
 # Program:
 
 begin
-  int[] a = []
+  println 1-+2
 end

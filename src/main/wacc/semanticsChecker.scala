@@ -324,7 +324,11 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Chr(expr) => 
         semanticCheck(expr)
         n.getType = expr.getType
-      
+      case n@Positive(expr) => 
+        semanticCheck(expr)
+        n.getType = expr.getType
+
+
       case n@FstPairElem(values) =>
         symbolTable.lookupSymbol(values) match {
           case Some(symbolEntry) =>

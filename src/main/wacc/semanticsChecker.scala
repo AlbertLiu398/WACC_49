@@ -35,7 +35,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         if (!symbolTable.isInFunc()) {
           errors.append(SemanticError("unexpected return statement"))
         }
-        if (expr.getType == symbolTable.getFuncType) {
+        if (compareType(expr.getType,symbolTable.getFuncType)) {
           errors.append(SemanticError("return type does not match"))
         }
       
@@ -68,7 +68,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         value match {
           case ArrLiter(StringLiter("empty"), es) => 
           case _ =>
-            if (identType.getType != value.getType) {
+            if (!compareType(identType.getType, value.getType)) {
               errors.append(SemanticError("assignment type mismatch"))
             }
         }
@@ -83,7 +83,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
         semanticCheck(rvalue)
-        if (lvalue.getType != rvalue.getType) {
+        if (!compareType(lvalue.getType,rvalue.getType)) {
           errors.append(SemanticError("assignment type mismatch"))
         }
       
@@ -92,11 +92,21 @@ class semanticsChecker(symbolTable: SymbolTable) {
         val ess = e::es
         if (e != StringLiter("empty")) {
           ess.foreach(semanticCheck)
-          if (ess.map(_.getType).distinct.length != 1) {
+          val types = ess.map(_.getType).distinct
+          val charAndString = types.length == 2 & types == List("char[]", "string")
+
+          if (types.length != 1 & !charAndString) {
             errors.append(SemanticError("list elements type mismatch"))
           }
+          if (charAndString) {
+            n.getType = "string[]"
+          }
+          else {
+            n.getType = e.getType + "[]"
+          }
         }
-        n.getType = e.getType + "[]"
+        
+        
 
 
       case n@ArrElem(name, value) =>
@@ -157,7 +167,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           case Some(symbolEntry) =>
             if (symbolEntry.value.length == args.exprl.length) {
               for (i <- 0 to symbolEntry.value.length) {
-                if (symbolEntry.value(i) != args.exprl(i).getType) {
+                if (!compareType(symbolEntry.value(i), args.exprl(i).getType)) {
                   errors.append(SemanticError("function parameters type mismatch"))
                 }
               }
@@ -182,7 +192,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Add(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -192,7 +202,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Sub(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -201,7 +211,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Mul(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -211,7 +221,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Div(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -220,7 +230,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Mod(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -229,7 +239,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@LessThan(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -238,7 +248,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@LessThanEq(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -247,7 +257,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@GreaterThan(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -256,7 +266,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@GreaterThanEq(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -265,7 +275,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Eq(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -274,7 +284,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@NotEq(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -283,7 +293,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@And(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -292,7 +302,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Or(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (expr1.getType != expr2.getType) {
+        if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -359,6 +369,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
   
   def refreshSymbolTable(): Unit  = {
     errors.clear()
+  }
+
+  def compareType(s1: String, s2: String): Boolean = {
+    var fstStr = s1
+    var sndStr = s2
+    if (s1 == "char[]") {
+      fstStr = "string"
+    }
+    if (s2 == "char[]") {
+      sndStr = "string"
+    }
+    return fstStr == sndStr
   }
 
 }

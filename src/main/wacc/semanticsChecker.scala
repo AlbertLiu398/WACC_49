@@ -64,7 +64,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.insertSymbol(paramName, paramType.getType)
 
       case n@NewAssignment(identType, name, value) =>
-        semanticCheck(name)
         semanticCheck(value)
         if (identType.getType != value.getType) {
           errors.append(SemanticError("assignment type mismatch"))
@@ -233,7 +232,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = "bool"
         }
       case n@LessThanEq(expr1, expr2) =>
         semanticCheck(expr1)
@@ -242,7 +241,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = "bool"
         }
       case n@GreaterThan(expr1, expr2) =>
         semanticCheck(expr1)
@@ -251,7 +250,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = "bool"
         }
       case n@GreaterThanEq(expr1, expr2) =>
         semanticCheck(expr1)
@@ -260,7 +259,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = "bool"
         }
       case n@Eq(expr1, expr2) =>
         semanticCheck(expr1)
@@ -269,7 +268,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = "bool"
         }
       case n@NotEq(expr1, expr2) =>
         semanticCheck(expr1)
@@ -278,7 +277,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = "bool"
         }
       case n@And(expr1, expr2) =>
         semanticCheck(expr1)
@@ -287,7 +286,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = "bool"
         }
       case n@Or(expr1, expr2) =>
         semanticCheck(expr1)
@@ -296,7 +295,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = "bool"
         }
           // ---------unary---------
       case n@Invert(expr) => 
@@ -341,7 +340,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@PairLiter => // Literals don't need semantic checks
 
-      case n@Ident(_) => // Identifiers don't need semantic checks
+      case n@Ident(_) =>
+        symbolTable.lookupSymbol(n) match {
+          case Some(entry) => 
+            n.getType = entry.varType
+          case None => errors.append(SemanticError("Ident not exist"))
+        }
+  
 
       case _ =>
       // Handle other cases if necessary

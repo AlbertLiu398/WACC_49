@@ -1,18 +1,16 @@
-# Arguments can be shadowed by the function body
+# a simple function with two back-to-back returns at the end.
 
 # Output:
-# true
+# 3
 #
 
-#Program:
+# Program:
 
 begin
-  bool f(int x) is
-    bool x = true ;
-    return x
-  end
-
-  bool x = call f(5);
-  println x
-
+    int f() is
+        return 3;
+        return 5
+    end
+    int ret = call f();
+    println ret
 end

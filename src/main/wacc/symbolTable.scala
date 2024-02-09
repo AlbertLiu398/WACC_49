@@ -30,7 +30,11 @@ class SymbolTable {
     val symbolEntry = SymbolEntry(name, varType, Nil)
     val currentScopeMap = scopeStack.top
     if (currentScopeMap.contains(name)) {
-      return false
+      if(isInFunc()) {
+        currentScopeMap.remove(name)
+      } else {
+        return false
+      }
     }
     currentScopeMap(name) = ListBuffer(symbolEntry)
     return true

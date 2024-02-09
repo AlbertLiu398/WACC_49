@@ -1,14 +1,14 @@
-# attempt dereference of a null pair by using it
+# find the max of two numbers
 
 # Output:
-# #runtime_error#
-
-# Exit:
-# 255
+# max value = 17
+#
 
 # Program:
 
 begin
-	pair(int, int) p = null ;
-	int x = fst p
+  int x = 1;
+  int y = 1;
+  bool a = y > 0 || x > 0
 end
+

@@ -60,7 +60,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
         }
 
       case n@Begin(stmt) =>
+        symbolTable.enterScope()
         semanticCheck(stmt)
+        symbolTable.exitScope()
 
       case n@ParamList(params) =>
         params.foreach(semanticCheck)
@@ -314,7 +316,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@And(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (!compareType(expr1.getType,expr2.getType)) {
+        if (!compareType(expr1.getType, expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -323,7 +325,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Or(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (!compareType(expr1.getType,expr2.getType)) {
+        if (!compareType(expr1.getType, expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {

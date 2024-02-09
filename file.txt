@@ -1,10 +1,14 @@
-# function return type and name are conflated
+# attempt dereference of a null pair by setting an element of it
 
 # Output:
-# #syntax_error#
+# #runtime_error#
 
 # Exit:
-# 100
-begin 
-  intx = 1
+# 255
+
+# Program:
+
+begin
+	pair(int, int) p = null ;
+	fst p = 1
 end

@@ -11,6 +11,8 @@ import scala.collection.mutable.ListBuffer
 import parsley.token.errors._
 import parsley.Parsley._
 import parsley.character._
+import parsley.debug, debug._ 
+
 
 
 
@@ -25,8 +27,8 @@ object lexer {
             caseSensitive = true,
             hardKeywords = Set("null", "skip", "read", "free", "return", "exit", "print", "println", 
             "if", "then", "else", "fi", "while", "do", "is","done", "begin", "end", "call", "fst ", 
-            "snd", "newpair", "true", "false", "int"),
-            hardOperators = Set("!","-", "len", "ord", "chr", 
+            "snd", "newpair", "true", "false", "int", "bool", "char", "string", "pair", "array", "len", "ord", "chr"),
+            hardOperators = Set("!","-", 
             "+", "-", "*", "/", "%","<", ">", "<=", ">=", "==", "!=","&&", "||", "(", ")", ",", "{", "}", "[", "]", ";"),
             // "="
         ),
@@ -56,69 +58,78 @@ object lexer {
         ),
         textDesc = text.TextDesc.plain.copy(
             escapeSequences = text.EscapeDesc.plain.copy(
-                escBegin = '\\',
-                literals = Set('0', 'b', 't', 'n', 'f', 'r', '"', '\'', '\\'),
+                escBegin = '\\' ,
+                literals = Set('\"', '\'', '\\'),   
+                mapping = Map(
+                    "0" -> 0x0000
+                    , "t" -> 0x0009
+                    , "b" -> 0x0008
+                    , "n" -> 0x000a
+                    , "r" -> 0x000d
+                    , "f"-> 0x000c
+                ),  
             ),
             characterLiteralEnd = '\'',
             stringEnds = Set(("\"", "\"")),
             multiStringEnds = Set(("\"\"\"", "\"\"\"")),
-        )
+            graphicCharacter = predicate.Basic(c => c != '\"' && c != '\\' && c!= '\'' ),
+        ),
     )
+      val errConfig = new ErrorConfig {
+        override def labelSymbol = Map(
+            ">" -> LabelAndReason(
+                reason = "unclosed angle bracket",
+                label = "closing angle bracket",
+            ),
+            "}" -> LabelAndReason(
+                reason = "unclosed brace",
+                label = "closing brace",
+            ),
+            ")" -> LabelAndReason(
+                reason = "unclosed parenthesis",
+                label = "closing parenthesis",
+            ),
+            "]" -> LabelAndReason(
+                reason = "unclosed square bracket",
+                label = "closing square bracket",
+            ),
+            ":" -> LabelAndReason(
+                reason = "unexpected colon",
+                label = "colon",
+            ),
+            "," -> LabelAndReason(
+                reason = "unexpected comma",
+                label = "comma",
+            ),
+            "." -> LabelAndReason(
+                reason = "unexpected dot",
+                label = "dot",
+            ),
+            "<" -> LabelAndReason(
+                reason = "unexpected open angle bracket",
+                label = "open angle bracket",
+            ),
+            "{" -> LabelAndReason(
+                reason = "unexpected open brace",
+                label = "open brace",
+            ),
+            "(" -> LabelAndReason(
+                reason = "unexpected (",
+                label = "open parenthesis",
+            ),
 
-    // val errConfig = new ErrorConfig {
-    //     override def labelSymbol = Map(
-    //         ">" -> LabelAndReason(
-    //             reason = "unclosed angle bracket",
-    //             label = "closing angle bracket",
-    //         ),
-    //         "}" -> LabelAndReason(
-    //             reason = "unclosed brace",
-    //             label = "closing brace",
-    //         ),
-    //         ")" -> LabelAndReason(
-    //             reason = "unclosed parenthesis",
-    //             label = "closing parenthesis",
-    //         ),
-    //         "]" -> LabelAndReason(
-    //             reason = "unclosed square bracket",
-    //             label = "closing square bracket",
-    //         ),
-    //         ":" -> LabelAndReason(
-    //             reason = "unexpected colon",
-    //             label = "colon",
-    //         ),
-    //         "," -> LabelAndReason(
-    //             reason = "unexpected comma",
-    //             label = "comma",
-    //         ),
-    //         "." -> LabelAndReason(
-    //             reason = "unexpected dot",
-    //             label = "dot",
-    //         ),
-    //         "<" -> LabelAndReason(
-    //             reason = "unexpected open angle bracket",
-    //             label = "open angle bracket",
-    //         ),
-    //         "{" -> LabelAndReason(
-    //             reason = "unexpected open brace",
-    //             label = "open brace",
-    //         ),
-    //         "(" -> LabelAndReason(
-    //             reason = "unexpected (",
-    //             label = "open parenthesis",
-    //         ),
-
-    //         "[" -> LabelAndReason(
-    //             reason = "unexpected open square bracket",
-    //             label = "open square bracket",
-    //         ),
+            "[" -> LabelAndReason(
+                reason = "unexpected open square bracket",
+                label = "open square bracket",
+            ),
             
-    //         ";" -> LabelAndReason(
-    //             reason = "unexpected semicolon",
-    //             label = "semicolon",
-    //         ) 
-    //     )
-    // }
+            ";" -> LabelAndReason(
+                reason = "unexpected semicolon",
+                label = "semicolon",
+            ) 
+        )
+    }
+
 
 
 
@@ -136,21 +147,9 @@ object lexer {
     def commaSep1_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep1(p)
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
 
-    val graphicAsciiExceptQuotes: Parsley[Char] = 
-        graphicCharacter.filter(c => c != '\\' && c != '\'' && c != '\"')
+    // val graphicAsciiExceptQuotes: Parsley[Char] = 
+    //     
 
-    val escapedChar: Parsley[Char] = char('\\') *> choice(
-        char('0')  *> pure('\u0000'),
-        char('b')  *> pure('\b'),
-        char('t')  *> pure('\t'),
-        char('n')  *> pure('\n'),
-        char('f')  *> pure('\f'),
-        char('r')  *> pure('\r'),
-        char('"')  *> pure('\"'),
-        char('\'') *> pure('\''),
-        char('\\') *> pure('\\')
-    )
-    val character: Parsley[Char] = escapedChar | graphicAsciiExceptQuotes
 
  
 

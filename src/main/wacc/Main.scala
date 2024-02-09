@@ -7,6 +7,7 @@ object Main {
     def main(args: Array[String]): Unit = {
         println("hello WACC!")
         // println (allTypeParse("pair(pair(int, bool), pair(bool, int))"))
+        // println(stmtParse(("intx=2")))
 
         args.headOption match {
             case Some(filePath) =>
@@ -16,12 +17,18 @@ object Main {
                 val result = parser.parse(fileContents)
 
                 result match {
-                    case Success(x) => 
-                        println("file content is")
-                        println(s"$fileContents = $x")
+                    case Success(prog) => 
+                        println(s"$prog")
+                        val semanticchecker = new semanticsChecker(new SymbolTable)
+                        semanticchecker.semanticCheck(prog)
+                        val errors = semanticchecker.getSemanticErrors
+                        if (!errors.isEmpty) {
+                            errors.foreach(println(_))
+                            sys.exit(200)
+                        }
+                        
                     case Failure(msg) => 
                         println(msg)
-                        println ("# + result + #")
                         sys.exit(100)
                         // println(msg)
                     }

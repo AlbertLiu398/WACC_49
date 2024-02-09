@@ -48,11 +48,11 @@ object parser {
 //    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
 
     // -------------------------- Literals -------------------------
-    private lazy val intLiter = integer.map(IntLiter)
+    private lazy val intLiter = integer.map(IntLiter) | IntLiter.lift("+" ~> integer)
     private lazy val ident = identifier.map(Ident)
     private lazy val boolLiter = ("true" #> BoolLiter(true)) <|> ("false" #> BoolLiter(false))
-    private lazy val charLiter =  lexer.character.map(CharLiter)
-   
+    private lazy val charLiter =  graphicCharacter.map(CharLiter)
+    // private lazy val charLiter = CharLiter.lift("'" ~> lexer.character <~ "'")
     private lazy val stringLiter = lexer.string.map(StringLiter)
     private lazy val pairLiter = "null" #> PairLiter
 
@@ -68,21 +68,39 @@ object parser {
                                           
     private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep1_(param)) <~ ")"
     private lazy val param = Param.lift(allType, ident)
-    private lazy val stmtAtom: Parsley[Stmt] = 
+    //--------------------- stmt ---------------------------------
+    private lazy val stmt = atomic( stmtAtom <~ notFollowedBy(";")) | stmtJoin
+    private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
+    private lazy val stmtAtom : Parsley[Stmt] = 
         "skip" #> Skip|
         NewAssignment.lift(allType, ident, "="~> rValue) |
         Assignment.lift(lValue, "=" ~> rValue) |
         "read" ~> Read.lift(lValue) |
         "free" ~> Free.lift(expr) |
-        "return" ~> Return.lift(expr) |
-        "exit" ~> Exit.lift(expr) |
         "print" ~> Print.lift(expr, pure(false)) |
         "println" ~> Print.lift(expr, pure(true)) |
+        "exit" ~> Exit.lift(expr) |
+        "return" ~> Return.lift(expr) |
         If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt <~ "fi") |
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
-    private lazy val stmt =  atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin
-    private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
+
+    private lazy val funcStmt =  atomic(funcExitStmt <~ notFollowedBy(";")) | funcStmtJoin
+    private lazy val funcExitStmt = "exit" ~> Exit.lift(expr) | "return" ~> Return.lift(expr)
+    private lazy val funcStmtJoin : Parsley[Stmt] = SeqStmt.lift(funcStmtAtom <~ ";", funcStmt)
+    private lazy val funcStmtAtom: Parsley[Stmt] = 
+        "skip" #> Skip|
+        NewAssignment.lift(allType, ident, "="~> rValue) |
+        Assignment.lift(lValue, "=" ~> rValue) |
+        "read" ~> Read.lift(lValue) |
+        "free" ~> Free.lift(expr) |
+        "print" ~> Print.lift(expr, pure(false)) |
+        "println" ~> Print.lift(expr, pure(true)) |
+        If.lift("if" ~> expr, "then" ~> funcStmt, "else" ~> funcStmt <~ "fi") |
+        While.lift("while" ~> expr, "do" ~> funcStmt <~ "done") |
+        Begin.lift("begin" ~> stmt <~ "end")
+
+
     //using parser bridge and option to avoid amubiguity
     private lazy val lValue: Parsley[LValue] = pairElem |atomic(ident <~ notFollowedBy("[")) | arr 
 
@@ -110,20 +128,20 @@ object parser {
     private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
     // -------------------------- Types ---------------------------
-    private lazy val allType: Parsley[Type] = arrayType | notArrayType
+    private lazy val allType: Parsley[Type] = atomic(arrayType) | notArrayType
     private lazy val notArrayType: Parsley[Type] = baseType | pairType 
     private lazy val baseType = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
-    private lazy val arrayType = chain.postfix(notArrayType)("[]".as(ArrayType))
+    private lazy val arrayType = chain.postfix1(notArrayType)("[]".as(ArrayType))
     private lazy val pairType: Parsley[Type] = "pair" ~> "(" ~> PairType.lift(pairElemType, "," ~> pairElemType <~ ")")
 
-    private lazy val pairElemType: Parsley[PairElemType] =   pairTypeElem | arrayType | baseType
+    private lazy val pairElemType: Parsley[PairElemType] =  pairTypeElem| atomic(baseType <~ notFollowedBy("[")) | arrayType
     private lazy val pairTypeElem: Parsley[PairElemType] = atomic("pair" #> PairTypeElem <~ notFollowedBy("("))
 
     // -------------------------- Expressions --------------------------
     
     private lazy val expr: Parsley[Expr]= operators| atom
     private lazy val operators: Parsley[Expr] = precedence(atom, atom)(
-        Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr, "+" #> Positive),
+        Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr),
         Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod, "+" #> Add, "-" #> Sub, ">=" #> GreaterThanEq, "<=" #> LessThanEq,
         ">" #> GreaterThan, "<" #> LessThan, "==" #> Eq, "!=" #> NotEq, "&&" #> And, "||" #> Or),
     )

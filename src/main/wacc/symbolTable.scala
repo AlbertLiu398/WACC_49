@@ -4,12 +4,13 @@ import scala.collection.mutable._
 import ast._
 import parsley.expr.infix
 
+// Symbol table entry that keeps track of ident name and its type
+// 'value' is used when creating pair and array type entries
 case class SymbolEntry(name: Ident, varType: String, value: List[String])
 
-//function: list = params type, return type
-//Pair: List[0] = fst type, List[1] = snd type
 class SymbolTable {
 
+  // Stack to keep track of symbol table states when entering/exiting scope
   private val scopeStack: Stack[Map[Ident, ListBuffer[SymbolEntry]]] = Stack(Map())
   private var inFunc: Boolean = false
   private var funcType: String = "notInFunc"
@@ -23,7 +24,7 @@ class SymbolTable {
     }
   }
 
-  
+  // Insert a symbol table entry without value
   def insertSymbol(value_name: LValue, varType: String): Boolean = {
     val name = getIdent(value_name)
     val symbolEntry = SymbolEntry(name, varType, Nil)
@@ -39,7 +40,7 @@ class SymbolTable {
     return true
   }
   
-
+  // Insert a symbol table entry with value
   def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
     var name = getIdent(value_name)
     if (varType == "func") {
@@ -53,7 +54,6 @@ class SymbolTable {
     currentScopeMap(name) = ListBuffer(symbolEntry)
     return true
   }
-
 
   def lookupSymbol(value_name: LValue): Option[SymbolEntry] = {
     val name = getIdent(value_name)

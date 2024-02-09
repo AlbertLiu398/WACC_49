@@ -9,10 +9,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
   private val errors: ListBuffer[SemanticError] = ListBuffer()
 
+  // Recursively semantic check all the ASTNode 
   def semanticCheck(ast: ASTNode): Unit = {
 
     ast match {
-
       case Program(funcList, stmts) =>
         symbolTable.enterScope()
         for (func <- funcList) {
@@ -52,12 +52,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@SeqStmt(first, second) =>
         semanticCheck(first)
         semanticCheck(second)
-        n match {
-          case SeqStmt(Return(_), Return(_)) =>
-          case SeqStmt(Return(_), second) => 
-            errors.append(SemanticError("return is not last statement of function"))
-          case _ =>
-        }
 
       case n@Begin(stmt) =>
         symbolTable.enterScope()
@@ -72,6 +66,11 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.insertSymbol(paramName, paramType.getType)
 
       case n@NewAssignment(identType, name, value) =>
+        symbolTable.lookupSymbol(name) match {
+          case Some(_) =>
+            errors.append(SemanticError("variable name already exists"))
+          case None =>
+        }
         semanticCheck(identType)
         semanticCheck(value)
         value match {
@@ -91,8 +90,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
                   symbolTable.insertSymbolwithValue(name, identType.getType, List(entry.value(0), entry.value(1)))
                 case None => errors.append(SemanticError("Ident not exist"))
               }
-              
-              
+            }
+            else {
+              symbolTable.insertSymbol(name, identType.getType)
             }
           case _ => 
             if (value.getType.startsWith("pair")) {
@@ -135,21 +135,27 @@ class semanticsChecker(symbolTable: SymbolTable) {
         
 
       case n@ArrElem(name, value) =>
+        var arryType = ""
         symbolTable.lookupSymbol(name) match {
           case Some(symbolEntry) =>
             n.getType = symbolEntry.varType.dropRight(value.length * 2)
+            arryType = symbolEntry.varType
             if (n.getType.startsWith("pair")){
               n.getFst = symbolEntry.value(0)
               n.getSnd = symbolEntry.value(1)
             }
           case None => 
+            symbolTable.displaySymbolTable()
             errors.append(SemanticError("array not exist"))
         }
         value.foreach(semanticCheck)
         if (!value.forall(x=> x.getType == "int")) {
           errors.append(SemanticError("index should be an Int"))
         }
-        if (value.length <= countOccurrences("[]", n.getType)) {
+        if (value.length > countOccurrences(arryType, "[]")) {
+          println(value.length)
+          println(n.getType)
+          println(countOccurrences(n.getType, "[]"))
           errors.append(SemanticError("too much indexing"))
         }
 
@@ -181,6 +187,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
+        println(lvalue.getType)
         if (lvalue.getType != "int" & lvalue.getType != "char") {
           errors.append(SemanticError("can only read int or char"))
         }
@@ -285,6 +292,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
+          if (expr1.getType.contains("pair") | expr1.getType.contains("[]")) {
+            errors.append(SemanticError(s"cannot compare ${expr1.getType}"))
+          }
           n.getType = "bool"
         }
       case n@LessThanEq(expr1, expr2) =>
@@ -294,6 +304,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
+          if (expr1.getType.contains("pair") | expr1.getType.contains("[]")) {
+            errors.append(SemanticError(s"cannot compare ${expr1.getType}"))
+          }
           n.getType = "bool"
         }
       case n@GreaterThan(expr1, expr2) =>
@@ -303,6 +316,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
+          if (expr1.getType.contains("pair") | expr1.getType.contains("[]")) {
+            errors.append(SemanticError(s"cannot compare ${expr1.getType}"))
+          }
           n.getType = "bool"
         }
       case n@GreaterThanEq(expr1, expr2) =>
@@ -312,6 +328,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
+          if (expr1.getType.contains("pair") | expr1.getType.contains("[]")) {
+            errors.append(SemanticError(s"cannot compare ${expr1.getType}"))
+          }
           n.getType = "bool"
         }
       case n@Eq(expr1, expr2) =>
@@ -335,7 +354,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@And(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (!compareType(expr1.getType, expr2.getType)) {
+        if (expr1.getType != "bool" | expr2.getType != "bool") {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -414,16 +433,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
       
   }
 
+  // Make errors to list
   def getSemanticErrors: List[SemanticError] = errors.toList
   
+  // Clean errors
   def refreshSymbolTable(): Unit  = {
     errors.clear()
   }
-
+  // Use to calculate the dimension of array
   def countOccurrences(mainString: String, subString: String): Int = {
-    mainString.sliding(subString.length).count(window => window == subString)
+    return mainString.sliding(subString.length).count(window => window == subString)
   }
-
+  // Use to compareType, make char[] and string eqauls
   def compareType(s1: String, s2: String): Boolean = {
     var fstStr = s1
     var sndStr = s2

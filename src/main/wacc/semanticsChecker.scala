@@ -84,6 +84,16 @@ class semanticsChecker(symbolTable: SymbolTable) {
         value match {
           case PairLiter => 
             symbolTable.insertSymbolwithValue(name, identType.getType, List(identType.getFst, identType.getSnd))
+          case ArrLiter(x@Ident(nameI), es) => 
+            if (x.getType.startsWith("pair")){
+              symbolTable.lookupSymbol(x) match {
+                case Some(entry) => 
+                  symbolTable.insertSymbolwithValue(name, identType.getType, List(entry.value(0), entry.value(1)))
+                case None => errors.append(SemanticError("Ident not exist"))
+              }
+              
+              
+            }
           case _ => 
             if (value.getType.startsWith("pair")) {
               if (value.getType == "pair") {
@@ -101,6 +111,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
         semanticCheck(rvalue)
+
         if (!compareType(lvalue.getType,rvalue.getType)) {
           errors.append(SemanticError("assignment type mismatch"))
         }
@@ -111,7 +122,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
           ess.foreach(semanticCheck)
           val types = ess.map(_.getType).distinct
           val charAndString = types.length == 2 & types == List("char[]", "string")
-
           if (types.length != 1 & !charAndString) {
             errors.append(SemanticError("list elements type mismatch"))
           }
@@ -120,6 +130,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           }
           else {
             n.getType = e.getType + "[]"
+            
           }
         }
         
@@ -127,8 +138,11 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@ArrElem(name, value) =>
         symbolTable.lookupSymbol(name) match {
           case Some(symbolEntry) =>
-            
             n.getType = symbolEntry.varType.dropRight(value.length * 2)
+            if (n.getType.startsWith("pair")){
+              n.getFst = symbolEntry.value(0)
+              n.getSnd = symbolEntry.value(1)
+            }
           case None => 
             errors.append(SemanticError("array not exist"))
         }
@@ -136,6 +150,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         if (!value.forall(x=> x.getType == "int")) {
           errors.append(SemanticError("index should be an Int"))
         }
+        //if (value.length != n.)
 
       case n@If(condition, thenBranch, elseBranch) =>
         semanticCheck(condition)
@@ -165,6 +180,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
+        if (lvalue.getType != "int" | lvalue.getType != "char") {
+          errors.append(SemanticError("can only read int or char"))
+        }
 
       case n@Free(expr) =>
         semanticCheck(expr)
@@ -350,6 +368,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
 
       case n@FstPairElem(values) =>
+        semanticCheck(values)
         symbolTable.lookupSymbol(values) match {
           case Some(symbolEntry) =>
             n.getType = symbolEntry.value(0)
@@ -398,6 +417,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
   
   def refreshSymbolTable(): Unit  = {
     errors.clear()
+  }
+
+  def countOccurrences(mainString: String, subString: String): Int = {
+    mainString.sliding(subString.length).count(window => window == subString)
   }
 
   def compareType(s1: String, s2: String): Boolean = {

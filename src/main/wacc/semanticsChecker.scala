@@ -9,10 +9,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
   private val errors: ListBuffer[SemanticError] = ListBuffer()
 
+  // Recursively semantic check all the ASTNode 
   def semanticCheck(ast: ASTNode): Unit = {
 
     ast match {
-
       case Program(funcList, stmts) =>
         symbolTable.enterScope()
         for (func <- funcList) {
@@ -130,9 +130,11 @@ class semanticsChecker(symbolTable: SymbolTable) {
         
 
       case n@ArrElem(name, value) =>
+        var arryType = ""
         symbolTable.lookupSymbol(name) match {
           case Some(symbolEntry) =>
             n.getType = symbolEntry.varType.dropRight(value.length * 2)
+            arryType = symbolEntry.varType
             if (n.getType.startsWith("pair")){
               n.getFst = symbolEntry.value(0)
               n.getSnd = symbolEntry.value(1)
@@ -145,7 +147,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
         if (!value.forall(x=> x.getType == "int")) {
           errors.append(SemanticError("index should be an Int"))
         }
-        if (value.length > countOccurrences(n.getType, "[]")) {
+        if (value.length > countOccurrences(arryType, "[]")) {
+          println(value.length)
+          println(n.getType)
+          println(countOccurrences(n.getType, "[]"))
           errors.append(SemanticError("too much indexing"))
         }
 
@@ -423,16 +428,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
       
   }
 
+  // Make errors to list
   def getSemanticErrors: List[SemanticError] = errors.toList
   
+  // Clean errors
   def refreshSymbolTable(): Unit  = {
     errors.clear()
   }
-
+  // Use to calculate the dimension of array
   def countOccurrences(mainString: String, subString: String): Int = {
     return mainString.sliding(subString.length).count(window => window == subString)
   }
-
+  // Use to compareType, make char[] and string eqauls
   def compareType(s1: String, s2: String): Boolean = {
     var fstStr = s1
     var sndStr = s2

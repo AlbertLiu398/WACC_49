@@ -41,7 +41,10 @@ class SymbolTable {
   }
 
   def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
-    val name = getIdent(value_name)
+    var name = getIdent(value_name)
+    if (varType == "func") {
+      name = Ident('f' +: name.value)
+    }
     val symbolEntry = SymbolEntry(name, varType, value)
     val currentScopeMap = scopeStack.top
     if (currentScopeMap.contains(name)) {
@@ -50,7 +53,6 @@ class SymbolTable {
     currentScopeMap(name) = ListBuffer(symbolEntry)
     return true
   }
-
 
 
   def lookupSymbol(value_name: LValue): Option[SymbolEntry] = {
@@ -73,7 +75,6 @@ class SymbolTable {
     inFunc = true
     funcType = returnType.getType
   }
-
 
   def exitFunc(): Unit = {
     inFunc = false

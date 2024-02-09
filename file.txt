@@ -1,20 +1,15 @@
-# creates a pair which is returned from a function
+# a simple function definition and call
 
 # Output:
-# 10
+# 0
 #
 
 # Program:
 
 begin
-
-  pair(int, int) getPair() is
-    pair(int, int) p = newpair(10,15);
-    return p
+  int f() is
+    return 0
   end
-
-  pair(int, int) p = call getPair();
-  pair(int, string) c = newpair(10, "5");
-  int x = fst p;
+  int x = call f() ;
   println x
 end

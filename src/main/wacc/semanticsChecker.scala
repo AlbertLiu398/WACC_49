@@ -79,9 +79,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
             }
         }
         if (value.getType.startsWith("pair")) {
-          symbolTable.insertSymbolwithValue(name, identType.getType, List(getTypeForPair(value.getType, 1), getTypeForPair(value.getType, 2)))
+          symbolTable.insertSymbolwithValue(name, value.getType, List(getTypeForPair(value.getType, 1), getTypeForPair(value.getType, 2)))
         } else {
-          symbolTable.insertSymbol(name, identType.getType)
+          symbolTable.insertSymbol(name, value.getType)
         }
 
 
@@ -118,8 +118,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
           }
         }
         
-        
-
 
       case n@ArrElem(name, value) =>
         symbolTable.lookupSymbol(name) match {
@@ -172,23 +170,26 @@ class semanticsChecker(symbolTable: SymbolTable) {
         n.getType = s"pair(${exprL.getType},${exprR.getType})"
 
       case n@CallRValue(func, args) =>
-        semanticCheck(func)
         semanticCheck(args)
         //need to check each args's type is correct
-        symbolTable.lookupSymbol(func) match {
+        symbolTable.lookupSymbol(Ident('f' +: func.value)) match {
           case Some(symbolEntry) =>
-            if (symbolEntry.value.length - 1 == args.exprl.length) {
-              for (i <- 0 to args.exprl.length - 1) {
-                if (!compareType(symbolEntry.value(i), args.exprl(i).getType)) {
-                  errors.append(SemanticError("function parameters type mismatch"))
+            if (symbolEntry.varType == "func") {
+              if (symbolEntry.value.length - 1 == args.exprl.length) {
+                for (i <- 0 to args.exprl.length - 1) {
+                  if (!compareType(symbolEntry.value(i), args.exprl(i).getType)) {
+                    errors.append(SemanticError("function parameters type mismatch"))
+                  }
                 }
+                n.getType = symbolEntry.value(symbolEntry.value.length - 1)
+              } else {
+                errors.append(SemanticError("function has too many/few parameters"))
               }
-              n.getType = symbolEntry.value(symbolEntry.value.length - 1)
             } else {
-              errors.append(SemanticError("function has too many/few parameters"))
+              errors.append(SemanticError("calling argument is not function"))
             }
           case None => 
-            errors.append(SemanticError("function not exist"))
+            errors.append(SemanticError("function does not exist"))
         }
         
 
@@ -354,6 +355,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           case None => 
             errors.append(SemanticError("Value not exist"))
         }
+      case PairTypeElem => 
 
       case n@IntLiter(_) => // Literals don't need semantic checks
 
@@ -388,6 +390,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
   def compareType(s1: String, s2: String): Boolean = {
     var fstStr = s1
     var sndStr = s2
+    if  (s1.startsWith("pair") & s2.startsWith("pair")) return true
     if (s1 == "char[]") {
       fstStr = "string"
     }
@@ -403,7 +406,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
     val startIndex = str.indexOf('(')
     val endIndex = str.indexOf(')')
     val substring = str.substring(startIndex + 1, endIndex)
-
     // Split the substring using comma and get the first part
     val typesArray = substring.split(',')
     if (number == 1) return typesArray(0)

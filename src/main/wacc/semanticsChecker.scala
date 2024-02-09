@@ -149,8 +149,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
         if (!value.forall(x=> x.getType == "int")) {
           errors.append(SemanticError("index should be an Int"))
         }
-        if (value.length != countOccurrences("[]", n.getType)) {
-          errors.append(SemanticError("too much / too little indexing"))
+        if (value.length <= countOccurrences("[]", n.getType)) {
+          errors.append(SemanticError("too much indexing"))
         }
 
       case n@If(condition, thenBranch, elseBranch) =>

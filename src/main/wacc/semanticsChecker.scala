@@ -16,6 +16,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case Program(funcList, stmts) =>
         symbolTable.enterScope()
         for (func <- funcList) {
+          symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
+        }
+        for (func <- funcList) {
           semanticCheck(func)
         }
         semanticCheck(stmts)
@@ -23,10 +26,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Func(returnType, functionName, params, body) =>
         semanticCheck(returnType)
-        semanticCheck(params)
-        symbolTable.insertSymbolwithValue(functionName, "func", params.getType :+ returnType.getType)
+        
         symbolTable.enterScope()
         symbolTable.enterFunc(returnType)
+        semanticCheck(params)
         semanticCheck(body)
         symbolTable.exitFunc()
         symbolTable.exitScope()

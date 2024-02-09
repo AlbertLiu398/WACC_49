@@ -15,6 +15,8 @@ import ast._
 object parser {
     import parsley.syntax.lift.{Lift1, Lift2, Lift3, Lift4}
 
+    // -------------- Parser used for unit test --------------
+
     def parse(input: String) = parser.parse(input)
     def funcParse(input: String) = funcParser.parse(input)
     def paramListParse(input: String) = paramListParser.parse(input)
@@ -29,8 +31,6 @@ object parser {
     def allTypeParse(input: String) = allTypeParser.parse(input)
     def exprParse(input: String) = exprParser.parse(input)
 
-    
-    // -------------- Parser --------------
     private val parser = fully(prog)
     private val funcParser = fully(func)
     private val paramListParser = fully(paramList)
@@ -44,32 +44,26 @@ object parser {
     private val arrlParser = fully(arr)
     private val allTypeParser = fully(allType)
     private val exprParser = fully(expr)
-//    //-------------------comment ------------
-//    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
+
 
     // -------------------------- Literals -------------------------
     private lazy val intLiter = integer.map(IntLiter) | "+" ~> integer.map(IntLiter) | "-" ~> integer.map(IntLiter)
-    //.filter { case IntLiter(value) => value >= -2147483648 && value < 2147483647 }
     private lazy val ident = identifier.map(Ident)
     private lazy val boolLiter = ("true" #> BoolLiter(true)) <|> ("false" #> BoolLiter(false))
     private lazy val charLiter =  graphicCharacter.map(CharLiter)
-    // private lazy val charLiter = CharLiter.lift("'" ~> lexer.character <~ "'")
     private lazy val stringLiter = lexer.string.map(StringLiter)
     private lazy val pairLiter = "null" #> PairLiter
 
 
-    // TODO : All implicits "x" may need to be replaced with lexer.keyword("x")
-    // TODO : Implicits parenthesis "(" ~> x <~ ")" may be replaced with lexer.parens(x)
-    // TODO : Statements may need more than one parsers
-
     // -------------------------- Statements -------------------------
     private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func), stmt <~ "end")
-    private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> stmt <~ "end")) |
-                                           atomic(Func.lift(allType, ident, paramList, "is" ~> stmt <~ "end")) 
+    private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> funcStmt <~ "end")) |
+                                           atomic(Func.lift(allType, ident, paramList, "is" ~> funcStmt <~ "end")) 
                                           
     private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep1_(param)) <~ ")"
     private lazy val param = Param.lift(allType, ident)
-    //--------------------- stmt ---------------------------------
+
+   
     private lazy val stmt = atomic( stmtAtom <~ notFollowedBy(";")) | stmtJoin
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
     private lazy val stmtAtom : Parsley[Stmt] = 
@@ -86,24 +80,22 @@ object parser {
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
 
-    private lazy val funcStmt =  atomic(funcExitStmt <~ notFollowedBy(";")) | funcStmtJoin
-    private lazy val funcExitStmt = "exit" ~> Exit.lift(expr) | "return" ~> Return.lift(expr)
-    private lazy val funcStmtJoin : Parsley[Stmt] = SeqStmt.lift(funcStmtAtom <~ ";", funcStmt)
-    private lazy val funcStmtAtom: Parsley[Stmt] = 
-        "skip" #> Skip|
-        NewAssignment.lift(allType, ident, "="~> rValue) |
-        Assignment.lift(lValue, "=" ~> rValue) |
-        "read" ~> Read.lift(lValue) |
-        "free" ~> Free.lift(expr) |
-        "print" ~> Print.lift(expr, pure(false)) |
-        "println" ~> Print.lift(expr, pure(true)) |
-        If.lift("if" ~> expr, "then" ~> funcStmt, "else" ~> funcStmt <~ "fi") |
-        While.lift("while" ~> expr, "do" ~> funcStmt <~ "done") |
-        Begin.lift("begin" ~> stmt <~ "end")
+    // funcStmt : used to check function statement is valid 
+    private lazy val funcStmt = stmt.filter(checkTermination)
+    
+    // checkTermination : used to check if this statement contains terminating(exit, return) statement
+    def checkTermination(stmt: Stmt): Boolean = stmt match {
+        case SeqStmt(_, stmt) => checkTermination(stmt)
+        case Begin(stmt) => checkTermination(stmt)
+        case If(_, thenStmt, elseStmt) => checkTermination(thenStmt) && checkTermination(elseStmt)
+        case While(_, stmt) => checkTermination(stmt)
+        case Exit(_) => true
+        case Return(_) => true
+        case _ => false
+    }
 
 
-    //using parser bridge and option to avoid amubiguity
-    private lazy val lValue: Parsley[LValue] = pairElem |atomic(ident <~ notFollowedBy("[")) | arr 
+    private lazy val lValue: Parsley[LValue] = pairElem | atomic(ident <~ notFollowedBy("[")) | arr 
 
     private lazy val notPairElem: Parsley[LValue] = atomic(ident<~ notFollowedBy("[")) | arr
     private lazy val notFirstPairElem: Parsley[LValue] = sndPairElem | notPairElem
@@ -120,6 +112,8 @@ object parser {
         pairElem |
         expr|
         arrLiter
+
+
       
     private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit)) |  ArgList.lift(pure(List()))
     private lazy val arrLiter: Parsley[ArrLiter] 

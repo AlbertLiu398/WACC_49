@@ -16,7 +16,6 @@ class ParserCombinatorTest extends ParserTest {
 it should "parse function" in {
     funcParse("int f(int x) is skip end") shouldBe Success(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Skip))
 }
-// it should 
 
 it should "parse paramList" in {
   paramListParse("(int x, bool y)") shouldBe Success(ParamList(List(Param(BaseType("int"), Ident("x")), Param(BaseType("bool"), Ident("y")))))
@@ -48,7 +47,6 @@ it should "parse statement" in {
     stmtParse("println x") shouldBe Success(Print(Ident("x"), true))
     stmtParse("println (a)") shouldBe Success(Print(Ident("a"), true))
     stmtParse("println 1-+2") shouldBe Success(Print(Sub(IntLiter(1),(IntLiter(2))), true))
-
 
     // Begin statement
     stmtParse("begin skip end") shouldBe Success(Begin(Skip))

@@ -1,12 +1,14 @@
-# print pair a null pair
+# find the max of two numbers
 
 # Output:
-# (nil)
+# max value = 17
 #
 
 # Program:
 
 begin
-  pair(pair, pair) p = null ;
-  println p
+  int x = 1;
+  int y = 1;
+  bool a = y > 0 || x > 0
 end
+

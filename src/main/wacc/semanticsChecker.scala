@@ -60,7 +60,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
         }
 
       case n@Begin(stmt) =>
+        symbolTable.enterScope()
         semanticCheck(stmt)
+        symbolTable.exitScope()
 
       case n@ParamList(params) =>
         params.foreach(semanticCheck)
@@ -70,26 +72,31 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.insertSymbol(paramName, paramType.getType)
 
       case n@NewAssignment(identType, name, value) =>
+        semanticCheck(identType)
         semanticCheck(value)
         value match {
           case ArrLiter(StringLiter("empty"), es) => 
           case _ =>
             if (!compareType(identType.getType, value.getType)) {
-              println(identType.getType)
-              println(value.getType)
               errors.append(SemanticError("assignment type mismatch"))
             }
         }
-        if (value.getType.startsWith("pair")) {
-          if (value.getType == "pair") {
-            symbolTable.insertSymbolwithValue(name, identType.getType, List(value.getFst, value.getSnd))
-          }
-          else {
-            symbolTable.insertSymbolwithValue(name, value.getType, List(value.getFst, value.getSnd))
-          }
-        } else {
-          symbolTable.insertSymbol(name, identType.getType)
+        value match {
+          case PairLiter => 
+            symbolTable.insertSymbolwithValue(name, identType.getType, List(identType.getFst, identType.getSnd))
+          case _ => 
+            if (value.getType.startsWith("pair")) {
+              if (value.getType == "pair") {
+                symbolTable.insertSymbolwithValue(name, identType.getType, List(identType.getFst, identType.getSnd))
+              }
+              else {
+                symbolTable.insertSymbolwithValue(name, value.getType, List(value.getFst, value.getSnd))
+              }
+            } else {
+              symbolTable.insertSymbol(name, identType.getType)
+            }
         }
+       
 
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
@@ -200,6 +207,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@BaseType(name) => //doing nothing
       case n@ArrayType(elementType) =>
       case n@PairType(first, second) =>
+        n.getFst = first.getType
+        n.getSnd = second.getType
 
       // ---------EXPR---------
         // ---------binary---------
@@ -307,7 +316,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@And(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (!compareType(expr1.getType,expr2.getType)) {
+        if (!compareType(expr1.getType, expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -316,7 +325,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Or(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (!compareType(expr1.getType,expr2.getType)) {
+        if (!compareType(expr1.getType, expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {

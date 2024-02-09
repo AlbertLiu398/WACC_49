@@ -52,12 +52,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@SeqStmt(first, second) =>
         semanticCheck(first)
         semanticCheck(second)
-        n match {
-          case SeqStmt(Return(_), Return(_)) =>
-          case SeqStmt(Return(_), second) => 
-            errors.append(SemanticError("return is not last statement of function"))
-          case _ =>
-        }
 
       case n@Begin(stmt) =>
         symbolTable.enterScope()

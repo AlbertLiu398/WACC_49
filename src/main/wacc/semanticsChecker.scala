@@ -232,6 +232,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
                   }
                 }
                 n.getType = symbolEntry.value(symbolEntry.value.length - 1)
+                if (n.getType.startsWith("pair")) {
+                  n.getFst = getTypeForPair(n.getType, 1)
+                  n.getSnd = getTypeForPair(n.getType, 2)
+                }
               } else {
                 errors.append(SemanticError("function has too many/few parameters"))
               }
@@ -476,6 +480,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
     }
     return fstStr == sndStr
   }
+
+  private def getTypeForPair(str: String, number: Int): String = {
+    val startIndex = str.indexOf('(')
+    val endIndex = str.indexOf(')')
+    val substring = str.substring(startIndex + 1, endIndex)
+
+    // Split the substring using comma and get the first part
+    val typesArray = substring.split(',')
+    if (number == 1) return typesArray(0)
+    else return typesArray(1)
+  }
+
 
 
 }

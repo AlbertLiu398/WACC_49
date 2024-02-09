@@ -82,7 +82,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         }
         if (value.getType.startsWith("pair")) {
           if (value.getType == "pair") {
-            symbolTable.insertSymbol(name, identType.getType)
+            symbolTable.insertSymbolwithValue(name, identType.getType, List(value.getFst, value.getSnd))
           }
           else {
             symbolTable.insertSymbolwithValue(name, value.getType, List(value.getFst, value.getSnd))

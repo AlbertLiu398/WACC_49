@@ -59,6 +59,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.exitScope()
 
       case n@ParamList(params) =>
+        // params.map((_,pNames) => )
         params.foreach(semanticCheck)
       
       case n@Param(paramType, paramName) =>
@@ -111,10 +112,14 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
         semanticCheck(rvalue)
-
-        if (!compareType(lvalue.getType,rvalue.getType)) {
-          errors.append(SemanticError("assignment type mismatch"))
+        rvalue match {
+          case ArrLiter(StringLiter("empty"), es) => 
+          case _ =>
+            if (!compareType(lvalue.getType,rvalue.getType)) {
+              errors.append(SemanticError("assignment type mismatch"))
+            }
         }
+
 
       case n@ArrLiter(e, es) =>
         val ess = e::es

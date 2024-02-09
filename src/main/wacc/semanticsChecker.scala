@@ -79,12 +79,19 @@ class semanticsChecker(symbolTable: SymbolTable) {
             }
         }
         
-        value match {
-          case NewPairRValue(exprL, exprR) =>
-            symbolTable.insertSymbolwithValue(name, identType.getType, List(exprL.getType, exprR.getType))
-          case _ =>
-            symbolTable.insertSymbol(name, identType.getType)
+        if (value.getType.startsWith("pair")) {
+          symbolTable.insertSymbolwithValue(name, identType.getType, List(getTypeForPair(value.getType, 1), getTypeForPair(value.getType, 2)))
+        } else {
+          symbolTable.insertSymbol(name, identType.getType)
         }
+
+
+        // value match {
+        //   case NewPairRValue(exprL, exprR) =>
+        //     symbolTable.insertSymbolwithValue(name, identType.getType, List(exprL.getType, exprR.getType))
+        //   case _ =>
+        //     symbolTable.insertSymbol(name, identType.getType)
+        // }
 
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
@@ -393,5 +400,19 @@ class semanticsChecker(symbolTable: SymbolTable) {
     }
     return fstStr == sndStr
   }
+
+  //function to getType of Pair, input a string with form "pair(Type, Type)"
+  //and a number which 1 represent fst, 2 respresent snd
+  private def getTypeForPair(str: String, number: Int): String = {
+    val startIndex = str.indexOf('(')
+    val endIndex = str.indexOf(')')
+    val substring = str.substring(startIndex + 1, endIndex)
+
+    // Split the substring using comma and get the first part
+    val typesArray = substring.split(',')
+    if (number == 1) return typesArray(0)
+    else return typesArray(1)
+  }
+
 
 }

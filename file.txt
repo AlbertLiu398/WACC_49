@@ -1,16 +1,19 @@
-# a simple function with two back-to-back returns at the end.
+# creates a pair which is returned from a function
 
 # Output:
-# 3
+# 10
 #
 
 # Program:
 
 begin
-    int f() is
-        return 3;
-        return 5
-    end
-    int ret = call f();
-    println ret
+
+  pair(int, int) getPair() is
+    pair(int, int) p = newpair(10,15);
+    return p
+  end
+
+  pair(int, int) p = call getPair();
+  int x = fst p;
+  println x
 end

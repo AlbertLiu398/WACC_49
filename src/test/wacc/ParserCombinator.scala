@@ -6,6 +6,7 @@ import parser._
 import scala.language.implicitConversions
 
 class ParserCombinatorTest extends ParserTest { 
+// -------------------------- valid Test  --------------------------
 
 // ----------- statement parser test -----------
 

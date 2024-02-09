@@ -14,9 +14,6 @@ import parsley.character._
 import parsley.debug, debug._ 
 
 
-
-
-
 object lexer {
     // lexer configuration : 
     private val desc = LexicalDesc.plain.copy(
@@ -32,7 +29,7 @@ object lexer {
             "if", "then", "else", "fi", "while", "do", "is","done", "begin", "end", "call", "fst ", 
             "snd", "newpair", "true", "false", "int", "bool", "char", "string", "pair", "array", "len", "ord", "chr"),
             hardOperators = Set("!","-", 
-            "+", "-", "*", "/", "%","<", ">", "<=", ">=", "==", "!=","&&", "||", "(", ")", ",", "{", "}", "[", "]", ";"),
+            "+", "-", "*", "/", "%","<", ">", "<=", ">=", "==", "!=","&&", "||"),
         ),
 
         spaceDesc = SpaceDesc.plain.copy(
@@ -79,6 +76,11 @@ object lexer {
     // configuration for error messages
       val errConfig = new ErrorConfig {
         override def labelSymbol = Map(
+            "++" -> LabelAndReason(
+                reason = "unexpected ++, array literals are not first-class expressions",
+                label = "++",
+            ),
+
             ">" -> LabelAndReason(
                 reason = "unclosed angle bracket",
                 label = "closing angle bracket",
@@ -145,7 +147,6 @@ object lexer {
     val implicits = lexer.lexeme.symbol.implicits
     def commaSep1_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep1(p)
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
-    // val newline = 
 
     def fully[A](p: Parsley[A]): Parsley[A] = lexer.fully(p)
 }

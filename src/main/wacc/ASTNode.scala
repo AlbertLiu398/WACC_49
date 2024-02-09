@@ -1,4 +1,6 @@
 package wacc
+
+import parsley.token.errors.LabelWithExplainConfig
 object ast{
     sealed trait ASTNode
 
@@ -94,7 +96,7 @@ object ast{
         var getType: String = ""
     }
     
-    sealed trait Stmt extends ASTNode
+    sealed trait Stmt extends ASTNode 
     case object Skip extends Stmt
     case class NewAssignment(identType: Type, name: Ident, value: RValue) extends Stmt //
     case class Assignment(lvalue: LValue, rvalue: RValue) extends Stmt //

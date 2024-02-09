@@ -44,9 +44,14 @@ object parser {
     private val exprParser = fully(expr)
 
     // -------------------------- Literals -------------------------
-    private lazy val intLiter = integer.map(IntLiter) | "+" ~> integer.map(IntLiter) | "-" ~> integer.map(IntLiter)
+    private lazy val intLiter = integer.map(IntLiter) | 
+                               "+" ~> integer.map(IntLiter) | 
+                               "-" ~> integer.map(IntLiter)
+
     private lazy val ident = identifier.map(Ident)
-    private lazy val boolLiter = ("true" #> BoolLiter(true)) <|> ("false" #> BoolLiter(false))
+    private lazy val boolLiter = "true" #> BoolLiter(true) | 
+                                 "false" #> BoolLiter(false)
+                                 
     private lazy val charLiter =  graphicCharacter.map(CharLiter)
     private lazy val stringLiter = lexer.string.map(StringLiter)
     private lazy val pairLiter = "null" #> PairLiter

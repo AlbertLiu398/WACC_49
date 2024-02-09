@@ -68,7 +68,9 @@ object ast{
     sealed trait BinaryOperator extends ASTNode
     case class BOper(name: String) extends BinaryOperator
 
-    sealed trait LValue extends ASTNode
+    sealed trait LValue extends ASTNode {
+        var getType: String
+    }
     
     sealed trait PairElem extends LValue with RValue
     case class FstPairElem(values: LValue) extends PairElem{

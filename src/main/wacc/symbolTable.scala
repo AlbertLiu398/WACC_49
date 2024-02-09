@@ -7,7 +7,7 @@ import parsley.expr.infix
 case class SymbolEntry(name: Ident, varType: String, value: List[String])
 
 
-//function: list = params type
+//function: list = params type, return type
 //Pair: List[0] = fst type, List[1] = snd type
 class SymbolTable {
 
@@ -30,7 +30,11 @@ class SymbolTable {
     val symbolEntry = SymbolEntry(name, varType, Nil)
     val currentScopeMap = scopeStack.top
     if (currentScopeMap.contains(name)) {
-      return false
+      if(isInFunc()) {
+        currentScopeMap.remove(name)
+      } else {
+        return false
+      }
     }
     currentScopeMap(name) = ListBuffer(symbolEntry)
     return true

@@ -88,7 +88,7 @@ object parser {
 
                 //  -------------  Statement (for function only) -----------
     // funcStmt : used to check function statement is valid 
-    private lazy val funcStmt = stmt.filter(checkTermination)
+    private lazy val funcStmt = stmt.filter(checkTermination).label ("funcStmt").explain("Function statement needed")
     
     // checkTermination : used to check if this statement contains terminating(exit, return) statement
     def checkTermination(stmt: Stmt): Boolean = stmt match {
@@ -156,7 +156,7 @@ object parser {
         Ops(InfixR)("&&" #> And),
         Ops(InfixR)("||" #> Or),   
     )).label("expression").explain("expression needed")
-    
+
     private lazy val atom : Parsley[Expr] = "(" ~> expr <~ ")"| atomic(ident <~ notFollowedBy("[")) | arr | intLiter | boolLiter | charLiter | stringLiter| pairLiter 
 
 

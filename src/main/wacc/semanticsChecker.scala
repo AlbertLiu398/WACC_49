@@ -66,6 +66,11 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.insertSymbol(paramName, paramType.getType)
 
       case n@NewAssignment(identType, name, value) =>
+        symbolTable.lookupSymbol(name) match {
+          case Some(_) =>
+            errors.append(SemanticError("variable name already exists"))
+          case None =>
+        }
         semanticCheck(identType)
         semanticCheck(value)
         value match {

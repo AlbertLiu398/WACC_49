@@ -59,7 +59,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.exitScope()
 
       case n@ParamList(params) =>
-        // params.map((_,pNames) => )
+        val identNames = params.map(_.paramName.value)
+        if (identNames.distinct != identNames) {
+          errors.append(SemanticError("functions arguments names overlap"))
+        }
         params.foreach(semanticCheck)
       
       case n@Param(paramType, paramName) =>

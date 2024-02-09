@@ -48,7 +48,7 @@ object parser {
 //    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
 
     // -------------------------- Literals -------------------------
-    private lazy val intLiter = integer.map(IntLiter)
+    private lazy val intLiter = integer.map(IntLiter) | IntLiter.lift("+" ~> integer)
     private lazy val ident = identifier.map(Ident)
     private lazy val boolLiter = ("true" #> BoolLiter(true)) <|> ("false" #> BoolLiter(false))
     private lazy val charLiter =  lexer.character.map(CharLiter)
@@ -62,7 +62,7 @@ object parser {
     // TODO : Statements may need more than one parsers
 
     // -------------------------- Statements -------------------------
-    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func).debug("function"), stmt <~ "end")
+    private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func), stmt <~ "end")
     private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> stmt <~ "end")) |
                                            atomic(Func.lift(allType, ident, paramList, "is" ~> stmt <~ "end")) 
                                           
@@ -123,7 +123,7 @@ object parser {
     
     private lazy val expr: Parsley[Expr]= operators| atom
     private lazy val operators: Parsley[Expr] = precedence(atom, atom)(
-        Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr, "+" #> Positive),
+        Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr),
         Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod, "+" #> Add, "-" #> Sub, ">=" #> GreaterThanEq, "<=" #> LessThanEq,
         ">" #> GreaterThan, "<" #> LessThan, "==" #> Eq, "!=" #> NotEq, "&&" #> And, "||" #> Or),
     )

@@ -72,7 +72,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@NewAssignment(identType, name, value) =>
         symbolTable.lookupSymbol(name) match {
           case Some(_) =>
-            if (symbolTable.checkDoubleDeclear(name)) {
+            if (symbolTable.checkDoubleDeclear(name) & !symbolTable.isInFunc()) {
               errors.append(SemanticError("variable name already exists"))
             }
           case None =>
@@ -461,6 +461,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
     var fstStr = s1
     var sndStr = s2
     if  (s1.startsWith("pair") & s2.startsWith("pair")) return true
+    // if  (s1.startsWith("pair") & s2 == "pair") return true
+    // if  (s1 == "pair" & s2.startsWith("pair")) return true
     if (s1 == "char[]") {
       fstStr = "string"
     }

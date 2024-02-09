@@ -16,7 +16,12 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case Program(funcList, stmts) =>
         symbolTable.enterScope()
         for (func <- funcList) {
-          symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
+          symbolTable.lookupSymbol(Ident('f' +: func.functionName.value)) match {
+            case Some(_) =>
+              errors.append(SemanticError("function name already exists"))
+            case None =>
+              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
+            }
         }
         for (func <- funcList) {
           semanticCheck(func)
@@ -59,6 +64,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.exitScope()
 
       case n@ParamList(params) =>
+        val identNames = params.map(_.paramName.value)
+        if (identNames.distinct != identNames) {
+          errors.append(SemanticError("functions arguments names overlap"))
+        }
         params.foreach(semanticCheck)
       
       case n@Param(paramType, paramName) =>
@@ -68,7 +77,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@NewAssignment(identType, name, value) =>
         symbolTable.lookupSymbol(name) match {
           case Some(_) =>
-            errors.append(SemanticError("variable name already exists"))
+            if (symbolTable.checkDoubleDeclear(name) & !symbolTable.isInFunc()) {
+              errors.append(SemanticError("variable name already exists"))
+            }
           case None =>
         }
         semanticCheck(identType)
@@ -111,10 +122,14 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
         semanticCheck(rvalue)
-
-        if (!compareType(lvalue.getType,rvalue.getType)) {
-          errors.append(SemanticError("assignment type mismatch"))
+        rvalue match {
+          case ArrLiter(StringLiter("empty"), es) => 
+          case _ =>
+            if (!compareType(lvalue.getType,rvalue.getType)) {
+              errors.append(SemanticError("assignment type mismatch"))
+            }
         }
+
 
       case n@ArrLiter(e, es) =>
         val ess = e::es
@@ -187,13 +202,15 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
-        println(lvalue.getType)
         if (lvalue.getType != "int" & lvalue.getType != "char") {
           errors.append(SemanticError("can only read int or char"))
         }
 
       case n@Free(expr) =>
         semanticCheck(expr)
+        if (!expr.getType.contains("pair") & !expr.getType.contains("[]")) {
+          errors.append(SemanticError("can only free array or pair"))
+        }
 
       case n@NewPairRValue(exprL, exprR) =>
         semanticCheck(exprL)
@@ -215,6 +232,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
                   }
                 }
                 n.getType = symbolEntry.value(symbolEntry.value.length - 1)
+                if (n.getType.startsWith("pair")) {
+                  n.getFst = getTypeForPair(n.getType, 1)
+                  n.getSnd = getTypeForPair(n.getType, 2)
+                }
               } else {
                 errors.append(SemanticError("function has too many/few parameters"))
               }
@@ -449,6 +470,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
     var fstStr = s1
     var sndStr = s2
     if  (s1.startsWith("pair") & s2.startsWith("pair")) return true
+    // if  (s1.startsWith("pair") & s2 == "pair") return true
+    // if  (s1 == "pair" & s2.startsWith("pair")) return true
     if (s1 == "char[]") {
       fstStr = "string"
     }
@@ -457,6 +480,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
     }
     return fstStr == sndStr
   }
+
+  private def getTypeForPair(str: String, number: Int): String = {
+    val startIndex = str.indexOf('(')
+    val endIndex = str.indexOf(')')
+    val substring = str.substring(startIndex + 1, endIndex)
+
+    // Split the substring using comma and get the first part
+    val typesArray = substring.split(',')
+    if (number == 1) return typesArray(0)
+    else return typesArray(1)
+  }
+
 
 
 }

@@ -89,6 +89,10 @@ class SymbolTable {
     return funcType
   }
 
+  def checkDoubleDeclear(ident: Ident) : Boolean = {
+    return scopeStack.top.contains(ident)
+  }
+
   def displaySymbolTable(): Unit = {
     for (scopeMap <- scopeStack) {
       for ((name, entries) <- scopeMap) {

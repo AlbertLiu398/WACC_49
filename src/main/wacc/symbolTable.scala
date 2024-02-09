@@ -39,6 +39,7 @@ class SymbolTable {
     currentScopeMap(name) = ListBuffer(symbolEntry)
     return true
   }
+  
 
   def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
     var name = getIdent(value_name)

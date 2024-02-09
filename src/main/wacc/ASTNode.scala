@@ -111,7 +111,7 @@ object ast{
     sealed trait Liter extends Expr {
         var getType: String
     }
-    case class IntLiter(value: BigInt) extends Liter {
+    case class IntLiter(value: Int) extends Liter {
         var getType = "int"
     }
     case class BoolLiter(value: Boolean) extends Liter {

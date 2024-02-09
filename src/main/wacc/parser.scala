@@ -48,7 +48,8 @@ object parser {
 //    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
 
     // -------------------------- Literals -------------------------
-    private lazy val intLiter = integer.map(IntLiter) | IntLiter.lift("+" ~> integer)
+    private lazy val intLiter = integer.map(IntLiter) | "+" ~> integer.map(IntLiter) | "-" ~> integer.map(IntLiter)
+    //.filter { case IntLiter(value) => value >= -2147483648 && value < 2147483647 }
     private lazy val ident = identifier.map(Ident)
     private lazy val boolLiter = ("true" #> BoolLiter(true)) <|> ("false" #> BoolLiter(false))
     private lazy val charLiter =  graphicCharacter.map(CharLiter)
@@ -139,11 +140,15 @@ object parser {
 
     // -------------------------- Expressions --------------------------
     
-    private lazy val expr: Parsley[Expr]= operators| atom
-    private lazy val operators: Parsley[Expr] = precedence(atom, atom)(
+    private lazy val expr: Parsley[Expr]= atomic(operators) | atom
+    private lazy val operators: Parsley[Expr] = precedence(atom)(
         Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr),
-        Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod, "+" #> Add, "-" #> Sub, ">=" #> GreaterThanEq, "<=" #> LessThanEq,
-        ">" #> GreaterThan, "<" #> LessThan, "==" #> Eq, "!=" #> NotEq, "&&" #> And, "||" #> Or),
+        Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod),
+        Ops(InfixL)("+" #> Add, "-" #> Sub),
+        Ops(InfixN)(">=" #> GreaterThanEq, "<=" #> LessThanEq, ">" #> GreaterThan, "<" #> LessThan),
+        Ops(InfixN)("==" #> Eq, "!=" #> NotEq),
+        Ops(InfixR)("&&" #> And),
+        Ops(InfixR)("||" #> Or),   
     )
 
     private lazy val atom : Parsley[Expr] =  "(" ~> expr <~ ")"| atomic(ident <~ notFollowedBy("[")) | arr | intLiter | boolLiter | charLiter | stringLiter| pairLiter 

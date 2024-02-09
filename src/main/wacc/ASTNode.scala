@@ -12,7 +12,7 @@ object ast{
         var getType: String =  elementType.getType + "[]"
     }
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
-        var getType: String =  s"pair(${first.getType}, ${second.getType})"
+        var getType: String =  s"pair(${first.getType},${second.getType})"
     }
 
     sealed trait PairElemType extends ASTNode{

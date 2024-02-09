@@ -78,7 +78,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
               errors.append(SemanticError("assignment type mismatch"))
             }
         }
-        
         if (value.getType.startsWith("pair")) {
           symbolTable.insertSymbolwithValue(name, identType.getType, List(getTypeForPair(value.getType, 1), getTypeForPair(value.getType, 2)))
         } else {
@@ -170,7 +169,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@NewPairRValue(exprL, exprR) =>
         semanticCheck(exprL)
         semanticCheck(exprR)
-        n.getType = s"pair(${exprL.getType}, ${exprR.getType})"
+        n.getType = s"pair(${exprL.getType},${exprR.getType})"
 
       case n@CallRValue(func, args) =>
         semanticCheck(func)
@@ -338,9 +337,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Chr(expr) => 
         semanticCheck(expr)
         n.getType = "char"
-      case n@Positive(expr) => 
-        semanticCheck(expr)
-        n.getType = expr.getType
 
 
       case n@FstPairElem(values) =>
@@ -401,7 +397,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
     return fstStr == sndStr
   }
 
-  //function to getType of Pair, input a string with form "pair(Type, Type)"
+  //function to getType of Pair, input a string with form "pair(Type,Type)"
   //and a number which 1 represent fst, 2 respresent snd
   private def getTypeForPair(str: String, number: Int): String = {
     val startIndex = str.indexOf('(')

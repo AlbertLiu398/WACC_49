@@ -1,15 +1,14 @@
-# a simple function definition and call
+# unescaped double quote
 
 # Output:
-# 0
-#
+# #syntax_error#
+
+# Exit:
+# 100
 
 # Program:
 
 begin
-  int f() is
-    return 0
-  end
-  int x = call f() ;
-  println x
+  char a = '"'
 end
+

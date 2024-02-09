@@ -68,21 +68,39 @@ object parser {
                                           
     private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep1_(param)) <~ ")"
     private lazy val param = Param.lift(allType, ident)
-    private lazy val stmtAtom: Parsley[Stmt] = 
+    //--------------------- stmt ---------------------------------
+    private lazy val stmt = atomic( stmtAtom <~ notFollowedBy(";")) | stmtJoin
+    private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
+    private lazy val stmtAtom : Parsley[Stmt] = 
         "skip" #> Skip|
         NewAssignment.lift(allType, ident, "="~> rValue) |
         Assignment.lift(lValue, "=" ~> rValue) |
         "read" ~> Read.lift(lValue) |
         "free" ~> Free.lift(expr) |
-        "return" ~> Return.lift(expr) |
-        "exit" ~> Exit.lift(expr) |
         "print" ~> Print.lift(expr, pure(false)) |
         "println" ~> Print.lift(expr, pure(true)) |
+        "exit" ~> Exit.lift(expr) |
+        "return" ~> Return.lift(expr) |
         If.lift("if" ~> expr, "then" ~> stmt, "else" ~> stmt <~ "fi") |
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
-    private lazy val stmt =  atomic(stmtAtom <~ notFollowedBy(";")) | stmtJoin
-    private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
+
+    private lazy val funcStmt =  atomic(funcExitStmt <~ notFollowedBy(";")) | funcStmtJoin
+    private lazy val funcExitStmt = "exit" ~> Exit.lift(expr) | "return" ~> Return.lift(expr)
+    private lazy val funcStmtJoin : Parsley[Stmt] = SeqStmt.lift(funcStmtAtom <~ ";", funcStmt)
+    private lazy val funcStmtAtom: Parsley[Stmt] = 
+        "skip" #> Skip|
+        NewAssignment.lift(allType, ident, "="~> rValue) |
+        Assignment.lift(lValue, "=" ~> rValue) |
+        "read" ~> Read.lift(lValue) |
+        "free" ~> Free.lift(expr) |
+        "print" ~> Print.lift(expr, pure(false)) |
+        "println" ~> Print.lift(expr, pure(true)) |
+        If.lift("if" ~> expr, "then" ~> funcStmt, "else" ~> funcStmt <~ "fi") |
+        While.lift("while" ~> expr, "do" ~> funcStmt <~ "done") |
+        Begin.lift("begin" ~> stmt <~ "end")
+
+
     //using parser bridge and option to avoid amubiguity
     private lazy val lValue: Parsley[LValue] = pairElem |atomic(ident <~ notFollowedBy("[")) | arr 
 

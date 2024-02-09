@@ -15,6 +15,7 @@ import parsley.debug, debug._
 
 
 
+
 object lexer {
     private val desc = LexicalDesc.plain.copy(
         // your configuration goes here
@@ -58,7 +59,6 @@ object lexer {
         textDesc = text.TextDesc.plain.copy(
             escapeSequences = text.EscapeDesc.plain.copy(
                 escBegin = '\\' ,
-                // literals = Set('0', 'b', 't', 'n', 'f', 'r', '"', '\'', '\\'),
                 literals = Set('\"', '\'', '\\'),   
                 mapping = Map(
                     "0" -> 0x0000
@@ -72,68 +72,68 @@ object lexer {
             characterLiteralEnd = '\'',
             stringEnds = Set(("\"", "\"")),
             multiStringEnds = Set(("\"\"\"", "\"\"\"")),
+            graphicCharacter = predicate.Basic(c => c != '\"' && c != '\\' && c!= '\'' ),
         ),
     )
+      val errConfig = new ErrorConfig {
+        override def labelSymbol = Map(
+            ">" -> LabelAndReason(
+                reason = "unclosed angle bracket",
+                label = "closing angle bracket",
+            ),
+            "}" -> LabelAndReason(
+                reason = "unclosed brace",
+                label = "closing brace",
+            ),
+            ")" -> LabelAndReason(
+                reason = "unclosed parenthesis",
+                label = "closing parenthesis",
+            ),
+            "]" -> LabelAndReason(
+                reason = "unclosed square bracket",
+                label = "closing square bracket",
+            ),
+            ":" -> LabelAndReason(
+                reason = "unexpected colon",
+                label = "colon",
+            ),
+            "," -> LabelAndReason(
+                reason = "unexpected comma",
+                label = "comma",
+            ),
+            "." -> LabelAndReason(
+                reason = "unexpected dot",
+                label = "dot",
+            ),
+            "<" -> LabelAndReason(
+                reason = "unexpected open angle bracket",
+                label = "open angle bracket",
+            ),
+            "{" -> LabelAndReason(
+                reason = "unexpected open brace",
+                label = "open brace",
+            ),
+            "(" -> LabelAndReason(
+                reason = "unexpected (",
+                label = "open parenthesis",
+            ),
 
-    // val errConfig = new ErrorConfig {
-    //     override def labelSymbol = Map(
-    //         ">" -> LabelAndReason(
-    //             reason = "unclosed angle bracket",
-    //             label = "closing angle bracket",
-    //         ),
-    //         "}" -> LabelAndReason(
-    //             reason = "unclosed brace",
-    //             label = "closing brace",
-    //         ),
-    //         ")" -> LabelAndReason(
-    //             reason = "unclosed parenthesis",
-    //             label = "closing parenthesis",
-    //         ),
-    //         "]" -> LabelAndReason(
-    //             reason = "unclosed square bracket",
-    //             label = "closing square bracket",
-    //         ),
-    //         ":" -> LabelAndReason(
-    //             reason = "unexpected colon",
-    //             label = "colon",
-    //         ),
-    //         "," -> LabelAndReason(
-    //             reason = "unexpected comma",
-    //             label = "comma",
-    //         ),
-    //         "." -> LabelAndReason(
-    //             reason = "unexpected dot",
-    //             label = "dot",
-    //         ),
-    //         "<" -> LabelAndReason(
-    //             reason = "unexpected open angle bracket",
-    //             label = "open angle bracket",
-    //         ),
-    //         "{" -> LabelAndReason(
-    //             reason = "unexpected open brace",
-    //             label = "open brace",
-    //         ),
-    //         "(" -> LabelAndReason(
-    //             reason = "unexpected (",
-    //             label = "open parenthesis",
-    //         ),
-
-    //         "[" -> LabelAndReason(
-    //             reason = "unexpected open square bracket",
-    //             label = "open square bracket",
-    //         ),
+            "[" -> LabelAndReason(
+                reason = "unexpected open square bracket",
+                label = "open square bracket",
+            ),
             
-    //         ";" -> LabelAndReason(
-    //             reason = "unexpected semicolon",
-    //             label = "semicolon",
-    //         ) 
-    //     )
-    // }
+            ";" -> LabelAndReason(
+                reason = "unexpected semicolon",
+                label = "semicolon",
+            ) 
+        )
+    }
 
 
 
-    // private val lexer = new Lexer(desc,errConfig)
-    private val lexer = new Lexer(desc)
+
+    private val lexer = new Lexer(desc,errConfig)
 
     val integer = lexer.lexeme.natural.number
     val floating = lexer.lexeme.floating.number
@@ -146,7 +146,7 @@ object lexer {
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
 
     // val graphicAsciiExceptQuotes: Parsley[Char] = 
-    //     graphicCharacter.filter(c => c != '\\' && c != '\'' && c != '\"')
+    //     
 
 
  

@@ -1,14 +1,15 @@
-# create and print a linked list using pairs
+# a simple function definition and call
 
 # Output:
-# list = {1, 2, 4, 11}
+# 0
 #
 
 # Program:
 
 begin
-  pair(int, pair) p = newpair(11, null) ;
-    pair(int, pair) q = newpair(4, p) ;
-    pair(int, pair) r = newpair(2, q) ;
-    pair(int, pair) s = newpair(1, r)
+  int f() is
+    return 0
+  end
+  int x = call f() ;
+  println x
 end

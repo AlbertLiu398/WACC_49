@@ -91,8 +91,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
                   symbolTable.insertSymbolwithValue(name, identType.getType, List(entry.value(0), entry.value(1)))
                 case None => errors.append(SemanticError("Ident not exist"))
               }
-              
-              
+            }
+            else {
+              symbolTable.insertSymbol(name, identType.getType)
             }
           case _ => 
             if (value.getType.startsWith("pair")) {
@@ -143,13 +144,14 @@ class semanticsChecker(symbolTable: SymbolTable) {
               n.getSnd = symbolEntry.value(1)
             }
           case None => 
+            symbolTable.displaySymbolTable()
             errors.append(SemanticError("array not exist"))
         }
         value.foreach(semanticCheck)
         if (!value.forall(x=> x.getType == "int")) {
           errors.append(SemanticError("index should be an Int"))
         }
-        if (value.length <= countOccurrences("[]", n.getType)) {
+        if (value.length <= countOccurrences(n.getType, "[]")) {
           errors.append(SemanticError("too much indexing"))
         }
 
@@ -181,6 +183,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
+        println(lvalue.getType)
         if (lvalue.getType != "int" & lvalue.getType != "char") {
           errors.append(SemanticError("can only read int or char"))
         }
@@ -335,7 +338,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@And(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (!compareType(expr1.getType, expr2.getType)) {
+        if (expr1.getType != "bool" | expr2.getType != "bool") {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
@@ -421,7 +424,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
   }
 
   def countOccurrences(mainString: String, subString: String): Int = {
-    mainString.sliding(subString.length).count(window => window == subString)
+    return mainString.sliding(subString.length).count(window => window == subString)
   }
 
   def compareType(s1: String, s2: String): Boolean = {

@@ -25,7 +25,7 @@ object lexer {
             caseSensitive = true,
             hardKeywords = Set("null", "skip", "read", "free", "return", "exit", "print", "println", 
             "if", "then", "else", "fi", "while", "do", "is","done", "begin", "end", "call", "fst ", 
-            "snd", "newpair", "true", "false"),
+            "snd", "newpair", "true", "false", "int"),
             hardOperators = Set("!","-", "len", "ord", "chr", 
             "+", "-", "*", "/", "%","<", ">", "<=", ">=", "==", "!=","&&", "||", "(", ")", ",", "{", "}", "[", "]", ";"),
             // "="
@@ -124,8 +124,9 @@ object lexer {
 
     // private val lexer = new Lexer(desc,errConfig)
     private val lexer = new Lexer(desc)
-
-    val integer = lexer.lexeme.natural.number
+    val intMaxValue = 2147483647
+    val intMinValue = -2147483648
+    val integer = lexer.lexeme.natural.number.filter(n => n <= intMaxValue && n >= intMinValue)
     val floating = lexer.lexeme.floating.number
     val intOrFloat = lexer.lexeme.unsignedCombined.number
     val string = lexer.lexeme.string.ascii

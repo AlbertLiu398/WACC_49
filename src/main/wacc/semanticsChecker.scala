@@ -197,13 +197,15 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
-        println(lvalue.getType)
         if (lvalue.getType != "int" & lvalue.getType != "char") {
           errors.append(SemanticError("can only read int or char"))
         }
 
       case n@Free(expr) =>
         semanticCheck(expr)
+        if (!expr.getType.contains("pair") & !expr.getType.contains("[]")) {
+          errors.append(SemanticError("can only free array or pair"))
+        }
 
       case n@NewPairRValue(exprL, exprR) =>
         semanticCheck(exprL)

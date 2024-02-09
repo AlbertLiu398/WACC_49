@@ -7,6 +7,7 @@ object Main {
     def main(args: Array[String]): Unit = {
         println("hello WACC!")
         // println (allTypeParse("pair(pair(int, bool), pair(bool, int))"))
+        // println(stmtParse(("intx=2")))
 
         args.headOption match {
             case Some(filePath) =>

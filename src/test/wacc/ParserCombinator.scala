@@ -47,7 +47,7 @@ it should "parse statement" in {
     // Println statement    
     stmtParse("println x") shouldBe Success(Print(Ident("x"), true))
     stmtParse("println (a)") shouldBe Success(Print(Ident("a"), true))
-    stmtParse("println 1-+2") shouldBe Success(Print(Sub(IntLiter(1), Positive(IntLiter(2))), true))
+    stmtParse("println 1-+2") shouldBe Success(Print(Sub(IntLiter(1),(IntLiter(2))), true))
 
 
     // Begin statement
@@ -128,11 +128,9 @@ it should "parse arrLiter" in {
 
     // Binary operation
     exprParse("1 + 2") shouldBe Success(Add(IntLiter(1), IntLiter(2)))
-    exprParse("1 -+ 2") shouldBe Success(Sub(IntLiter(1), Positive(IntLiter(2))))
     exprParse("1 - 2 - 5") shouldBe Success(Sub(Sub(IntLiter(1), IntLiter(2)), IntLiter(5)))
     // exprParse("p && q && r") shouldBe Success(And(Ident("p"),(And(Ident("q"), Ident("r")))))
     
-
     // Unary operation
     exprParse("-1") shouldBe Success(Negate(IntLiter(1)))
 

@@ -72,7 +72,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@NewAssignment(identType, name, value) =>
         symbolTable.lookupSymbol(name) match {
           case Some(_) =>
-            errors.append(SemanticError("variable name already exists"))
+            if (symbolTable.checkDoubleDeclear(name)) {
+              errors.append(SemanticError("variable name already exists"))
+            }
           case None =>
         }
         semanticCheck(identType)

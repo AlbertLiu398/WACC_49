@@ -322,13 +322,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
         n.getType = expr.getType
       case n@Len(expr) => 
         semanticCheck(expr)
-        n.getType = expr.getType
+        n.getType = "int"
       case n@Ord(expr) => 
         semanticCheck(expr)
-        n.getType = expr.getType
+        n.getType = "int"
       case n@Chr(expr) => 
         semanticCheck(expr)
-        n.getType = expr.getType
+        n.getType = "char"
       case n@Positive(expr) => 
         semanticCheck(expr)
         n.getType = expr.getType

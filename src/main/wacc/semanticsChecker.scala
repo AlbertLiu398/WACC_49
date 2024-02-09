@@ -71,6 +71,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@NewAssignment(identType, name, value) =>
         semanticCheck(value)
+
+        
         value match {
           case ArrLiter(StringLiter("empty"), es) => 
           case _ =>
@@ -79,7 +81,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
             }
         }
         if (value.getType.startsWith("pair")) {
-          symbolTable.insertSymbolwithValue(name, value.getType, List(getTypeForPair(value.getType, 1), getTypeForPair(value.getType, 2)))
+          symbolTable.insertSymbolwithValue(name, value.getType, List(value.getFst, value.getSnd))
         } else {
           symbolTable.insertSymbol(name, value.getType)
         }
@@ -168,6 +170,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(exprL)
         semanticCheck(exprR)
         n.getType = s"pair(${exprL.getType},${exprR.getType})"
+        n.getFst = exprL.getType
+        n.getSnd= exprR.getType
 
       case n@CallRValue(func, args) =>
         semanticCheck(args)
@@ -371,6 +375,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.lookupSymbol(n) match {
           case Some(entry) => 
             n.getType = entry.varType
+            if (entry.varType.startsWith("pair")) {
+              n.getFst = entry.value(0)
+              n.getSnd = entry.value(1)
+            }
           case None => errors.append(SemanticError("Ident not exist"))
         }
   
@@ -398,18 +406,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       sndStr = "string"
     }
     return fstStr == sndStr
-  }
-
-  //function to getType of Pair, input a string with form "pair(Type,Type)"
-  //and a number which 1 represent fst, 2 respresent snd
-  private def getTypeForPair(str: String, number: Int): String = {
-    val startIndex = str.indexOf('(')
-    val endIndex = str.indexOf(')')
-    val substring = str.substring(startIndex + 1, endIndex)
-    // Split the substring using comma and get the first part
-    val typesArray = substring.split(',')
-    if (number == 1) return typesArray(0)
-    else return typesArray(1)
   }
 
 

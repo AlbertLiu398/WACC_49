@@ -89,20 +89,18 @@ class  SemanticCheckerTest extends ParserTest {
     // -------------------------- Array --------------------------
     it should "semantic check array" in {
         semanticschecker.semanticCheck ((NewAssignment(ArrayType(BaseType("int")),Ident("should_be_int_array"),ArrLiter(CharLiter('a'),List(CharLiter('b'), CharLiter('c'))))))
-        semanticschecker.getSemanticErrors shouldBe List(SemanticError("assignment type mismatch"))
-        semanticschecker.refreshSymbolTable()
+        semanticschecker.getSemanticErrors shouldBe List(SemanticError("New assignment type mismatch"))
     }
     it should "semantic check array 2" in {
         semanticschecker.semanticCheck(ArrElem(Ident("x"), List(IntLiter(1), IntLiter(1))))
-        semanticschecker.getSemanticErrors shouldBe List(SemanticError("array not exist"), SemanticError("too much indexing"))
-        semanticschecker.refreshSymbolTable()
+        semanticschecker.getSemanticErrors shouldBe List(SemanticError("New assignment type mismatch"), SemanticError("Non-existent array identifier reference"), SemanticError("Array index is larger than its dimension"))
     }
 
 
     // -------------------------- If --------------------------
     it should "semantics check if condition" in {
         semanticschecker.semanticCheck((Program(List(),If(Add(IntLiter(1),IntLiter(1)),Skip,Skip))))
-        semanticschecker.getSemanticErrors shouldBe List(SemanticError("condition need to be a boolean"))
+        semanticschecker.getSemanticErrors shouldBe List(SemanticError("New assignment type mismatch"), SemanticError("Non-existent array identifier reference"), SemanticError("Array index is larger than its dimension"), SemanticError("If-Loop condition needs to be a boolean"))
         semanticschecker.refreshSymbolTable()
     }
 

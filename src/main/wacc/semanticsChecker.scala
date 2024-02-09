@@ -18,7 +18,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         for (func <- funcList) {
           symbolTable.lookupSymbol(Ident('f' +: func.functionName.value)) match {
             case Some(_) =>
-              errors.append(SemanticError("function name already exists"))
+              errors.append(SemanticError("Multiple declears on matching function names"))
             case None =>
               symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
             }
@@ -42,16 +42,16 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Return(expr) =>
         semanticCheck(expr)
         if (!symbolTable.isInFunc()) {
-          errors.append(SemanticError("unexpected return statement"))
+          errors.append(SemanticError("Unexpected return statement"))
         }
         if (!compareType(expr.getType, symbolTable.getFuncType)) {
-          errors.append(SemanticError("return type does not match"))
+          errors.append(SemanticError("Function return type does not match its return type"))
         }
       
       case n@Exit(expr)=>
         semanticCheck(expr)
         if  (expr.getType != "int") {
-          errors.append(SemanticError("exit code need to be Int"))
+          errors.append(SemanticError("Exit code need to be Int"))
         }
 
       case n@SeqStmt(first, second) =>
@@ -66,7 +66,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@ParamList(params) =>
         val identNames = params.map(_.paramName.value)
         if (identNames.distinct != identNames) {
-          errors.append(SemanticError("functions arguments names overlap"))
+          errors.append(SemanticError("Multiple declears on matching function argument names"))
         }
         params.foreach(semanticCheck)
       
@@ -78,7 +78,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.lookupSymbol(name) match {
           case Some(_) =>
             if (symbolTable.checkDoubleDeclear(name) & !symbolTable.isInFunc()) {
-              errors.append(SemanticError("variable name already exists"))
+              errors.append(SemanticError("Multiple declears on matching variable names"))
             }
           case None =>
         }
@@ -88,7 +88,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           case ArrLiter(StringLiter("empty"), es) => 
           case _ =>
             if (!compareType(identType.getType, value.getType)) {
-              errors.append(SemanticError("assignment type mismatch"))
+              errors.append(SemanticError("New assignment type mismatch"))
             }
         }
         value match {
@@ -99,7 +99,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
               symbolTable.lookupSymbol(x) match {
                 case Some(entry) => 
                   symbolTable.insertSymbolwithValue(name, identType.getType, List(entry.value(0), entry.value(1)))
-                case None => errors.append(SemanticError("Ident not exist"))
+                case None => errors.append(SemanticError("Non-existent identifier reference"))
               }
             }
             else {
@@ -126,7 +126,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           case ArrLiter(StringLiter("empty"), es) => 
           case _ =>
             if (!compareType(lvalue.getType,rvalue.getType)) {
-              errors.append(SemanticError("assignment type mismatch"))
+              errors.append(SemanticError("Assignment type mismatch"))
             }
         }
 
@@ -138,7 +138,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           val types = ess.map(_.getType).distinct
           val charAndString = types.length == 2 & types == List("char[]", "string")
           if (types.length != 1 & !charAndString) {
-            errors.append(SemanticError("list elements type mismatch"))
+            errors.append(SemanticError("List declear elements type mismatch"))
           }
           if (charAndString) {
             n.getType = "string[]"
@@ -161,23 +161,23 @@ class semanticsChecker(symbolTable: SymbolTable) {
             }
           case None => 
             symbolTable.displaySymbolTable()
-            errors.append(SemanticError("array not exist"))
+            errors.append(SemanticError("Non-existent array identifier reference"))
         }
         value.foreach(semanticCheck)
         if (!value.forall(x=> x.getType == "int")) {
-          errors.append(SemanticError("index should be an Int"))
+          errors.append(SemanticError("Array index should be an Int"))
         }
         if (value.length > countOccurrences(arryType, "[]")) {
           println(value.length)
           println(n.getType)
           println(countOccurrences(n.getType, "[]"))
-          errors.append(SemanticError("too much indexing"))
+          errors.append(SemanticError("Array index is larger than its dimension"))
         }
 
       case n@If(condition, thenBranch, elseBranch) =>
         semanticCheck(condition)
         if (condition.getType != "bool") {
-          errors.append(SemanticError("condition need to be a boolean"))
+          errors.append(SemanticError("If-Loop condition needs to be a boolean"))
         }
         symbolTable.enterScope()
         semanticCheck(thenBranch)
@@ -190,7 +190,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@While(condition, body) =>
         semanticCheck(condition)
         if (condition.getType != "bool") {
-          errors.append(SemanticError("condition need to be a boolean"))
+          errors.append(SemanticError("While-Loop condition need to be a boolean"))
         }
         symbolTable.enterScope()
         semanticCheck(body)
@@ -203,13 +203,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
         if (lvalue.getType != "int" & lvalue.getType != "char") {
-          errors.append(SemanticError("can only read int or char"))
+          errors.append(SemanticError("Read can only read int or char"))
         }
 
       case n@Free(expr) =>
         semanticCheck(expr)
         if (!expr.getType.contains("pair") & !expr.getType.contains("[]")) {
-          errors.append(SemanticError("can only free array or pair"))
+          errors.append(SemanticError("Free can only free array or pair"))
         }
 
       case n@NewPairRValue(exprL, exprR) =>
@@ -228,7 +228,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
               if (symbolEntry.value.length - 1 == args.exprl.length) {
                 for (i <- 0 to args.exprl.length - 1) {
                   if (!compareType(symbolEntry.value(i), args.exprl(i).getType)) {
-                    errors.append(SemanticError("function parameters type mismatch"))
+                    errors.append(SemanticError("Function parameters type mismatch"))
                   }
                 }
                 n.getType = symbolEntry.value(symbolEntry.value.length - 1)
@@ -237,13 +237,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
                   n.getSnd = getTypeForPair(n.getType, 2)
                 }
               } else {
-                errors.append(SemanticError("function has too many/few parameters"))
+                errors.append(SemanticError("Function has too many/few parameters"))
               }
             } else {
-              errors.append(SemanticError("calling argument is not function"))
+              errors.append(SemanticError("Calling argument is not of type function"))
             }
           case None => 
-            errors.append(SemanticError("function does not exist"))
+            errors.append(SemanticError("Calling function does not exist"))
         }
         
 
@@ -470,8 +470,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
     var fstStr = s1
     var sndStr = s2
     if  (s1.startsWith("pair") & s2.startsWith("pair")) return true
-    // if  (s1.startsWith("pair") & s2 == "pair") return true
-    // if  (s1 == "pair" & s2.startsWith("pair")) return true
     if (s1 == "char[]") {
       fstStr = "string"
     }

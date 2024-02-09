@@ -71,28 +71,20 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@NewAssignment(identType, name, value) =>
         semanticCheck(value)
-
-        
         value match {
           case ArrLiter(StringLiter("empty"), es) => 
           case _ =>
             if (!compareType(identType.getType, value.getType)) {
+              println(identType.getType)
+              println(value.getType)
               errors.append(SemanticError("assignment type mismatch"))
             }
         }
         if (value.getType.startsWith("pair")) {
           symbolTable.insertSymbolwithValue(name, value.getType, List(value.getFst, value.getSnd))
         } else {
-          symbolTable.insertSymbol(name, value.getType)
+          symbolTable.insertSymbol(name, identType.getType)
         }
-
-
-        // value match {
-        //   case NewPairRValue(exprL, exprR) =>
-        //     symbolTable.insertSymbolwithValue(name, identType.getType, List(exprL.getType, exprR.getType))
-        //   case _ =>
-        //     symbolTable.insertSymbol(name, identType.getType)
-        // }
 
       case n@Assignment(lvalue, rvalue) =>
         semanticCheck(lvalue)
@@ -100,7 +92,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
         if (!compareType(lvalue.getType,rvalue.getType)) {
           errors.append(SemanticError("assignment type mismatch"))
         }
-      
 
       case n@ArrLiter(e, es) =>
         val ess = e::es

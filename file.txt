@@ -1,14 +1,10 @@
-# unescaped double quote
+# create a pair (int, pair (int, int) )
 
 # Output:
-# #syntax_error#
-
-# Exit:
-# 100
 
 # Program:
 
 begin
-  char a = '"'
+  pair(int, int) p = newpair(2, 3) ;
+  pair(int, pair) q = newpair(1, p)
 end
-

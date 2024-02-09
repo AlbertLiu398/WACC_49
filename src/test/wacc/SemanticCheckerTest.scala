@@ -99,38 +99,11 @@ class  SemanticCheckerTest extends ParserTest {
     }
 
 
-
-    // -------------------------- Function --------------------------
-
-
-
-
-
-
-
     // -------------------------- If --------------------------
-
-
     it should "semantics check if condition" in {
         semanticschecker.semanticCheck((Program(List(),If(Add(IntLiter(1),IntLiter(1)),Skip,Skip))))
         semanticschecker.getSemanticErrors shouldBe List(SemanticError("condition need to be a boolean"))
         semanticschecker.refreshSymbolTable()
     }
 
-
-
-    // -------------------------- Multiple --------------------------
-
-    
-
-
-
-
-    // -------------------------- Print --------------------------
-
-    // it should "semantics check print type mismatch" in {
-    //     semanticschecker.semanticCheck(())
-    //     semanticschecker.getSemanticErrors shouldBe List(SemanticError(""))
-    //     semanticschecker.refreshSymbolTable()
-    // }
 }

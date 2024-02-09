@@ -288,6 +288,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
+          if (expr1.getType.contains("pair") | expr1.getType.contains("[]")) {
+            errors.append(SemanticError(s"cannot compare ${expr1.getType}"))
+          }
           n.getType = "bool"
         }
       case n@LessThanEq(expr1, expr2) =>
@@ -297,6 +300,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
+          if (expr1.getType.contains("pair") | expr1.getType.contains("[]")) {
+            errors.append(SemanticError(s"cannot compare ${expr1.getType}"))
+          }
           n.getType = "bool"
         }
       case n@GreaterThan(expr1, expr2) =>
@@ -306,6 +312,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
+          if (expr1.getType.contains("pair") | expr1.getType.contains("[]")) {
+            errors.append(SemanticError(s"cannot compare ${expr1.getType}"))
+          }
           n.getType = "bool"
         }
       case n@GreaterThanEq(expr1, expr2) =>
@@ -315,6 +324,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
+          if (expr1.getType.contains("pair") | expr1.getType.contains("[]")) {
+            errors.append(SemanticError(s"cannot compare ${expr1.getType}"))
+          }
           n.getType = "bool"
         }
       case n@Eq(expr1, expr2) =>

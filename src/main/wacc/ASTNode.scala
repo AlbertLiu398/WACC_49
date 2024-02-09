@@ -3,7 +3,9 @@ object ast{
     sealed trait ASTNode
 
     sealed trait Type extends PairElemType {
-        var getType:String
+        var getType: String
+        var getFst: String = ""
+        var getSnd: String = ""
     }
     case class BaseType(name: String) extends Type with PairElemType{
         var getType: String = name
@@ -13,8 +15,6 @@ object ast{
     }
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
         var getType: String =  s"pair(${first.getType},${second.getType})"
-        var getFst: String = first.getType
-        var getSnd: String = second.getType
     }
 
     sealed trait PairElemType extends ASTNode{

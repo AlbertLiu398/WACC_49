@@ -1,12 +1,14 @@
-# print pair a null pair
+# attempt dereference of a null pair by using it
 
 # Output:
-# (nil)
-#
+# #runtime_error#
+
+# Exit:
+# 255
 
 # Program:
 
 begin
-  pair(pair, pair) p = null ;
-  println p
+	pair(int, int) p = null ;
+	int x = fst p
 end

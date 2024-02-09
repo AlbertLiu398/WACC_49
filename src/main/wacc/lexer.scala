@@ -9,8 +9,6 @@ import parsley.token.descriptions._
 import scala.collection.mutable.ListBuffer
 import parsley.token.errors._
 import parsley.token.numeric._
-// import parsley.token.errors.ErrorConfig
-// import parsley.token.errors._
 import parsley.Parsley._
 import parsley.character._
 import parsley.debug, debug._ 
@@ -20,29 +18,30 @@ import parsley.debug, debug._
 
 
 object lexer {
+    // lexer configuration : 
     private val desc = LexicalDesc.plain.copy(
-        // your configuration goes here
+
         nameDesc = NameDesc.plain.copy(
             identifierStart = predicate.Basic( c => c.isLetter | c == '_'),
             identifierLetter = predicate.Basic(c => c.isLetterOrDigit | c == '_'),
         ),
+
         symbolDesc = SymbolDesc.plain.copy(
-            caseSensitive = true,
+            caseSensitive = false,
             hardKeywords = Set("null", "skip", "read", "free", "return", "exit", "print", "println", 
             "if", "then", "else", "fi", "while", "do", "is","done", "begin", "end", "call", "fst ", 
             "snd", "newpair", "true", "false", "int", "bool", "char", "string", "pair", "array", "len", "ord", "chr"),
             hardOperators = Set("!","-", 
             "+", "-", "*", "/", "%","<", ">", "<=", ">=", "==", "!=","&&", "||", "(", ")", ",", "{", "}", "[", "]", ";"),
-            // "="
         ),
+
         spaceDesc = SpaceDesc.plain.copy(
             lineCommentStart = "#",
             lineCommentAllowsEOF = true,
-            multiLineCommentStart = "/*", 
-            multiLineCommentEnd = "*/",
             multiLineNestedComments = false,
             whitespaceIsContextDependent = false,
         ),
+
         numericDesc = numeric.NumericDesc.plain.copy(
             literalBreakChar = numeric.BreakCharDesc.NoBreakChar,
             leadingDotAllowed = false,
@@ -50,15 +49,14 @@ object lexer {
             leadingZerosAllowed = true,
             positiveSign = numeric.PlusSignPresence.Optional,
             integerNumbersCanBeHexadecimal = true,
-
             integerNumbersCanBeOctal = false, 
-
             integerNumbersCanBeBinary = false,
             realNumbersCanBeHexadecimal = false,
             realNumbersCanBeOctal = false,
             realNumbersCanBeBinary = false,
             hexadecimalLeads = Set('x', 'X'),
         ),
+
         textDesc = text.TextDesc.plain.copy(
             escapeSequences = text.EscapeDesc.plain.copy(
                 escBegin = '\\' ,
@@ -70,14 +68,15 @@ object lexer {
                     , "n" -> 0x000a
                     , "r" -> 0x000d
                     , "f"-> 0x000c
-                ),  
+                ),
             ),
             characterLiteralEnd = '\'',
             stringEnds = Set(("\"", "\"")),
             multiStringEnds = Set(("\"\"\"", "\"\"\"")),
-            graphicCharacter = predicate.Basic(c => c != '\"' && c != '\\' && c!= '\'' ),
+            graphicCharacter = predicate.Basic(c => c != '\"' && c != '\\' && c!= '\'' && c >= ' '),
         ),
     )
+    // configuration for error messages
       val errConfig = new ErrorConfig {
         override def labelSymbol = Map(
             ">" -> LabelAndReason(
@@ -133,16 +132,11 @@ object lexer {
         )
     }
 
-
-
-
-    // private val lexer = new Lexer(desc,errConfig)
-    private val lexer = new Lexer(desc)
+    // lexer instance used in parser 
+    private val lexer = new Lexer(desc,errConfig)
     val intMaxValue = 2147483647
     val intMinValue = -2147483648
     val integer = lexer.lexeme.integer.decimal32
-    // val integer = lexer.lexeme.integer.number
-    //.filter(n => n <= intMaxValue && n >= intMinValue)
     val floating = lexer.lexeme.floating.number
     val intOrFloat = lexer.lexeme.unsignedCombined.number
     val string = lexer.lexeme.string.ascii
@@ -151,14 +145,7 @@ object lexer {
     val implicits = lexer.lexeme.symbol.implicits
     def commaSep1_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep1(p)
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
+    // val newline = 
 
-    // val graphicAsciiExceptQuotes: Parsley[Char] = 
-    //     
-
-
- 
-
-    //TODO : not compile yet
-    // val newline: Lexeme[Unit] = lexer.lexeme(newline).void
     def fully[A](p: Parsley[A]): Parsley[A] = lexer.fully(p)
 }

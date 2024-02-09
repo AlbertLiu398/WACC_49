@@ -1,21 +1,19 @@
 package wacc
 
-import parsley.{Parsley, Result}
+import parsley.{Parsley}
 import parsley.expr._
 import parsley.Parsley._
 import parsley.syntax._
 import scala.language.postfixOps
 import parsley.debug, debug._ 
-
 import lexer.implicits.implicitSymbol
 import lexer._
 import ast._
-// import parsley.unicode._ 
 
 object parser {
     import parsley.syntax.lift.{Lift1, Lift2, Lift3, Lift4}
 
-    // -------------- Parser used for unit test --------------
+    // -------------- each Parser used for unit test --------------
 
     def parse(input: String) = parser.parse(input)
     def funcParse(input: String) = funcParser.parse(input)
@@ -45,7 +43,6 @@ object parser {
     private val allTypeParser = fully(allType)
     private val exprParser = fully(expr)
 
-
     // -------------------------- Literals -------------------------
     private lazy val intLiter = integer.map(IntLiter) | "+" ~> integer.map(IntLiter) | "-" ~> integer.map(IntLiter)
     private lazy val ident = identifier.map(Ident)
@@ -54,16 +51,20 @@ object parser {
     private lazy val stringLiter = lexer.string.map(StringLiter)
     private lazy val pairLiter = "null" #> PairLiter
 
-
-    // -------------------------- Statements -------------------------
+   // --------------------------  Program -------------------------
     private lazy val prog: Parsley[Program] = Program.lift("begin" ~> many(func), stmt <~ "end")
+
+
+    // ------------------------- Functions -------------------------
     private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> funcStmt <~ "end")) |
-                                           atomic(Func.lift(allType, ident, paramList, "is" ~> funcStmt <~ "end")) 
-                                          
+                                           atomic(Func.lift(allType, ident, paramList, "is" ~> funcStmt <~ "end"))   
+
+    // ------------------------- ParamList -------------------------                             
     private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep1_(param)) <~ ")"
     private lazy val param = Param.lift(allType, ident)
 
-   
+
+    // ------------------------- Overall Statements ------------------ 
     private lazy val stmt = atomic( stmtAtom <~ notFollowedBy(";")) | stmtJoin
     private lazy val stmtJoin: Parsley[Stmt] = SeqStmt.lift(stmtAtom <~ ";", stmt)
     private lazy val stmtAtom : Parsley[Stmt] = 
@@ -80,6 +81,7 @@ object parser {
         While.lift("while" ~> expr, "do" ~> stmt <~ "done") |
         Begin.lift("begin" ~> stmt <~ "end")
 
+                //  -------------  Statement (for function only) -----------
     // funcStmt : used to check function statement is valid 
     private lazy val funcStmt = stmt.filter(checkTermination)
     
@@ -94,18 +96,11 @@ object parser {
         case _ => false
     }
 
-
+    // -------------------------- LValue -------------------------
     private lazy val lValue: Parsley[LValue] = pairElem | atomic(ident <~ notFollowedBy("[")) | arr 
 
-    private lazy val notPairElem: Parsley[LValue] = atomic(ident<~ notFollowedBy("[")) | arr
-    private lazy val notFirstPairElem: Parsley[LValue] = sndPairElem | notPairElem
-    private lazy val notSecondPairElem: Parsley[LValue] = fstPairElem | notPairElem
 
-    private lazy val pairElem = fstPairElem | sndPairElem
-    private lazy val fstPairElem = chain.prefix1(notFirstPairElem)("fst".as(FstPairElem))
-    private lazy val sndPairElem = chain.prefix1(notSecondPairElem)("snd".as(SndPairElem))
-
-    
+    // -------------------------- RValue -------------------------
     private lazy val rValue =
         NewPairRValue.lift("newpair" ~> "(" ~> expr, "," ~> expr <~ ")") |
         CallRValue.lift("call" ~> ident, "(" ~> argsList <~ ")") |
@@ -113,18 +108,32 @@ object parser {
         expr|
         arrLiter
 
+    // -------------------------- ArgList -------------------------
+    private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit)) |  ArgList.lift(pure(List()))
+
+
+    // -------------------------- PairElem ------------------------
+    private lazy val notPairElem: Parsley[LValue] = atomic(ident<~ notFollowedBy("[")) | arr
+    private lazy val notFirstPairElem: Parsley[LValue] = sndPairElem | notPairElem
+    private lazy val notSecondPairElem: Parsley[LValue] = fstPairElem | notPairElem
+
+    private lazy val pairElem = fstPairElem | sndPairElem
+    private lazy val fstPairElem = chain.prefix1(notFirstPairElem)("fst".as(FstPairElem))
+    private lazy val sndPairElem = chain.prefix1(notSecondPairElem)("snd".as(SndPairElem))    
+
 
       
-    private lazy val argsList: Parsley[ArgList] = ArgList.lift(commaSep1_(exprOrArrayLit)) |  ArgList.lift(pure(List()))
+   // --------------------------- Array Literals ----------------------- 
     private lazy val arrLiter: Parsley[ArrLiter] 
       = "[]" #> ArrLiter(StringLiter("empty"), List()) | 
          atomic(ArrLiter.lift("[" ~> expr <~ notFollowedBy(",") <~ "]", pure(List()))) |
          ArrLiter.lift("[" ~> expr <~ ",", commaSep_(expr) <~ "]")
     private lazy val exprOrArrayLit: Parsley[Expr] = expr | arrLiter
 
-    // -------------------------- Types ---------------------------
+    // -------------------------- Types -------------------------------- 
     private lazy val allType: Parsley[Type] = atomic(arrayType) | notArrayType
     private lazy val notArrayType: Parsley[Type] = baseType | pairType 
+
     private lazy val baseType = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
     private lazy val arrayType = chain.postfix1(notArrayType)("[]".as(ArrayType))
     private lazy val pairType: Parsley[Type] = "pair" ~> "(" ~> PairType.lift(pairElemType, "," ~> pairElemType <~ ")")
@@ -145,10 +154,14 @@ object parser {
         Ops(InfixR)("||" #> Or),   
     )
 
+
     private lazy val atom : Parsley[Expr] =  "(" ~> expr <~ ")"| atomic(ident <~ notFollowedBy("[")) | arr | intLiter | boolLiter | charLiter | stringLiter| pairLiter 
+
+
     private lazy val uOper: Parsley[UOper]  =  "!" #> UOper("!") | "-"  #> UOper("-") | "len" #> UOper("len") |  "ord" #> UOper("ord")| "chr" #> UOper("chr")
     private lazy val bOper: Parsley[BOper] = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
                             "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 
                             ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||")
+    // -------------------------- Array element --------------------------         
     private lazy val arr = ArrElem.lift(ident, some("[" ~> expr <~ "]"))
 }

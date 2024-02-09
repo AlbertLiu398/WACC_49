@@ -26,8 +26,8 @@ object lexer {
             caseSensitive = true,
             hardKeywords = Set("null", "skip", "read", "free", "return", "exit", "print", "println", 
             "if", "then", "else", "fi", "while", "do", "is","done", "begin", "end", "call", "fst ", 
-            "snd", "newpair", "true", "false"),
-            hardOperators = Set("!","-", "len", "ord", "chr", 
+            "snd", "newpair", "true", "false", "int", "bool", "char", "string", "pair", "array", "len", "ord", "chr"),
+            hardOperators = Set("!","-", 
             "+", "-", "*", "/", "%","<", ">", "<=", ">=", "==", "!=","&&", "||", "(", ")", ",", "{", "}", "[", "]", ";"),
             // "="
         ),
@@ -57,13 +57,22 @@ object lexer {
         ),
         textDesc = text.TextDesc.plain.copy(
             escapeSequences = text.EscapeDesc.plain.copy(
-                escBegin = '\\',
-                literals = Set('0', 'b', 't', 'n', 'f', 'r', '"', '\'', '\\'),
+                escBegin = '\\' ,
+                // literals = Set('0', 'b', 't', 'n', 'f', 'r', '"', '\'', '\\'),
+                literals = Set('\"', '\'', '\\'),   
+                mapping = Map(
+                    "0" -> 0x0000
+                    , "t" -> 0x0009
+                    , "b" -> 0x0008
+                    , "n" -> 0x000a
+                    , "r" -> 0x000d
+                    , "f"-> 0x000c
+                ),  
             ),
             characterLiteralEnd = '\'',
             stringEnds = Set(("\"", "\"")),
             multiStringEnds = Set(("\"\"\"", "\"\"\"")),
-        )
+        ),
     )
 
     // val errConfig = new ErrorConfig {
@@ -136,21 +145,9 @@ object lexer {
     def commaSep1_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep1(p)
     def commaSep_[A](p: Parsley[A]): Parsley[List[A]] = lexer.lexeme.commaSep(p)
 
-    val graphicAsciiExceptQuotes: Parsley[Char] = 
-        graphicCharacter.filter(c => c != '\\' && c != '\'' && c != '\"')
+    // val graphicAsciiExceptQuotes: Parsley[Char] = 
+    //     graphicCharacter.filter(c => c != '\\' && c != '\'' && c != '\"')
 
-    val escapedChar: Parsley[Char] = char('\\') *> choice(
-        char('0')  *> pure('\u0000'),
-        char('b')  *> pure('\b'),
-        char('t')  *> pure('\t'),
-        char('n')  *> pure('\n'),
-        char('f')  *> pure('\f'),
-        char('r')  *> pure('\r'),
-        char('"')  *> pure('\"'),
-        char('\'') *> pure('\''),
-        char('\\') *> pure('\\')
-    )
-    val character: Parsley[Char] = escapedChar | graphicAsciiExceptQuotes
 
  
 

@@ -48,7 +48,7 @@ object parser {
 //    private lazy val comment: Parsley[Unit] = "#" ~> many(noneOf("\n".toSet)) ~> "\n" ~> pure(())
 
     // -------------------------- Literals -------------------------
-    private lazy val intLiter = IntLiter.lift("+" ~> integer) | IntLiter.lift("-" ~> integer) | integer.map(IntLiter)
+    private lazy val intLiter = integer.map(IntLiter) | "+" ~> integer.map(IntLiter) | "-" ~> integer.map(IntLiter)
     //.filter { case IntLiter(value) => value >= -2147483648 && value < 2147483647 }
     private lazy val ident = identifier.map(Ident)
     private lazy val boolLiter = ("true" #> BoolLiter(true)) <|> ("false" #> BoolLiter(false))
@@ -140,8 +140,8 @@ object parser {
 
     // -------------------------- Expressions --------------------------
     
-    private lazy val expr: Parsley[Expr]= operators| atom
-    private lazy val operators: Parsley[Expr] = precedence(atom, atom)(
+    private lazy val expr: Parsley[Expr]= atomic(operators) | atom
+    private lazy val operators: Parsley[Expr] = precedence(atom)(
         Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr),
         Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod),
         Ops(InfixL)("+" #> Add, "-" #> Sub),

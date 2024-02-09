@@ -7,11 +7,14 @@ import parsley.combinator._
 import parsley.token.{Lexer, predicate}
 import parsley.token.descriptions._
 import scala.collection.mutable.ListBuffer
-// import parsley.token.errors.ErrorConfig
 import parsley.token.errors._
+import parsley.token.numeric._
+// import parsley.token.errors.ErrorConfig
+// import parsley.token.errors._
 import parsley.Parsley._
 import parsley.character._
 import parsley.debug, debug._ 
+
 
 
 
@@ -137,7 +140,9 @@ object lexer {
     private val lexer = new Lexer(desc)
     val intMaxValue = 2147483647
     val intMinValue = -2147483648
-    val integer = lexer.lexeme.natural.number.filter(n => n <= intMaxValue && n >= intMinValue)
+    val integer = lexer.lexeme.integer.decimal32
+    // val integer = lexer.lexeme.integer.number
+    //.filter(n => n <= intMaxValue && n >= intMinValue)
     val floating = lexer.lexeme.floating.number
     val intOrFloat = lexer.lexeme.unsignedCombined.number
     val string = lexer.lexeme.string.ascii

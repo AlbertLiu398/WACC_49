@@ -181,7 +181,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
-        if (lvalue.getType != "int" | lvalue.getType != "char") {
+        if (lvalue.getType != "int" & lvalue.getType != "char") {
           errors.append(SemanticError("can only read int or char"))
         }
 
@@ -344,7 +344,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case n@Or(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (!compareType(expr1.getType, expr2.getType)) {
+        if (expr1.getType != "bool" | expr2.getType != "bool") {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {

@@ -1,20 +1,14 @@
-# creates a pair which is returned from a function
+# create and print a linked list using pairs
 
 # Output:
-# 10
+# list = {1, 2, 4, 11}
 #
 
 # Program:
 
 begin
-
-  pair(int, int) getPair() is
-    pair(int, int) p = newpair(10,15);
-    return p
-  end
-
-  pair(int, int) p = call getPair();
-  pair(int, string) c = newpair(10, "5");
-  int x = fst p;
-  println x
+  pair(int, pair) p = newpair(11, null) ;
+    pair(int, pair) q = newpair(4, p) ;
+    pair(int, pair) r = newpair(2, q) ;
+    pair(int, pair) s = newpair(1, r)
 end

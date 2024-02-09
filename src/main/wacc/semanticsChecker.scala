@@ -118,8 +118,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
           }
         }
         
-        
-
 
       case n@ArrElem(name, value) =>
         symbolTable.lookupSymbol(name) match {
@@ -175,20 +173,24 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(func)
         semanticCheck(args)
         //need to check each args's type is correct
-        symbolTable.lookupSymbol(func) match {
+        symbolTable.lookupSymbol(Ident('f' +: func.value)) match {
           case Some(symbolEntry) =>
-            if (symbolEntry.value.length - 1 == args.exprl.length) {
-              for (i <- 0 to args.exprl.length - 1) {
-                if (!compareType(symbolEntry.value(i), args.exprl(i).getType)) {
-                  errors.append(SemanticError("function parameters type mismatch"))
+            if (symbolEntry.varType == "func") {
+              if (symbolEntry.value.length - 1 == args.exprl.length) {
+                for (i <- 0 to args.exprl.length - 1) {
+                  if (!compareType(symbolEntry.value(i), args.exprl(i).getType)) {
+                    errors.append(SemanticError("function parameters type mismatch"))
+                  }
                 }
+                n.getType = symbolEntry.value(symbolEntry.value.length - 1)
+              } else {
+                errors.append(SemanticError("function has too many/few parameters"))
               }
-              n.getType = symbolEntry.value(symbolEntry.value.length - 1)
             } else {
-              errors.append(SemanticError("function has too many/few parameters"))
+              errors.append(SemanticError("calling argument is not function"))
             }
           case None => 
-            errors.append(SemanticError("function not exist"))
+            errors.append(SemanticError("function does not exist"))
         }
         
 

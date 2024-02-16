@@ -137,8 +137,6 @@ object lexer {
 
     // lexer instance used in parser 
     private val lexer = new Lexer(desc,errConfig)
-    val intMaxValue = 2147483647
-    val intMinValue = -2147483648
     val integer = lexer.lexeme.integer.decimal32
     val floating = lexer.lexeme.floating.number
     val intOrFloat = lexer.lexeme.unsignedCombined.number

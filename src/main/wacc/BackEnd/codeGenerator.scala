@@ -2,26 +2,20 @@ package wacc
 
 import wacc.ast._
 import wacc.instruction._
-import scala.collection.mutable.ListBuffer
+import scala.collection._
 
 object CodeGenerator {
 
-  private val instructions: ListBuffer[Instruction] = ListBuffer()
-  private val register_unused : ListBuffer[Register] = ListBuffer() 
-  private val register_used: ListBuffer[Register] = ListBuffer()
+  private val instructions: mutable.ListBuffer[Instruction] = mutable.ListBuffer()
 
-  def generateInstructions(ast: ASTNode, regsInUse: Register, unusedRegs : ListBuffer[Register],
-                           usedRegs : ListBuffer[Register]): Unit = ast match {
+  def generateInstructions(ast: ASTNode, unusedRegs: mutable.ListBuffer[Register],
+                           usedRegs: mutable.ListBuffer[Register]): Unit = ast match {
 
     // --------------------------  Generate instructions for expressions
     case Add(expr1, expr2) =>
-        val (reg1, unusedRegs1) = getUnusedRegister(unusedRegs)
-        val (reg2, unusedRegs2) = getUnusedRegister(unusedRegs1)
-
-        val updatedUsedRegs = usedRegs ++ List(reg1, reg2)
-        generateInstructions(expr1, reg1, unusedRegs2, updatedUsedRegs)
-        generateInstructions(expr2, reg2, unusedRegs2, updatedUsedRegs)
-        // instructions.append(I_Add(
+      unary(unusedRegs, usedRegs, expr1, expr2)
+      
+      instructions.append(I_Add(usedRegs(0), unusedRegs(0), usedRegs(2)))
 
     
     // case Sub(expr1, expr2) => 
@@ -87,8 +81,11 @@ object CodeGenerator {
     case Begin(stmt) =>
     
     case SeqStmt(first, second) => 
+      generateInstructions(first, unusedRegs, usedRegs)
+      generateInstructions(second, unusedRegs.tail, usedRegs :+ unusedRegs.head)
         
     case Skip =>
+
    
     
 
@@ -99,9 +96,24 @@ object CodeGenerator {
 
   private def getInstructions: List[Instruction] = instructions.toList
 
-  private def getUnusedRegister(unusedRegs: ListBuffer[Register]): (Register, ListBuffer[Register]) = {
-    val reg = unusedRegs.head  // represents the first register that is currently available to use 
-    (reg, unusedRegs.tail)     // returns the first register and the rest of the unused_registers
+  // private def getUnusedRegister(unusedRegs: mutable.ListBuffer[Register]): (Register, mutable.ListBuffer[Register]) = {
+
+  //   val reg = unusedRegs.head  // represents the first register that is currently available to use )     // returns the first register and the rest of the unused_registers
+  //   val unusedRegs1 = unusedRegs.tail
+  //   val unusedRegs2 = getUnusedRegister(unusedRegs1)
+
+  //   val updatedUsedRegs = usedRegs ++ List(reg1)
+  //   generateInstructions(expr1, reg1, unusedRegs2, updatedUsedRegs)
+  //   generateInstructions(expr2, reg2, unusedRegs2, updatedUsedRegs)
+    
+  // }
+  private def unary(usedRegs:mutable.ListBuffer[Register] ,unusedRegs: mutable.ListBuffer[Register], expr1: Expr, expr2: Expr): Unit = {
+      
+      val reg1 = unusedRegs.head
+      val unusedRegs1: mutable.ListBuffer[Register] = unusedRegs.tail
+
+      val updatedUsedRegs = usedRegs ++ List(reg1)
+      generateInstructions(expr1, unusedRegs, updatedUsedRegs)
+      generateInstructions(expr2, unusedRegs1, updatedUsedRegs)
   }
-  
 }

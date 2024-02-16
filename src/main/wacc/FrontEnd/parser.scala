@@ -4,7 +4,6 @@ import parsley.{Parsley}
 import parsley.expr._
 import parsley.Parsley._
 import parsley.syntax._
-import scala.language.postfixOps
 import parsley.debug, debug._ 
 import lexer.implicits.implicitSymbol
 import lexer._
@@ -158,12 +157,6 @@ object parser {
     )).label("expression").explain("expression needed")
 
     private lazy val atom : Parsley[Expr] = "(" ~> expr <~ ")"| atomic(ident <~ notFollowedBy("[")) | arr | intLiter | boolLiter | charLiter | stringLiter| pairLiter 
-
-
-    private lazy val uOper: Parsley[UOper]  =  "!" #> UOper("!") | "-"  #> UOper("-") | "len" #> UOper("len") |  "ord" #> UOper("ord")| "chr" #> UOper("chr")
-    private lazy val bOper: Parsley[BOper] = "*" #> BOper("*")| "/" #> BOper("/")| "%" #> BOper("%")| "+" #> BOper("+")| 
-                            "-" #> BOper("-")| "<" #> BOper("<")| ">" #> BOper(">")| "<=" #> BOper("<=" )| 
-                            ">=" #> BOper(">=")| "==" #> BOper("==")| "!=" #> BOper("!=")| "&&" #> BOper("&&")| "||" #> BOper("||")
     // -------------------------- Array element --------------------------         
     private lazy val arr = (ArrElem.lift(ident, some("[" ~> expr <~ "]"))).label("Array").explain("Array needed ")
 }

@@ -1,5 +1,8 @@
 package wacc
 
+import java.util.concurrent.locks.Condition
+import conditions._
+import shift._
 object instruction {
     // --------------- Operands -----------------
     sealed trait Operand
@@ -24,9 +27,9 @@ object instruction {
 
     case class I_ReverseSub(dest: Register, src: Register, op: Operand) extends Instruction
 
-    case class I_Mul( dest1: Register, dest2: Register, src1: Register, src2: Register) extends Instruction
+    case class I_Mul(dest1: Register, dest2: Register, src1: Register) extends Instruction
 
-    case class I_Div(dest: Register, src: Register, op: Operand) extends Instruction
+    case class I_UDiv(dest: Register, src: Register, op: Operand) extends Instruction
 
     case class I_Load(dest: Register, op: Operand) extends Instruction
 
@@ -57,5 +60,9 @@ object instruction {
     case class I_I_Label(labelName: String) extends Instruction
 
     case class I_Directive(name: String) extends Instruction
+
+    case class I_CSet(dest: Register, condition: Conditions) extends Instruction
+
+    case class I_Neg(dest: Register, src: Register, shift: Shift) extends Instruction
 
 }

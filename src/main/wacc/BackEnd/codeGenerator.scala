@@ -3,7 +3,8 @@ package wacc
 import wacc.ast._
 import wacc.instruction._
 import scala.collection._
-
+import conditions._
+import shift._
 object CodeGenerator {
 
   private val instructions: mutable.ListBuffer[Instruction] = mutable.ListBuffer()
@@ -13,60 +14,84 @@ object CodeGenerator {
 
     // --------------------------  Generate instructions for expressions
     case Add(expr1, expr2) =>
-      unary(unusedRegs, usedRegs, expr1, expr2)
-      
-      instructions.append(I_Add(usedRegs(0), unusedRegs(0), usedRegs(2)))
-
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Add(usedRegs.head, usedRegs.head, unusedRegs.head))
     
-    // case Sub(expr1, expr2) => 
-    //     generateInstructions(expr1)
-    //     generateInstructions(expr2)
+    case Sub(expr1, expr2) => 
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Sub(usedRegs.head, usedRegs.head, unusedRegs.head))
 
+    case Mul(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Mul(usedRegs.head, usedRegs.head, unusedRegs.head))
 
-    // case Mul(expr1, expr2) =>
-    //     generateInstructions(expr1)
-    //     generateInstructions(expr2)
+    case Div(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_UDiv(usedRegs.head, usedRegs.head, unusedRegs.head))
 
-    // case Div(expr1, expr2) =>
-    //     generateInstructions(expr1)
-    //     generateInstructions(expr2)
+    case Mod(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      // UDIV x2, x0, x1    
+      // MUL  x2, x2, x1   
+      // SUB  x0, x0, x2  
+      instructions.append(I_UDiv(unusedRegs.tail.head, usedRegs.head, unusedRegs.head))
+      instructions.append(I_Mul(unusedRegs.tail.head, unusedRegs.tail.head, unusedRegs.head))
+      instructions.append(I_Sub(usedRegs.head, usedRegs.head, unusedRegs.tail.head))
 
-    // case Mod(expr1, expr2) =>
-    //     generateInstructions(expr1)
-    //     generateInstructions(expr2)
-
-    // case LessThan(expr1, expr2) =>
-    //     generateInstructions(expr1)
-    //     generateInstructions(expr2)
+    case LessThan(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Cmp(usedRegs.head, unusedRegs.head))
+      instructions.append(I_CSet(usedRegs.head, LT))
         
     case LessThanEq(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Cmp(usedRegs.head, unusedRegs.head))
+      instructions.append(I_CSet(usedRegs.head, LE))
 
     case GreaterThan(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Cmp(usedRegs.head, unusedRegs.head))
+      instructions.append(I_CSet(usedRegs.head, GT))
 
     case GreaterThanEq(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Cmp(usedRegs.head, unusedRegs.head))
+      instructions.append(I_CSet(usedRegs.head, GE))
 
     case Eq(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Cmp(usedRegs.head, unusedRegs.head))
+      instructions.append(I_CSet(usedRegs.head, EQ))
     
     case NotEq(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Cmp(usedRegs.head, unusedRegs.head))
+      instructions.append(I_CSet(usedRegs.head, NE))
 
     case And(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_And(usedRegs.head, usedRegs.head, unusedRegs.head))
 
     case Or(expr1, expr2) =>
+      binary(unusedRegs, usedRegs, expr1, expr2)
+      instructions.append(I_Orr(usedRegs.head, usedRegs.head, unusedRegs.head))
 
     case Invert(expr) =>
+      generateInstructions(expr, unusedRegs, usedRegs)
+      instructions.append(I_Xor(usedRegs.head, usedRegs.head, ImmVal(1)))
 
     case Negate(expr) =>
+      generateInstructions(expr, unusedRegs, usedRegs)
+      instructions.append(I_Neg(usedRegs.head, usedRegs.head, LSL(0)))
 
     case Len(expr) =>
+      generateInstructions(expr, unusedRegs, usedRegs)
 
     case Ord(expr) =>
 
     case Chr(expr) =>   
 
    // -------------------------- Generate instructions for statements
-
-    case Skip => 
-
     case Read(lvalue) =>
         
     case NewAssignment(identType, name, value) => 
@@ -107,13 +132,14 @@ object CodeGenerator {
   //   generateInstructions(expr2, reg2, unusedRegs2, updatedUsedRegs)
     
   // }
-  private def unary(usedRegs:mutable.ListBuffer[Register] ,unusedRegs: mutable.ListBuffer[Register], expr1: Expr, expr2: Expr): Unit = {
+  private def binary(usedRegs:mutable.ListBuffer[Register] ,unusedRegs: mutable.ListBuffer[Register], expr1: Expr, expr2: Expr): Unit = {
       
       val reg1 = unusedRegs.head
       val unusedRegs1: mutable.ListBuffer[Register] = unusedRegs.tail
 
       val updatedUsedRegs = usedRegs ++ List(reg1)
-      generateInstructions(expr1, unusedRegs, updatedUsedRegs)
+      generateInstructions(expr1, unusedRegs,usedRegs)
       generateInstructions(expr2, unusedRegs1, updatedUsedRegs)
   }
+
 }

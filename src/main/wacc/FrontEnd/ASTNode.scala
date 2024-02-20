@@ -17,10 +17,8 @@ object ast{
     }
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
         var getType: String =  s"pair(${first.getType},${second.getType})"
-        var getPair: pair_type = 
     }
 
-    type pair_type (fist snd)
 
     sealed trait PairElemType extends ASTNode{
         def getType:String

@@ -53,7 +53,7 @@ object Constant {
     val x30 = Reg(30)
 
     // ------------- Register (x31) stack pointer -------------
-    val x31 = Reg(31)
+    val x31 = spReg(31)
     
    
     

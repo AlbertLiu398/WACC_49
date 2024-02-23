@@ -3,8 +3,11 @@ package wacc
 import parsley.{Failure, Success}
 import scala.io.Source
 import parser._
-import java.io.File
 import CodeGenerator._
+import FileConverter._
+import scala.util.{Try}
+import java.io.{File, PrintWriter}
+
 object Main {
     final val semanticError = 200
     final val syntaxError = 100
@@ -12,12 +15,13 @@ object Main {
        
         args.headOption match {
             case Some(filePath) => 
-            // try
-                {
-                val fileContents: String = Source.fromFile(filePath).mkString 
+              {
+                val fileContents : Try[String] = Try {
+                    Source.fromFile(filePath).mkString 
+                }
                 Source.fromFile(filePath).close()
-
-                val result = parser.parse(fileContents)
+                val result = parser.parse(fileContents.get)
+                
 
                 result match {
                     case Success(prog) => 
@@ -29,14 +33,11 @@ object Main {
                             errors.foreach(println)
                             sys.exit(semanticError)
                         }
-                        
-                        val instrs = CodeGenerator.generateInstructions(prog)
-                        for (instr <- CodeGenerator.getInstructions()){
-                            instr.printInstr()
-                        }
-                        sys.exit(0)
-                        
-                        
+
+                        /* 1. create assembly file 
+                           2. generate assembly code and write to asm file */
+                        FileConverter.convertToAssembly(filePath, prog)
+             
                     case Failure(msg) => 
                         println(msg)
                         sys.exit(syntaxError)

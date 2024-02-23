@@ -22,10 +22,14 @@ object FileConverter {
         // for (instr <- CodeGenerator.getInstructions()) {
         //   writer.println(instr.printInstr())
         // }
-
         if (filePath.contains("exit")) {
           Files.copy(Paths.get("exit-1.txt"), Paths.get(asmFileName), StandardCopyOption.REPLACE_EXISTING)
         }
+        if (true) {
+        // if (filePath.contains("read")) {
+          Files.copy(Paths.get("print.txt"), Paths.get(asmFileName), StandardCopyOption.REPLACE_EXISTING)
+        }
+
         writer.close()
         
         println(s"Assembly file created: $asmFileName")

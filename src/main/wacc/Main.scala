@@ -37,6 +37,7 @@ object Main {
                         /* 1. create assembly file 
                            2. generate assembly code and write to asm file */
                         FileConverter.convertToAssembly(filePath, prog)
+                        
              
                     case Failure(msg) => 
                         println(msg)

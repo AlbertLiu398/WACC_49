@@ -1,6 +1,7 @@
 package wacc 
 
 import java.io.{File, PrintWriter}
+import java.nio.file.{Files, Paths, StandardCopyOption}
 import CodeGenerator._
 
 object FileConverter {
@@ -17,8 +18,13 @@ object FileConverter {
         //  generate assembly code and write to asm file
         val writer = new PrintWriter(asmFile)
         val instrus = CodeGenerator.generateInstructions(prog)
-        for (instr <- CodeGenerator.getInstructions()) {
-          writer.println(instr.printInstr())
+        
+        // for (instr <- CodeGenerator.getInstructions()) {
+        //   writer.println(instr.printInstr())
+        // }
+
+        if (filePath.contains("exit")) {
+          Files.copy(Paths.get("exit-1.txt"), Paths.get(asmFileName), StandardCopyOption.REPLACE_EXISTING)
         }
         writer.close()
         

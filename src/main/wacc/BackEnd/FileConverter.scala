@@ -9,7 +9,7 @@ object FileConverter {
     val waccFile = new File(filePath)
     
     if (waccFile.exists() && waccFile.isFile && filePath.endsWith(".wacc")) {
-      val asmFileName = filePath.replaceAll("\\.wacc$", ".s")
+      val asmFileName = waccFile.getName.replaceAll("\\.wacc$", ".s")
       val asmFile = new File(asmFileName)
       
       if (asmFile.createNewFile()) {

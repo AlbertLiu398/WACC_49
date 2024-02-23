@@ -18,10 +18,10 @@ object instruction {
     }
 
     case class ImmValChar(value: Char) extends Operand {
-        override def getValue(): String = s"$value"
+        override def getValue(): String = s"#${value.toInt}"
     }
 
-    case class Content(reg : Register, offset: ImmVal) extends Operand {
+    case class Content(reg : Register, offset: ImmVal = ImmVal(0)) extends Operand {
         override def getValue(): String = { 
             if (offset.value != 0) return s"[${reg.getValue()}, ${offset.getValue()}]"
             else return s"[${reg.getValue()}]"
@@ -79,14 +79,14 @@ object instruction {
         override def printInstr(): String = s"ldrb ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) "!" else "")
     }
 
-    case class I_LoadPair(dest1: Register, dest2: Register, op: Operand, op2: Operand, update_sp: Boolean) extends Instruction {
+    case class I_LoadPair(dest1: Register, dest2: Register, op: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
         override def printInstr(): String = s"ldp ${dest1.getValue()}, ${dest2.getValue()}, ${op.getValue()}, ${op2.getValue()}" + (if (update_sp) "!" else "")
     }
 
     case class I_Store(src: Register, dest: Operand, update_sp: Boolean) extends Instruction {
         override def printInstr(): String = s"str ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) "!" else "")
     }
-    case class I_StorePair(src1: Register, src2: Register, dest: Operand, op: Operand, update_sp: Boolean) extends Instruction {
+    case class I_StorePair(src1: Register, src2: Register, dest: Operand, op: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
         override def printInstr(): String = s"stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) "!" else "")
     }
 

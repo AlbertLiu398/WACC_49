@@ -108,30 +108,36 @@ import conditions._
       CodeGenerator.getInstructions() shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), NE))
       revertTempRegs()
   }
-  // it should "generate And instruction" in {
-  //   val ast = And(IntLiter(1), IntLiter(1))
-  //   refreshInstructions()
-  //   val result = CodeGenerator.generateInstructions(ast)
-  //   // result shouldBe Success(mutable.ListBuffer(I_Move(x8, ImmVal(1)), I_And(x8, x8, ImmVal(1))))
-  // }
-  // it should "generate Or instruction" in {
-  //   val ast = Or(IntLiter(1), IntLiter(1))
-  //   refreshInstructions()
-  //   val result = CodeGenerator.generateInstructions(ast)
-  //   // result shouldBe Success(mutable.ListBuffer(I_Move(x8, ImmVal(1)), I_Or(x8, x8, ImmVal(1))))
-  // }
-  // it should "generate Not instruction" in {
-  //   val ast = Not(IntLiter(1))
-  //   refreshInstructions()
-  //   val result = CodeGenerator.generateInstructions(ast)
-  //   // result shouldBe Success(mutable.ListBuffer(I_Not(x8, ImmVal(1))))
-  // }
-  // it should "generate Neg instruction" in {
-  //   val ast = Neg(IntLiter(1))
-  //   refreshInstructions()
-  //   val result = CodeGenerator.generateInstructions(ast)
-  //   // result shouldBe Success(mutable.ListBuffer(I_Neg(x8, ImmVal(1))))
-  // }
+  it should "generate And instruction" in {
+    val ast = And(IntLiter(1), IntLiter(2))
+    refreshInstructions()
+    val result = CodeGenerator.generateInstructions(ast)
+    CodeGenerator.getInstructions() shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_And(x8, x8, ImmVal(2)))
+    revertTempRegs()
+  }
+  it should "generate Or instruction" in {
+    val ast = Or(IntLiter(1), IntLiter(2))
+    refreshInstructions()
+    val result = CodeGenerator.generateInstructions(ast)
+    CodeGenerator.getInstructions() shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Orr(x8, x8, ImmVal(2)))
+    revertTempRegs()
+  }
+  it should "generate Not instruction" in {
+    val ast = Invert(BoolLiter(true))
+    refreshInstructions()
+    val result = CodeGenerator.generateInstructions(ast)
+    CodeGenerator.getInstructions() shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Cmp(x8, ImmVal(1)),I_CSet(x8, NE), I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true), 
+                                                    I_LoadPair(x8, xzr, Content(sp), ImmVal(16)), I_Move(x8, x8))
+    revertTempRegs()
+  }
+  it should "generate Neg instruction" in {
+    val ast = Negate(IntLiter(1))
+    refreshInstructions()
+    val result = CodeGenerator.generateInstructions(ast)
+    CodeGenerator.getInstructions() shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true), 
+                                                    I_LoadPair(x8, xzr, Content(sp), ImmVal(16)), I_Move(x8, x8))
+    revertTempRegs()
+  }
   // it should "generate IntLiter instruction" in {
   //   val ast = IntLiter(1)
   //   refreshInstructions()

@@ -19,14 +19,11 @@ object CodeGenerator {
 
   private val pc = 0
   private var labelCounter = 0
-
-
-
+  
   /* 
     generateInstructions (recursive function)
    */
   def generateInstructions(ast: ASTNode): Unit = ast match {
-
     /* --------------------------- generate program */
     case Program(functions, statements) =>
       
@@ -47,7 +44,9 @@ object CodeGenerator {
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
       // TODO : generate code for pushing all used regs onto stack (symbolTable)
       instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
+
       generateInstructions(statements)
+
       instructions.append(I_Move(x0, ImmVal(0)))
       // generate code for poping all used regs from stack (symbolTable)
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
@@ -82,7 +81,10 @@ object CodeGenerator {
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
       // TODO : generate code for pushing all used regs onto stack (symbolTable)
       instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
+
+
       generateInstructions(body)
+
       // TODO : enerate code for poping all used regs from stack (symbolTable)
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
       instructions.append(I_Ret)
@@ -225,46 +227,63 @@ object CodeGenerator {
       instructions.append(I_Cmp(used_TempRegs.head, x8))
       instructions.append(I_CSet(x8, NE))
 
-    // case And(expr1, expr2) =>
-    //   // bool x = expr1 && (1 && 0)
-    //   // x8 : expr1 
-    //   // x8 
-    //   generateFirst(expr1) 
-    //   generateInstructions(expr2)
-
-    //   instructions.append(I_Cmp(used_TempRegs.head, x8))
-    //   instructions.append(I_CSet(x8, NE))
-
+    case And(expr1, expr2) =>
+      // bool x = expr1 && (1 && 0)
+      // x8 : expr1 
+      // x8 
+      generateInstructions(expr1)
       
-    //   generateInstructions(expr1, unusedRegs,usedRegs)
-    //   generateInstructions(expr2, unusedRegs,usedRegs ++ List(unusedRegs.head))
-    //   instructions.append(I_And(usedRegs.head, usedRegs.head, unusedRegs.head))
+      expr2 match {
+        case IntLiter(value) => 
+          instructions.append(I_And(x8, x8, ImmVal(value)))
+        case _=> 
+          instructions.append(I_Move(unused_TempRegs.head, x8))
+          used_TempRegs = unused_TempRegs.head +: used_TempRegs
+          unused_TempRegs.remove(0)
+          generateInstructions(expr2)
+          instructions.append(I_And(x8, used_TempRegs.head, x8))
+      }
 
-    // case Or(expr1, expr2) =>
-    //   generateInstructions(expr1, unusedRegs,usedRegs)
-    //   generateInstructions(expr2, unusedRegs,usedRegs ++ List(unusedRegs.head))
-    //   instructions.append(I_Orr(usedRegs.head, usedRegs.head, unusedRegs.head))
+    case Or(expr1, expr2) =>
+      generateInstructions(expr1)
+      
+      expr2 match {
+        case IntLiter(value) => 
+          instructions.append(I_Orr(x8, x8, ImmVal(value)))
+        case _=> 
+          instructions.append(I_Move(unused_TempRegs.head, x8))
+          used_TempRegs = unused_TempRegs.head +: used_TempRegs
+          unused_TempRegs.remove(0)
+          generateInstructions(expr2)
+          instructions.append(I_Orr(x8, used_TempRegs.head, x8))
+      }
 
-  //   case Invert(expr) =>
-  //     generateInstructions(expr, unusedRegs, usedRegs) 
-  //     instructions.append(I_Xor(x8, x8, ImmVal(1)))
+    case Invert(expr) =>
+      generateInstructions(expr)
+      instructions.append(I_Cmp(x8, ImmVal(1)))
+      instructions.append(I_CSet(x8, NE))
+      //push and pop x8
+      pushAndPopx8(16)
+      
 
-  //   case Negate(expr) =>
-  //     generateInstructions(expr, unusedRegs, usedRegs)
-  //     instructions.append(I_Neg(x8, x8, LSL(0)))
+
+    case Negate(expr) =>
+      generateInstructions(expr)
+      pushAndPopx8(16)
 
   //   case Len(expr) =>
   //     generateInstructions(expr, unusedRegs, usedRegs)
   //     instructions.append(I_Move(usedRegs.head, usedRegs.head))
 
-  //   case Ord(expr) =>
-  //     generateInstructions(expr, unusedRegs, usedRegs)
-  //     instructions.append(I_Sub(x8, x8, ImmVal(0)))
+    case Ord(expr) =>
+      generateInstructions(expr)
 
 
-  //   case Chr(expr) =>   
-  //     generateInstructions(expr, unusedRegs, usedRegs)
-  //     instructions.append(I_Add(x8, x8, ImmValChar(0)))
+    case Chr(expr) =>   
+      generateInstructions(expr)
+      //check the number of char is in ASCII table
+
+      pushAndPopx8(16)
 
    // -------------------------- Generate instructions for statements
     case Read(lvalue) =>
@@ -305,6 +324,8 @@ object CodeGenerator {
           instructions.append(I_Move(unused_ResultRegs.head, x8))
           used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs 
           unused_ResultRegs.remove(0)
+
+          
       }
       
 
@@ -316,8 +337,14 @@ object CodeGenerator {
       instructions.append(I_Move(x0, used_ResultRegs.head))
       
     case Exit(expr) =>
+      generateInstructions(expr)
+      instructions.append(I_Move(unused_ParamRegs.head, x8))
+      instructions.append(I_BranchLink(I_Label("exit")))
+
     
     case Print(expr, newline) =>
+
+    
     case If(condition, thenStat, elseStat) =>
       generateInstructions(condition)
       
@@ -467,4 +494,12 @@ object CodeGenerator {
     // print(unused_TempRegs_copy)
     // print(unused_TempRegs)
   }
+
+  def pushAndPopx8(size: Int):Unit = {
+    instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-size)), ImmVal(0), true))
+    instructions.append(I_LoadPair(x8, xzr, Content(sp), ImmVal(size)))
+    instructions.append(I_Move(x8, x8))
+  }
+
+  
 }

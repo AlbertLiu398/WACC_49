@@ -4,8 +4,9 @@ import instruction._
 import scala.collection._
 object Constant { 
     
-    //  ------------- Regsiters (x0 - x7)  argument registers -------------
+    //  ------------- Registers (x0 - x7)  argument registers -------------
 
+    // Register x0 is both an argument and an return result register
     val x0 = Reg(0)
     val x1 = Reg(1)
     val x2 = Reg(2)
@@ -31,6 +32,7 @@ object Constant {
     val x15 = Reg(15)
     var used_TempRegs: mutable.ListBuffer[Register] = mutable.ListBuffer()
     var unused_TempRegs: mutable.ListBuffer[Register] = mutable.ListBuffer(x9, x10, x11, x12, x13, x14, x15)
+    final val unused_TempRegs_copy = List(x9, x10, x11, x12, x13, x14, x15)
 
    // ------------- Register (x16-x17) intra-procedure-call temporary registers -------------
     val x16 = Reg(16)

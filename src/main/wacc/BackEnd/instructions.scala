@@ -71,38 +71,45 @@ object instruction {
         override def printInstr(): String = s"udiv ${dest.getValue()}, ${src.getValue()}, ${op.getValue()}"
     }
 
-    case class I_Load(dest: Register, op: Operand) extends Instruction {
-        override def printInstr(): String = s"ldr ${dest.getValue()}, ${op.getValue()}"
+    case class I_Load(dest: Register, op: Operand, update_sp: Boolean) extends Instruction {
+        override def printInstr(): String = s"ldr ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) "!" else "")
     }
 
-    case class I_LoadSByte(dest: Register, op: Operand) extends Instruction {
-        override def printInstr(): String = s"ldrb ${dest.getValue()}, ${op.getValue()}"
+    case class I_LoadSByte(dest: Register, op: Operand, update_sp: Boolean) extends Instruction {
+        override def printInstr(): String = s"ldrb ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) "!" else "")
     }
 
-    case class I_LoadPair(dest1: Register, dest2: Register, op: Operand, op2: Operand) extends Instruction {
-        override def printInstr(): String = s"ldp ${dest1.getValue()}, ${dest2.getValue()}, ${op.getValue()}, ${op2.getValue()}"
+    case class I_LoadPair(dest1: Register, dest2: Register, op: Operand, op2: Operand, update_sp: Boolean) extends Instruction {
+        override def printInstr(): String = s"ldp ${dest1.getValue()}, ${dest2.getValue()}, ${op.getValue()}, ${op2.getValue()}" + (if (update_sp) "!" else "")
     }
 
-    case class I_Store(src: Register, dest: Operand) extends Instruction {
-        override def printInstr(): String = s"str ${src.getValue()}, ${dest.getValue()}"
+    case class I_Store(src: Register, dest: Operand, update_sp: Boolean) extends Instruction {
+        override def printInstr(): String = s"str ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) "!" else "")
     }
-    case class I_StorePair(src1: Register, src2: Register, dest: Operand, op: Operand) extends Instruction {
-        override def printInstr(): String = s"stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}, ${op.getValue()}"
+    case class I_StorePair(src1: Register, src2: Register, dest: Operand, op: Operand, update_sp: Boolean) extends Instruction {
+        override def printInstr(): String = s"stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) "!" else "")
     }
 
-    case class I_StoreByte(src: Register, dest:Operand) extends Instruction {
-        override def printInstr(): String = s"strb ${src.getValue()}, ${dest.getValue()}"
+    case class I_StoreByte(src: Register, dest:Operand, update_sp: Boolean) extends Instruction {
+        override def printInstr(): String = s"strb ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) "!" else "")
     }
 
     case class I_Move(dest: Register, op: Operand) extends Instruction {
         override def printInstr(): String = s"mov ${dest.getValue()}, ${op.getValue()}"
     }
 
-    case class I_Branch(label: String) extends Instruction {
-        override def printInstr(): String = s"b $label"
+    case class I_Branch(label: I_Label, condition: Conditions) extends Instruction {
+        override def printInstr(): String = {
+            condition match {
+                case HI => return s"b $label"
+                case _ =>  return s"b.$condition $label"
+            }
+        }
+            
+        
     }
 
-    case class I_BranchLink(dstLabel: String) extends Instruction {
+    case class I_BranchLink(dstLabel: I_Label) extends Instruction {
         override def printInstr(): String = s"bl $dstLabel"
     }
 
@@ -130,7 +137,7 @@ object instruction {
         override def printInstr(): String = s"pop ${dest.getValue()}"
     }
 
-    case class I_Label(labelName: String) extends Instruction {
+    case class I_Label(labelName: String) extends Instruction  {
         override def printInstr(): String = s"$labelName:"
     }
 
@@ -146,7 +153,7 @@ object instruction {
         override def printInstr(): String = s"neg ${dest.getValue()}, ${src.getValue()}, ${shift.getValue()}"
     }
 
-    case class I_ADRP(dest: Register, label: String) extends Instruction {
+    case class I_ADRP(dest: Register, label: I_Label) extends Instruction {
         override def printInstr(): String = s"adrp ${dest.getValue()}, $label"
     }
 

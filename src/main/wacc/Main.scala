@@ -4,6 +4,7 @@ import parsley.{Failure, Success}
 import scala.io.Source
 import parser._
 import java.io.File
+import CodeGenerator._
 object Main {
     final val semanticError = 200
     final val syntaxError = 100
@@ -28,6 +29,13 @@ object Main {
                             errors.foreach(println)
                             sys.exit(semanticError)
                         }
+                        
+                        val instrs = CodeGenerator.generateInstructions(prog)
+                        for (instr <- CodeGenerator.getInstructions()){
+                            instr.printInstr()
+                        }
+                        sys.exit(0)
+                        
                         
                     case Failure(msg) => 
                         println(msg)

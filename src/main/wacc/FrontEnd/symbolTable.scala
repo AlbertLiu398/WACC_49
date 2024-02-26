@@ -14,6 +14,10 @@ class SymbolTable {
   private val scopeStack: Stack[Map[Ident, ListBuffer[SymbolEntry]]] = Stack(Map())
   private var inFunc: Boolean = false
   private var funcType: String = "notInFunc"
+  
+  // Shows number of variables in any functions and in main
+  private val varList: ListBuffer[Int] = ListBuffer()
+  private var varCounter = 0
 
   def getIdent(lvalue: LValue): Ident = {
     lvalue match {
@@ -26,6 +30,7 @@ class SymbolTable {
 
   // Insert a symbol table entry without value
   def insertSymbol(value_name: LValue, varType: String): Boolean = {
+    varCounter += 1
     val name = getIdent(value_name)
     val symbolEntry = SymbolEntry(name, varType, Nil)
     val currentScopeMap = scopeStack.top
@@ -42,6 +47,7 @@ class SymbolTable {
   
   // Insert a symbol table entry with value
   def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
+    varCounter += 1
     var name = getIdent(value_name)
     if (varType == "func") {
       name = Ident('f' +: name.value)
@@ -79,6 +85,8 @@ class SymbolTable {
   def exitFunc(): Unit = {
     inFunc = false
     funcType = "notInFunc"
+    varList.append(varCounter)
+    varCounter = 0
   }
 
   def isInFunc(): Boolean = {
@@ -92,6 +100,13 @@ class SymbolTable {
   def checkDoubleDeclear(ident: Ident) : Boolean = {
     return scopeStack.top.contains(ident)
   }
+
+  def exitMain(funcListLength: Int): Unit = {
+    varList.append(varCounter)
+    varList(0) -= funcListLength
+  }
+
+  def getVarList(): List[Int] = varList.toList
 
   def displaySymbolTable(): Unit = {
     for (scopeMap <- scopeStack) {

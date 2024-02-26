@@ -98,15 +98,13 @@ object instruction {
         override def printInstr(): String = s"mov ${dest.getValue()}, ${op.getValue()}"
     }
 
-    case class I_Branch(label: I_Label, condition: Conditions) extends Instruction {
+    case class I_Branch(label: I_Label, condition: Conditions = null) extends Instruction {
         override def printInstr(): String = {
             condition match {
-                case HI => return s"b $label"
+                case null => return s"b $label"
                 case _ =>  return s"b.$condition $label"
             }
         }
-            
-        
     }
 
     case class I_BranchLink(dstLabel: I_Label) extends Instruction {
@@ -156,10 +154,22 @@ object instruction {
     case class I_ADRP(dest: Register, label: I_Label) extends Instruction {
         override def printInstr(): String = s"adrp ${dest.getValue()}, $label"
     }
+    case class I_ADR(dest: Register, label: I_Label) extends Instruction {
+        override def printInstr(): String = s"adr ${dest.getValue()}, $label"
+    }
 
     case object I_Ret extends Instruction {
         override def printInstr(): String = "ret"
     }
+
+    case class I_CBZ(reg: Register, label: I_Label) extends Instruction {
+        override def printInstr(): String = s"CBZ ${reg.getValue()} ${label.labelName}"
+
+    }
+
+    // case class I_LDRSW(reg1: Register, content: Content) extends Instruction {
+    //     override def printInstr(): String = s"LDRSW ${reg1.getvalue} ${content.getValue()}"
+    // }
 
 
 }

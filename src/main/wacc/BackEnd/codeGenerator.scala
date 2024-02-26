@@ -9,27 +9,27 @@ import Constant._
 import conditions._
 import Labels._
 
-object CodeGenerator {
+class CodeGenerator (varList: List[Int]) {
 
+  // identMap to store all variables and their size & pointer
   // For functions specifically: size = func.returnType's size, pointer = func.paramListType.length
   case class identMapEntry(size: Int, pointer: Int)
 
   private val identMap = mutable.Map[Ident, identMapEntry]()
   private val instructions: mutable.ListBuffer[Instruction] = mutable.ListBuffer()
 
-  private val pc = 0
-  private var labelCounter = 0
+  private var funcProcessed = 0
   
   /* 
     generateInstructions (recursive function)
-   */
+  */
   def generateInstructions(ast: ASTNode): Unit = ast match {
     /* --------------------------- generate program */
     case Program(functions, statements) =>
       
+
       // Start with the data section
-      instructions ++=
-        List(I_Directive("data"),
+      instructions ++= List(
         I_Directive("align 4"),
         I_Directive("text"),
         I_Directive("global main"), 
@@ -42,13 +42,11 @@ object CodeGenerator {
 
       // Generate code for main body
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
-      // TODO : generate code for pushing all used regs onto stack (symbolTable)
+      pushUsedRegs(unused_ResultRegs.toList, varList.last)
       instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
-
       generateInstructions(statements)
-
       instructions.append(I_Move(x0, ImmVal(0)))
-      // generate code for poping all used regs from stack (symbolTable)
+      popUsedRegs(unused_ResultRegs.toList, varList.last)
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
       instructions.append(I_Ret)
 
@@ -58,12 +56,10 @@ object CodeGenerator {
       }
 
 
-      // Add all string labels of the program before all instructions
+      // Add all string labels at the top of program
       if (allDataMsgs.nonEmpty) {
 
-        /*
-          Add the DataMsg.instruction of all (String, DataMsg) pairs in the hashmap before all other instructions
-        */
+        // Add the DataMsg.instruction of all (String, DataMsg) pairs in the hashmap before all other instructions
         allDataMsgs.flatMap(kv => kv._2.instruction) ++=: instructions
 
         // Add .data directive to the very top of program
@@ -76,18 +72,15 @@ object CodeGenerator {
 
     case Func(returnType, functionName, params, body) =>
 
-      // Generate code for function body
       instructions.append(I_Label(functionName.value))
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
-      // TODO : generate code for pushing all used regs onto stack (symbolTable)
+      pushUsedRegs(unused_ResultRegs.toList, varList(funcProcessed))
       instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
-
-
       generateInstructions(body)
-
-      // TODO : enerate code for poping all used regs from stack (symbolTable)
+      popUsedRegs(unused_ResultRegs.toList, varList(funcProcessed))
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
       instructions.append(I_Ret)
+      funcProcessed += 1
 
     /* --------------------------- generate expressions */
     case Add(expr1, expr2) =>
@@ -308,7 +301,6 @@ object CodeGenerator {
 
           generateInstructions(exprL)
           instructions.append(I_Move(x8, unused_TempRegs.head))
-          
           instructions.append(I_Store(x8, Content(x16/* should be implemented to temp reg head*/, ImmVal(0)), false))
           
 
@@ -343,43 +335,55 @@ object CodeGenerator {
 
     
     case Print(expr, newline) =>
+      generateInstructions(expr)
 
+      // instructions.append(I_ADRP()
+
+    
     
     case If(condition, thenStat, elseStat) =>
       generateInstructions(condition)
-      
-      val label1 = I_Label(s".L$labelCounter")
-      labelCounter = labelCounter + 1
-      val label2 = I_Label(s".L$labelCounter")
-      labelCounter = labelCounter + 1
+      val (if_then, if_end) = addIfLabel()
 
-      instructions.append(I_Branch(label1, EQ))   
+      // Branch instruction, Jump to then clause if condition is EQ, otherwise continue to else clause
+      instructions.append(I_Branch(I_Label(if_then), EQ)) 
 
+      // Generate else clause
       generateInstructions(elseStat)
-      instructions.append(I_Branch(label2, HI))
+      // Branch instruction, (Unconditional) Jump to end after executing else clause
+      instructions.append(I_Branch(I_Label(if_end)))
 
-      
-      instructions.append(label1)
+      // Label for then clause
+      instructions.append(I_Label(if_then))
+      // Generate then clause
       generateInstructions(thenStat)
 
-      instructions.append(label2)
-      
+      // Label for end of if
+      instructions.append(I_Label(if_end))
+
+
+
       
     case While(condition, stat) =>
-      val label1 = I_Label(s".L$labelCounter")
-      labelCounter = labelCounter + 1
-      val label2 = I_Label(s".L$labelCounter")
-      labelCounter = labelCounter + 1
+      // Generate a pair of label strings
+      val (while_condition, while_body) = addWhileLabel()
 
-      instructions.append(I_Branch(label1, HI))
+      // Unconditional Jump to while condition
+      instructions.append(I_Branch(I_Label(while_condition)))
 
-      instructions.append(label2)
+      // Label for start of body of while
+      instructions.append(I_Label(while_body))
+      // Generate body of while
       generateInstructions(stat)
 
-      instructions.append(label1)
+      // Label for condition of while
+      instructions.append(I_Label(while_condition))
+      // Generate condition of while
       generateInstructions(condition)
-      instructions.append(I_Branch(label2, EQ))
-
+      
+      // Jump back to body of while if condition holds
+      instructions.append(I_Branch(I_Label(while_body), EQ))
+      
     case Begin(stmt) =>
       generateInstructions(stmt)
     
@@ -401,20 +405,24 @@ object CodeGenerator {
     case CharLiter(value) => instructions.append(I_Move(x8, ImmValChar(value)))
 
     case StringLiter(value) => 
+      // Create label string with the given string 
       val label = Labels.addDataMsg(value)
+      // Convert the label string to an I_Label class and store at x8
       instructions.append(I_ADRP(x8, I_Label(label)))
     
     case PairLiter => 
+
+    case ArrLiter(e, es) => 
+
     
     case CallRValue(func, args) =>
-      // return address link register
-      I_Move(lr, ImmVal(pc))
-      
-      // put parameter into regs
       for (i <- 0 until args.exprl.length) {
         generateInstructions(args.exprl(i))
-        // instructions.append(I_Move(paramRegs(i), x8))
+        instructions.append(I_Move(unused_ParamRegs(i), x8))
       }
+      instructions.append(I_BranchLink(I_Label("wacc_" + func.value)))
+      instructions.append(I_Move(x16, x0))
+      instructions.append(I_Move(x8, x16))
 
     case _ => 
       
@@ -430,11 +438,11 @@ object CodeGenerator {
   
   private def getSize(ast: ASTNode): Int = {
     ast match {
-      case IntLiter(_) => return 32
+      case IntLiter(_) => return 4
          
-      case BoolLiter(_) => return 8
+      case BoolLiter(_) => return 1
 
-      case CharLiter(_) => return 7
+      case CharLiter(_) => return 4
 
       case StringLiter(value) => return 32
       
@@ -500,6 +508,116 @@ object CodeGenerator {
     instructions.append(I_LoadPair(x8, xzr, Content(sp), ImmVal(size)))
     instructions.append(I_Move(x8, x8))
   }
+
+  def pushUsedRegs(regs: List[Register], noOfVar: Int):Unit = {
+    for (i <- 0 to noOfVar by 2) {
+      instructions.append(I_StorePair(regs(i), regs(i+1), Content(sp, ImmVal(-16)), ImmVal(0), true))
+    }
+
+    if (noOfVar%2 == 1) {
+      instructions.append(I_StorePair(regs.last, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+    }
+  }
+
+  def popUsedRegs(regs: List[Register], noOfVar: Int):Unit = {
+    for (i <- 0 to noOfVar by 2) {
+      instructions.append(I_LoadPair(regs(i), regs(i+1), Content(sp, ImmVal(0)), ImmVal(16), false))
+    }
+
+    if (noOfVar%2 == 1) {
+      instructions.append(I_LoadPair(regs.last, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
+    }
+  }
+
+
+  //   _malloc:
+  // 54		// push {lr}
+  // 55		stp lr, xzr, [sp, #-16]!
+  // 56		bl malloc
+  // 57		cbz x0, _errOutOfMemory
+  // 58		// pop {lr}
+  // 59		ldp lr, xzr, [sp], #16
+  // 60		ret
+  // 61	
+  // 62	// length of .L._errOutOfMemory_str0
+  // 63		.word 27
+  // 64	.L._errOutOfMemory_str0:
+  // 65		.asciz "fatal error: out of memory\n"
+  // 66	.align 4
+  // 67	_errOutOfMemory:
+  // 68		adr x0, .L._errOutOfMemory_str0
+  // 69		bl _prints
+  // 70		mov w0, #-1
+  // 71		bl exit
+  def malloc():Unit = {
+    instructions.append(I_Label("_malloc"))
+
+    instructions.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+
+    instructions.append(I_BranchLink(I_Label("malloc")))
+    instructions.append(I_CBZ(x0, I_Label("_errOutOfMemory")))
+    
+    instructions.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+    instructions.append(I_Ret)
+    errOutOfMemory()
+  }
+
+  def errOutOfMemory():Unit = {
+    
+    addCustomisedDataMsg("fatal error: out of memory\n", "_errOutOfMemory_")
+
+    instructions.append(I_Directive("align 4"))
+
+    instructions.append(I_Label("_errOutOfMemory"))
+
+    instructions.append(I_ADR(x0, I_Label(".L._errOutOfMemory_str0")))
+
+    instructions.append(I_BranchLink(I_Label("_prints")))
+
+    instructions.append(I_Move(x0, ImmVal(-1)))
+
+    instructions.append(I_BranchLink(I_Label("exit")))
+  }
+
+  //   	.word 4
+  // 37	.L._prints_str0:
+  // 38		.asciz "%.*s"
+  // 39	.align 4
+  // 40	_prints:
+  // 41		// push {lr}
+  // 42		stp lr, xzr, [sp, #-16]!
+  // 43		mov x2, x0
+  // 44		ldrsw x1, [x0, #-4]
+  // 45		adr x0, .L._prints_str0
+  // 46		bl printf
+  // 47		mov x0, #0
+  // 48		bl fflush
+  // 49		// pop {lr}
+  // 50		ldp lr, xzr, [sp], #16
+  // 51		ret
+  def prints():Unit = {
+    addCustomisedDataMsg("%.*s", "_prints_")
+
+    instructions.append(I_Directive("align 4"))
+
+    instructions.append(I_Label("_prints"))
+
+    instructions.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+
+    instructions.append(I_Move(x2, x0))
+    instructions.append(I_LDRSW(x1, Content(x0, ImmVal(-4))))
+    instructions.append(I_ADR(x0, I_Label(".L._prints_str0")))
+
+    instructions.append(I_BranchLink(I_Label("printf")))
+    instructions.append(I_Move(x0, ImmVal(0)))
+
+    instructions.append(I_BranchLink(I_Label("fflush")))
+    
+    instructions.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+    instructions.append(I_Ret)
+  }
+
+
 
   
 }

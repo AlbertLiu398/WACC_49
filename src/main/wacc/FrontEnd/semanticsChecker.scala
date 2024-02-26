@@ -27,6 +27,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           semanticCheck(func)
         }
         semanticCheck(stmts)
+        symbolTable.exitMain(funcList.length)
         symbolTable.exitScope()
 
       case n@Func(returnType, functionName, params, body) =>
@@ -489,7 +490,4 @@ class semanticsChecker(symbolTable: SymbolTable) {
     if (number == 1) return typesArray(0)
     else return typesArray(1)
   }
-
-
-
 }

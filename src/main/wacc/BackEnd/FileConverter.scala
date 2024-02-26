@@ -1,35 +1,29 @@
 package wacc 
 
-import java.io.{File, PrintWriter}
+import java.io.{BufferedWriter, File, FileWriter}
 import java.nio.file.{Files, Paths, StandardCopyOption}
-import CodeGenerator._
+
 
 object FileConverter {
 
-  def convertToAssembly(filePath: String, prog : ast.ASTNode): Unit = {
+  def convertToAssembly(filePath: String, prog : ast.ASTNode, list : List[Int]): Unit = {
     val waccFile = new File(filePath)
     
     if (waccFile.exists() && waccFile.isFile && filePath.endsWith(".wacc")) {
       val asmFileName = waccFile.getName.replaceAll("\\.wacc$", ".s")
       val asmFile = new File(asmFileName)
+      val codeGenerator = new CodeGenerator(list)
       
       if (asmFile.createNewFile()) {
 
         //  generate assembly code and write to asm file
-        val writer = new PrintWriter(asmFile)
-        val instrus = CodeGenerator.generateInstructions(prog)
+        val writer = new BufferedWriter(new FileWriter(asmFile))
+        val instrus = codeGenerator.generateInstructions(prog)
         
-        // for (instr <- CodeGenerator.getInstructions()) {
-        //   writer.println(instr.printInstr())
-        // }
-        if (filePath.contains("exit")) {
-          Files.copy(Paths.get("exit-1.txt"), Paths.get(asmFileName), StandardCopyOption.REPLACE_EXISTING)
+        for (instr <- codeGenerator.getInstructions()) {
+          writer.write(instr.printInstr().mkString("\n"))
         }
-        if (true) {
-        // if (filePath.contains("read")) {
-          Files.copy(Paths.get("print.txt"), Paths.get(asmFileName), StandardCopyOption.REPLACE_EXISTING)
-        }
-
+    
         writer.close()
         
         println(s"Assembly file created: $asmFileName")

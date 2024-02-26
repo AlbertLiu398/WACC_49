@@ -605,7 +605,7 @@ class CodeGenerator (varList: List[Int]) {
     instructions.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
 
     instructions.append(I_Move(x2, x0))
-    instructions.append(I_LDRSW(x1, Content(x0, ImmVal(-4))))
+    // instructions.append(I_LDRSW(x1, Content(x0, ImmVal(-4))))
     instructions.append(I_ADR(x0, I_Label(".L._prints_str0")))
 
     instructions.append(I_BranchLink(I_Label("printf")))

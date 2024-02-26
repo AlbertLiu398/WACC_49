@@ -3,7 +3,6 @@ package wacc
 import parsley.{Failure, Success}
 import scala.io.Source
 import parser._
-import CodeGenerator._
 import FileConverter._
 import scala.util.{Try}
 import java.io.{File, PrintWriter}
@@ -26,7 +25,8 @@ object Main {
                 result match {
                     case Success(prog) => 
                         println(s"$prog")
-                        val semanticchecker = new semanticsChecker(new SymbolTable)
+                        val sT = new SymbolTable
+                        val semanticchecker = new semanticsChecker(sT)
                         semanticchecker.semanticCheck(prog)
                         val errors = semanticchecker.getSemanticErrors
                         if (errors.nonEmpty) {
@@ -36,7 +36,7 @@ object Main {
 
                         /* 1. create assembly file 
                            2. generate assembly code and write to asm file */
-                        FileConverter.convertToAssembly(filePath, prog)
+                        FileConverter.convertToAssembly(filePath, prog, sT.getVarList())
                         
              
                     case Failure(msg) => 

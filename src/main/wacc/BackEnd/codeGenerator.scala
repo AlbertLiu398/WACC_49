@@ -20,6 +20,8 @@ class CodeGenerator (varList: List[Int]) {
   private val instructions: mutable.ListBuffer[Instruction] = mutable.ListBuffer()
 
   private var funcProcessed = 0
+
+  private var assemblyFcuntions = mutable.Map[String, List[Instruction]]()
   
   /* 
     generateInstructions (recursive function)
@@ -31,9 +33,9 @@ class CodeGenerator (varList: List[Int]) {
 
       // Start with the data section
       instructions ++= List(
-        I_Directive("align 4"),
-        I_Directive("text"),
-        I_Directive("global main"), 
+        I_Directive(".align 4"),
+        I_Directive(".text"),
+        I_Directive(".global main"), 
         I_Label("main"))
       
       // Add function names to identMap
@@ -51,6 +53,8 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
       instructions.append(I_Ret)
 
+      // Add utility function definitions
+      instructions.appendAll(addUtility())
       // Generate code for functions
       for(func <- functions) {
         generateInstructions(func)
@@ -64,7 +68,7 @@ class CodeGenerator (varList: List[Int]) {
         allDataMsgs.flatMap(kv => kv._2.instruction) ++=: instructions
 
         // Add .data directive to the very top of program
-        I_Directive("data") +=: instructions
+        I_Directive(".data") +=: instructions
 
       }
 
@@ -304,7 +308,7 @@ class CodeGenerator (varList: List[Int]) {
     case Exit(expr) =>
       generateInstructions(expr)
       instructions.append(I_Move(unused_ParamRegs.head, x8))
-      instructions.append(I_BranchLink(I_Label("exit")))
+      branchLink(instructions, "_exit")
 
     
 
@@ -325,20 +329,22 @@ class CodeGenerator (varList: List[Int]) {
     case Print(expr, newline) =>
     
       generateInstructions(expr)
-      var Type = expr.getType 
-      val printBranch = Type match {
+      val printBranch = expr.getType match {
         case "string" | "char[]" =>
           utility.printStringFlag = true
-          
+          branchLink(instructions,"_prints")
 
         case "bool" =>
           utility.printBoolFlag = true
+          branchLink(instructions,"_printb")
 
         case "char" =>
           utility.printCharFlag = true
+          branchLink(instructions,"_printc")
 
         case "int" =>
           utility.printStringFlag = true
+          branchLink(instructions, "_printi")
 
         case _ =>
           
@@ -347,7 +353,7 @@ class CodeGenerator (varList: List[Int]) {
      
       if (newline) {
         utility.printLineFlag = true
-        // instructions.append()
+        branchLink(instructions, "_println")
       }
       
 
@@ -405,7 +411,7 @@ class CodeGenerator (varList: List[Int]) {
     case NewPairRValue(expr1, expr2) =>
       instructions.append(I_Move(x0, ImmVal(getSize(expr1) + getSize(expr2))))
 
-      instructions.append(I_BranchLink(I_Label("_malloc")))
+      branchLink(instructions, "_malloc")
 
       instructions.append(I_Move(x16, x0))
 
@@ -441,26 +447,36 @@ class CodeGenerator (varList: List[Int]) {
 
     case a@ArrLiter(e, es) =>
       instructions.append(I_Move(x0, ImmVal(getSize(a))))
-      instructions.append(I_BranchLink(I_Label("_malloc")))
-      instructions.append(I_Move(x0, x16))
+      branchLink(instructions, "_malloc")
+      instructions.append(I_Move(x16, x0))
       instructions.append(I_Add(x16, x16, ImmVal(4)))
 
-      // Size of array
-      instructions.append(I_Move(x8, ImmVal(es.length + 1)))
-      
-      for (expr <- e::es) {
-        generateInstructions(expr)
-        
+      // Size of array  
+      var arrSize = 0
+      e match {
+        case StringLiter("empty") => arrSize = 0
+        case _=> arrSize = es.length + 1
       }
-      
+      instructions.append(I_Move(x8, ImmVal(arrSize)))
 
+      instructions.append(I_Store(x8, Content(x16, ImmVal(-4))))
+      var arrPointer = 0
+      for (expr <- e::es) {
+        arrPointer += getSize(expr)
+        generateInstructions(expr)
+        // StoreByte for char and bool
+        instructions.append(I_Store(x8, Content(x16, ImmVal(arrPointer))))
+      }
+
+      instructions.append(I_Move(x8, x16))
+      instructions.append(I_Move(x19, x8))
     
     case CallRValue(func, args) =>
       for (i <- 0 until args.exprl.length) {
         generateInstructions(args.exprl(i))
         instructions.append(I_Move(unused_ParamRegs(i), x8))
       }
-      instructions.append(I_BranchLink(I_Label("wacc_" + func.value)))
+      branchLink(instructions, "wacc_" + func.value)
       instructions.append(I_Move(x16, x0))
       instructions.append(I_Move(x8, x16))
        
@@ -483,20 +499,24 @@ class CodeGenerator (varList: List[Int]) {
          
       case BoolLiter(_) => return 1
 
-      case CharLiter(_) => return 4
+      case CharLiter(_) => return 1
 
-      case StringLiter(value) => return 32
+      case StringLiter(value) => return 8
       
-      case PairLiter => return 32
+      case PairLiter => return 16
 
-      case Ident(value) => return 0 //
+      case n@Ident(value) => return identMap.get(n).size
 
-      case ArrLiter(e, es) => return 32
+      case ArrLiter(e, es) => 
+        
+        e match {
+          case StringLiter("empty") => return 0
+          case _=> 
+            val sizes = (e::es).map(elem => getSize(elem))
+          return sizes.sum
 
-      case CallRValue(func, args) =>
-        if(!identMap.contains(func)) {
-          return -1
         }
+      case CallRValue(func, args) =>
         return identMap.get(func).get.size
 
       case FstPairElem(values) => return -1
@@ -506,22 +526,25 @@ class CodeGenerator (varList: List[Int]) {
       case ArrElem(name, value) =>
         //look up name in identMap
         //get size
-        return -1
+        return identMap.get(name).size
 
       case BaseType(name) =>
         name match {
-          case "int" => return 32
-          case "bool" => return 8
-          case "char" => return 7
-          case "string" => return 32
+          case "int" => return 4
+          case "bool" => return 1
+          case "char" => return 1
+          case "string" => return 8
         }
-      case ArrayType(elementType) => return 32
+      case ArrayType(elementType) => return 16
 
-      case PairType(first, second) => return 32
+      case PairType(first, second) => return 16
 
-      case _ => return -1
+      case _ => return 0
     }
   }
+
+
+
 
 
 
@@ -559,54 +582,8 @@ class CodeGenerator (varList: List[Int]) {
     }
   }
 
-
-  //   _malloc:
-  // 54		// push {lr}
-  // 55		stp lr, xzr, [sp, #-16]!
-  // 56		bl malloc
-  // 57		cbz x0, _errOutOfMemory
-  // 58		// pop {lr}
-  // 59		ldp lr, xzr, [sp], #16
-  // 60		ret
-  // 61	
-  // 62	// length of .L._errOutOfMemory_str0
-  // 63		.word 27
-  // 64	.L._errOutOfMemory_str0:
-  // 65		.asciz "fatal error: out of memory\n"
-  // 66	.align 4
-  // 67	_errOutOfMemory:
-  // 68		adr x0, .L._errOutOfMemory_str0
-  // 69		bl _prints
-  // 70		mov w0, #-1
-  // 71		bl exit
-  def malloc():Unit = {
-    instructions.append(I_Label("_malloc"))
-
-    instructions.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
-
-    instructions.append(I_BranchLink(I_Label("malloc")))
-    instructions.append(I_CBZ(x0, I_Label("_errOutOfMemory")))
-    
-    instructions.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
-    instructions.append(I_Ret)
-    errOutOfMemory()
+      // Helper function to append branch link instruction with a given label name
+  def branchLink(instructions: mutable.ListBuffer[Instruction], s: String): Unit = {
+      instructions.append(I_BranchLink(I_Label(s)))
   }
-
-  def errOutOfMemory():Unit = {
-    
-    addCustomisedDataMsg("fatal error: out of memory\n", "_errOutOfMemory_")
-
-    instructions.append(I_Directive("align 4"))
-
-    instructions.append(I_Label("_errOutOfMemory"))
-
-    instructions.append(I_ADR(x0, I_Label(".L._errOutOfMemory_str0")))
-
-    instructions.append(I_BranchLink(I_Label("_prints")))
-
-    instructions.append(I_Move(x0, ImmVal(-1)))
-
-    instructions.append(I_BranchLink(I_Label("exit")))
-  }
-
 }

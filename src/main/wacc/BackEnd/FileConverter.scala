@@ -11,7 +11,7 @@ object FileConverter {
     val instrus = codeGenerator.generateInstructions(prog)
     var result = ""
     for (instr <- codeGenerator.getInstructions()) {
-      result += instr.printInstr() + "\n"
+      result += instr.printInstr() 
     }
     result
   }

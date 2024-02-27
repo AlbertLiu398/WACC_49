@@ -18,22 +18,23 @@ object Labels {
     // counter for naming while labels
     var whileCounter = 0
 
+
     case class DataMsg(s: String, labelIndex: Int, actualSize: Int, name: String){
         val label: String = s".L.str$labelIndex"
         var instruction: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
             if (labelIndex == -1) {
                 // Use customised label name
                 instruction = mutable.ListBuffer(
-                    I_Directive(s"word $actualSize"),
+                    I_Directive(s"      .word $actualSize"),
                     I_Label(s".L.$name"),
-                    I_Directive(s"asciz " + "\"" + s + "\"")
+                    I_Directive(s"      .asciz " + "\"" + s + "\"")
                 )
             } else {
                 // Use counter to generate label name
                 instruction = mutable.ListBuffer(
-                    I_Directive(s"word $actualSize"),
+                    I_Directive(s"      .word $actualSize"),
                     I_Label(s".L.str$labelIndex"),
-                    I_Directive(s"asciz " + "\"" + s + "\"")
+                    I_Directive(s"      .asciz " + "\"" + s + "\"")
                 ) 
             }
     }

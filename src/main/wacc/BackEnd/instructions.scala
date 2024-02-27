@@ -3,6 +3,7 @@ package wacc
 import java.util.concurrent.locks.Condition
 import conditions._
 import shift._
+
 object instruction {
     // --------------- Operands -----------------
     sealed trait Operand {
@@ -83,7 +84,7 @@ object instruction {
         override def printInstr(): String = s"ldp ${dest1.getValue()}, ${dest2.getValue()}, ${op.getValue()}, ${op2.getValue()}" + (if (update_sp) "!" else "")
     }
 
-    case class I_Store(src: Register, dest: Operand, update_sp: Boolean) extends Instruction {
+    case class I_Store(src: Register, dest: Operand, update_sp: Boolean = false) extends Instruction {
         override def printInstr(): String = s"str ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) "!" else "")
     }
     case class I_StorePair(src1: Register, src2: Register, dest: Operand, op: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {

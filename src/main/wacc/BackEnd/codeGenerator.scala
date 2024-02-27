@@ -8,6 +8,7 @@ import scala.annotation.unused
 import Constant._
 import conditions._
 import Labels._
+import utility._
 
 class CodeGenerator (varList: List[Int]) {
 
@@ -283,45 +284,17 @@ class CodeGenerator (varList: List[Int]) {
         
     case NewAssignment(identType, name, value) => 
       identMap(name) = identMapEntry(getSize(value),0 /*current pointer*/)
-      value match {
-        case ArrLiter(e, es) => 
-          val ess = e+:es
-          for (expr <- ess) {
-            generateInstructions(e)
-            instructions.append(I_Store(used_TempRegs.head, sp, false))
-            instructions.append(I_Add(sp, sp, ImmVal(getSize(expr))))
-          }
-        
-        case NewPairRValue(exprL, exprR) =>
-          val size = getSize(exprL) + getSize(exprR)
-          instructions.append(I_Move(x0 /* should be head of  */, ImmVal(size)))
-          instructions.append((I_BranchLink(I_Label("malloc"))))
-          instructions.append(I_Move(x16 /* should be implemented to temp reg head*/, x0))
-
-
-          generateInstructions(exprL)
-          instructions.append(I_Move(x8, unused_TempRegs.head))
-          instructions.append(I_Store(x8, Content(x16/* should be implemented to temp reg head*/, ImmVal(0)), false))
-          
-
-          generateInstructions(exprR)
-          instructions.append(I_Move(x8, unused_TempRegs.head))
-          instructions.append(I_Store(x8, Content(x16/* should be implemented to temp reg head*/, ImmVal(getSize(exprL))), false))
-
-          instructions.append(I_Move(x8, x16 /* should be implemented to temp reg head*/))
-          instructions.append(I_Move(unused_TempRegs.head, x8))
-          
-        case _ => 
-          generateInstructions(value)
-          instructions.append(I_Move(unused_ResultRegs.head, x8))
-          used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs 
-          unused_ResultRegs.remove(0)
+      generateInstructions(value)
+      instructions.append(I_Move(unused_ResultRegs.head, x8))
+      used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs 
+      unused_ResultRegs.remove(0)
 
           
-      }
       
 
     case Assignment(name, value) => 
+      
+      
     
     case Free(expr) => 
     case Return(expr) => 
@@ -334,13 +307,51 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_BranchLink(I_Label("exit")))
 
     
+
+// 13		adrp x8, .L.str0
+// 14		add x8, x8, :lo12:.L.str0
+// 15		// push {x8}
+// 16		stp x8, xzr, [sp, #-16]!
+// 17		// pop {x8}
+// 18		ldp x8, xzr, [sp], #16
+// 19		mov x8, x8
+// 20		mov x0, x8
+// 21		// statement primitives do not return results (but will clobber r0/rax)
+// 22		bl _prints
+// 23		mov x0, #0
+// 24		// pop {fp, lr}
+// 25		ldp fp, lr, [sp], #16
+// 26		ret
     case Print(expr, newline) =>
+    
       generateInstructions(expr)
+      var Type = expr.getType 
+      val printBranch = Type match {
+        case "string" | "char[]" =>
+          utility.printStringFlag = true
+          
 
-      // instructions.append(I_ADRP()
+        case "bool" =>
+          utility.printBoolFlag = true
 
-    
-    
+        case "char" =>
+          utility.printCharFlag = true
+
+        case "int" =>
+          utility.printStringFlag = true
+
+        case _ =>
+          
+      }
+  
+     
+      if (newline) {
+        utility.printLineFlag = true
+        // instructions.append()
+      }
+      
+
+       
     case If(condition, thenStat, elseStat) =>
       generateInstructions(condition)
       val (if_then, if_end) = addIfLabel()
@@ -361,9 +372,7 @@ class CodeGenerator (varList: List[Int]) {
       // Label for end of if
       instructions.append(I_Label(if_end))
 
-
-
-      
+   
     case While(condition, stat) =>
       // Generate a pair of label strings
       val (while_condition, while_body) = addWhileLabel()
@@ -393,6 +402,24 @@ class CodeGenerator (varList: List[Int]) {
         
     case Skip =>
     
+    case NewPairRValue(expr1, expr2) =>
+      instructions.append(I_Move(x0, ImmVal(getSize(expr1) + getSize(expr2))))
+
+      instructions.append(I_BranchLink(I_Label("_malloc")))
+
+      instructions.append(I_Move(x16, x0))
+
+      generateInstructions(expr1)
+
+      instructions.append(I_Store(x8, Content(x16, ImmVal(0))))
+      
+      generateInstructions(expr2)
+
+      instructions.append(I_Store(x8, Content(x16, ImmVal(getSize(expr1)))))
+
+      instructions.append(I_Move(x8, x16))
+      
+    
 
     case IntLiter(value)=> instructions.append(I_Move(x8, ImmVal(value)))
          
@@ -412,7 +439,20 @@ class CodeGenerator (varList: List[Int]) {
     
     case PairLiter => 
 
-    case ArrLiter(e, es) => 
+    case a@ArrLiter(e, es) =>
+      instructions.append(I_Move(x0, ImmVal(getSize(a))))
+      instructions.append(I_BranchLink(I_Label("_malloc")))
+      instructions.append(I_Move(x0, x16))
+      instructions.append(I_Add(x16, x16, ImmVal(4)))
+
+      // Size of array
+      instructions.append(I_Move(x8, ImmVal(es.length + 1)))
+      
+      for (expr <- e::es) {
+        generateInstructions(expr)
+        
+      }
+      
 
     
     case CallRValue(func, args) =>
@@ -423,6 +463,7 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_BranchLink(I_Label("wacc_" + func.value)))
       instructions.append(I_Move(x16, x0))
       instructions.append(I_Move(x8, x16))
+       
 
     case _ => 
       
@@ -483,17 +524,6 @@ class CodeGenerator (varList: List[Int]) {
   }
 
 
-  /*  
-    1. generate first expression
-    2. store the result in x8
-    3. move x8 to unused_ResultRegs.head (x9) 
-  */
-  def generateFirst(expr1: Expr): Unit = {
-    generateInstructions(expr1)
-    instructions.append(I_Move(unused_TempRegs.head, x8)) 
-    used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs 
-    unused_ResultRegs.remove(0)
-  }
 
   def revertTempRegs():Unit = {
     used_TempRegs.clear()
@@ -579,45 +609,4 @@ class CodeGenerator (varList: List[Int]) {
     instructions.append(I_BranchLink(I_Label("exit")))
   }
 
-  //   	.word 4
-  // 37	.L._prints_str0:
-  // 38		.asciz "%.*s"
-  // 39	.align 4
-  // 40	_prints:
-  // 41		// push {lr}
-  // 42		stp lr, xzr, [sp, #-16]!
-  // 43		mov x2, x0
-  // 44		ldrsw x1, [x0, #-4]
-  // 45		adr x0, .L._prints_str0
-  // 46		bl printf
-  // 47		mov x0, #0
-  // 48		bl fflush
-  // 49		// pop {lr}
-  // 50		ldp lr, xzr, [sp], #16
-  // 51		ret
-  def prints():Unit = {
-    addCustomisedDataMsg("%.*s", "_prints_")
-
-    instructions.append(I_Directive("align 4"))
-
-    instructions.append(I_Label("_prints"))
-
-    instructions.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
-
-    instructions.append(I_Move(x2, x0))
-    // instructions.append(I_LDRSW(x1, Content(x0, ImmVal(-4))))
-    instructions.append(I_ADR(x0, I_Label(".L._prints_str0")))
-
-    instructions.append(I_BranchLink(I_Label("printf")))
-    instructions.append(I_Move(x0, ImmVal(0)))
-
-    instructions.append(I_BranchLink(I_Label("fflush")))
-    
-    instructions.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
-    instructions.append(I_Ret)
-  }
-
-
-
-  
 }

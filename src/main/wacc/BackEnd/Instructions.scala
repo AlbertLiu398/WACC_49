@@ -99,7 +99,7 @@ object Instruction {
     case class I_LoadPair(src1: Register, src2: Register, dst: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
         override def printInstr(): String = 
             op2 match {
-                case ImmVal(0) => s"      ldp ${src1.getValue()}, ${src2.getValue()}, ${dst.getValue()}" + (if (update_sp) "!\n" else "")
+                case ImmVal(0) => s"      ldp ${src1.getValue()}, ${src2.getValue()}, ${dst.getValue()}" + (if (update_sp) "!\n" else "\n")
                 case _ => s"      ldp ${src1.getValue()}, ${src2.getValue()}, ${dst.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
             }
     }
@@ -114,7 +114,7 @@ object Instruction {
     case class I_StorePair(src1: Register, src2: Register, dest: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
         override def printInstr(): String = 
             op2 match {
-                case ImmVal(0) => s"      stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}" + (if (update_sp) "!\n" else "")
+                case ImmVal(0) => s"      stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}" + (if (update_sp) "!\n" else "\n")
                 case _ => s"      stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
             }
     }
@@ -202,12 +202,9 @@ object Instruction {
         override def printInstr(): String = s"      CBZ ${reg.getValue()} ${label.labelName} \n"
 
     }
-
-    // case class I_LDRSW(reg1: Register, content: Content) extends Instruction {
-    //     override def printInstr(): String = s"LDRSW ${reg1.getvalue} ${content.getValue()}"
-    // }
+    
    case class I_LDRSW(reg1: Register, content: Content) extends Instruction {
-        override def printInstr(): String = s"      LDRSW ${reg1.getValue()}, ${content.getValue()}"
+        override def printInstr(): String = s"      LDRSW ${reg1.getValue()}, ${content.getValue()} \n"
     }
 
 

@@ -1,12 +1,13 @@
-# function body missing return or exit statement on a path
+# exit with unreachable print
+
 # Output:
-# #syntax_error#
 
 # Exit:
-# 100
+# 42
 
 # Program:
 
 begin
-  skip
+  exit 42 ;
+  println "Should not print this."
 end

@@ -7,7 +7,7 @@ import Constant._
 object Labels {
 
     // HashMap to store all string data stored in program
-    val allDataMsgs: mutable.LinkedHashMap[String, DataMsg] = mutable.LinkedHashMap.empty
+    val allDataMsgs: mutable.Map[String, DataMsg] = mutable.Map.empty
 
     // Counter for naming data messages labels
     var dataMsgCounter = 0
@@ -68,18 +68,11 @@ object Labels {
     // Helper function for addDataMsg()
     def addDataMsgWithLabel(s: String, labelCounter: Int, customisedLabelName: String): String = {
         val len = s.length
-
         val msg = DataMsg(s, labelCounter, len, customisedLabelName)
-        // Check whether msg already existed
-        allDataMsgs.get(s) match {
-            case None =>
-                allDataMsgs.put(s, msg)
-                // return the new created label string
-                msg.label
-            case Some(elem) =>
-                // return existed label string
-                elem.label
-        }
+
+        allDataMsgs.put(s, msg)
+        msg.label
+            
     }
 
     // def addFunctionDataMsg(s: String)

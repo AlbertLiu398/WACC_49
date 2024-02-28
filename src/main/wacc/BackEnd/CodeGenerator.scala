@@ -294,7 +294,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append(I_Move(x8, getRegFromMap(n)))
           instructions.append(I_Move(x0, x8))
           readFlag = true
-          branchLink(instructions, READ_LABEL)
+          branchLink(READ_LABEL)
           instructions.append(I_Move(x16, x0))
           instructions.append(I_Move(x8, x16))
           instructions.append(I_Move(getRegFromMap(n), x8))
@@ -346,7 +346,7 @@ class CodeGenerator (varList: List[Int]) {
     case Exit(expr) =>
       generateInstructions(expr)
       instructions.append(I_Move(unused_ParamRegs.head, x8))
-      branchLink(instructions, EXIT_LABEL)
+      branchLink( EXIT_LABEL)
 
     
 
@@ -365,24 +365,25 @@ class CodeGenerator (varList: List[Int]) {
 // 25		ldp fp, lr, [sp], #16
 // 26		ret
     case Print(expr, newline) =>
-    
       generateInstructions(expr)
+      instructions.append(I_Move(x0, x8))
+
       val printBranch = expr.getType match {
         case "string" | "char[]" =>
           printStringFlag = true
-          branchLink(instructions,PRINT_STRING_LABEL)
+          branchLink(PRINT_STRING_LABEL)
 
         case "bool" =>
           printBoolFlag = true
-          branchLink(instructions,PRINT_BOOL_LABEL)
+          branchLink(PRINT_BOOL_LABEL)
 
         case "char" =>
           printCharFlag = true
-          branchLink(instructions,PRINT_CHAR_LABEL)
+          branchLink(PRINT_CHAR_LABEL)
 
         case "int" =>
-          printStringFlag = true
-          branchLink(instructions,PRINT_INT_LABEL)
+          printIntFlag = true
+          branchLink(PRINT_INT_LABEL)
 
         case _ =>
 
@@ -392,7 +393,7 @@ class CodeGenerator (varList: List[Int]) {
      
       if (newline) {
         printLineFlag = true
-        branchLink(instructions, PRINT_LN_LABEL)
+        branchLink( PRINT_LN_LABEL)
       }
       
 
@@ -450,7 +451,7 @@ class CodeGenerator (varList: List[Int]) {
     case NewPairRValue(expr1, expr2) =>
       instructions.append(I_Move(x0, ImmVal(getSize(expr1) + getSize(expr2))))
 
-      branchLink(instructions, MALLOC_LABEL)
+      branchLink( MALLOC_LABEL)
 
       instructions.append(I_Move(x16, x0))
 
@@ -488,7 +489,7 @@ class CodeGenerator (varList: List[Int]) {
 
     case a@ArrLiter(e, es) =>
       instructions.append(I_Move(x0, ImmVal(getSize(a))))
-      branchLink(instructions, MALLOC_LABEL)
+      branchLink( MALLOC_LABEL)
       instructions.append(I_Move(x16, x0))
       instructions.append(I_Add(x16, x16, ImmVal(ARRAY_ELEM_SIZE)))
 
@@ -522,7 +523,7 @@ class CodeGenerator (varList: List[Int]) {
         generateInstructions(args.exprl(i))
         instructions.append(I_Move(unused_ParamRegs(i), x8))
       }
-      branchLink(instructions, "wacc_" + func.value)
+      branchLink( "wacc_" + func.value)
       instructions.append(I_Move(x16, x0))
       instructions.append(I_Move(x8, x16))
     
@@ -531,6 +532,8 @@ class CodeGenerator (varList: List[Int]) {
 
     case SndPairElem(values) => 
 
+    case Ident(value) => 
+      instructions.append(I_Move(x8, getRegFromMap(Ident(value))))
 
     case _ => 
       
@@ -637,7 +640,7 @@ class CodeGenerator (varList: List[Int]) {
   }
 
       // Helper function to append branch link instruction with a given label name
-  def branchLink(instructions: mutable.ListBuffer[Instruction], s: String): Unit = {
+  def branchLink(s: String): Unit = {
       instructions.append(I_BranchLink(I_Label(s)))
   }
 

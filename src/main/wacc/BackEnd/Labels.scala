@@ -35,10 +35,14 @@ object Labels {
         var instruction: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
             if (labelIndex == -1) {
                 // Use customised label name
+                var news = s
+                if (news == "p%d") {
+                    news = "%d"
+                }
                 instruction = mutable.ListBuffer(
                     I_Directive(s"      .word $actualSize"),
                     I_Label(s"$name"),
-                    I_Directive(s"      .asciz " + "\"" + s + "\"")
+                    I_Directive(s"      .asciz " + "\"" + news + "\"")
                 )
             } else {
                 // Use counter to generate label name
@@ -70,7 +74,7 @@ object Labels {
         val len = s.length
         val msg = DataMsg(s, labelCounter, len, customisedLabelName)
 
-        allDataMsgs.put(s, msg)
+        allDataMsgs += (s -> msg)
         msg.label
             
     }

@@ -485,6 +485,12 @@ class CodeGenerator (varList: List[Int]) {
       val label = Labels.addDataMsg(value)
       // Convert the label string to an I_Label class and store at x8
       instructions.append(I_ADRP(x8, I_Label(label)))
+      instructions.append(I_Add(x8, x8, Op(s":lo12:$label")))
+      pushAndPopx8(16)
+      
+      
+      
+
     
     case PairLiter => 
 

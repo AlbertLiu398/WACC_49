@@ -106,7 +106,7 @@ object Utility {
 
     def printint(): Unit = {
 
-        addCustomisedDataMsg("%d", addPrintiLabel(false))
+        addCustomisedDataMsg("p%d", addPrintiLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -281,11 +281,11 @@ object Utility {
         val labelRead = addReadLabel()
         addCustomisedDataMsg("%d", labelRead)
         instrus.append(I_Label(READ_LABEL))
-        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+        instrus.append(I_StorePair(x0, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, sp))
         instrus.append(I_ADR(x0, I_Label(labelRead)))
         instrus.append(I_BranchLink(I_Label(SCANF_LABEL)))
-        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
+        instrus.append(I_LoadPair(x0, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }
     

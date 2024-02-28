@@ -23,6 +23,10 @@ object Instruction {
         override def getValue(): String = s"#${value.toInt}"
     }
 
+    case class Op(value: String) extends Operand {
+        override def getValue(): String = value
+    }
+
     case class Content(reg : Register, offset: ImmVal = ImmVal(0)) extends Operand {
         override def getValue(): String = { 
             if (offset.value != 0) return s"[${reg.getValue()}, ${offset.getValue()}]"

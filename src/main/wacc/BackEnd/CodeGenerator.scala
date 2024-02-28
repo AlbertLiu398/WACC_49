@@ -385,6 +385,7 @@ class CodeGenerator (varList: List[Int]) {
           branchLink(instructions,PRINT_INT_LABEL)
 
         case _ =>
+
           
       }
   
@@ -462,6 +463,8 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Store(x8, Content(x16, ImmVal(getSize(expr1)))))
 
       instructions.append(I_Move(x8, x16))
+
+      mallocFlag = true
       
     
 
@@ -499,15 +502,20 @@ class CodeGenerator (varList: List[Int]) {
 
       instructions.append(I_Store(x8, Content(x16, ImmVal(-ARRAY_ELEM_SIZE))))
       var arrPointer = 0
-      for (expr <- e::es) {
-        arrPointer += getSize(expr)
-        generateInstructions(expr)
-        // StoreByte for char and bool
-        instructions.append(I_Store(x8, Content(x16, ImmVal(arrPointer))))
+      if (arrSize != 0) {
+    for (expr <- e::es) {
+          arrPointer += getSize(expr)
+          generateInstructions(expr)
+          // StoreByte for char and bool
+          instructions.append(I_Store(x8, Content(x16, ImmVal(arrPointer))))
+        }
       }
+      
 
       instructions.append(I_Move(x8, x16))
       instructions.append(I_Move(x19, x8))
+
+      mallocFlag = true
     
     case CallRValue(func, args) =>
       for (i <- 0 until args.exprl.length) {

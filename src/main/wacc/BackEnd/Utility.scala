@@ -19,22 +19,28 @@ object Utility {
     var printStringFlag: Boolean = false
     var printBoolFlag: Boolean = false
     var printLineFlag: Boolean = false
+    var printPFlag: Boolean = false
+
     var mallocFlag: Boolean = false
     var readFlag: Boolean = false
 
+    // Labels for print functions
     final val PRINT_STRING_LABEL = "_prints"
     final val PRINT_INT_LABEL = "_printi"
     final val PRINT_BOOL_LABEL = "_printb"
     final val PRINT_LN_LABEL = "_println"
     final val PRINT_CHAR_LABEL = "_printc"
-    final val READ_LABEL = "_read"
     final val PRINT_F_LABEL = "printf"
     final val PRINT_P_LABEL = "_printp"
-    final val PRINT_FLUSH_LABEL =  "fflush"
 
+    // Labels for other utility functions
+    final val READ_LABEL = "_read"
+    final val SCANF_LABEL = "scanf"
+    final val FLUSH_LABEL =  "fflush"
     final val MALLOC_LABEL = "_malloc"
     final val EXIT_LABEL = "_exit"
-    final val SCANF_LABEL = "scanf"
+
+    // Labels for error messages 
     final val ERR_OUT_OF_MEMORY_LABEL = "_errOutOfMemory"
     final val ERR_NULL_LABEL = "_errNull"
     
@@ -44,7 +50,7 @@ object Utility {
     // val OVERFLOW_LABEL = "_throw_overflow_error"
     // val RUNTIME_LABEL = "_throw_runtime_error"
 
-
+    // Local list of instructions, to be appended to final instructions list in CodeGenerator
     var instrus: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
 
     def addUtility():  mutable.ListBuffer[Instruction]  = {
@@ -90,7 +96,7 @@ object Utility {
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         instrus.append(I_Move(x0, ImmVal(0)))
 
-        instrus.append(I_BranchLink(I_Label( PRINT_FLUSH_LABEL)))
+        instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
         instrus.append(I_Ret)
@@ -114,7 +120,7 @@ object Utility {
 
         instrus.append(I_Move(x0, ImmVal(0)))
 
-        instrus.append(I_BranchLink(I_Label( PRINT_FLUSH_LABEL)))
+        instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
 
@@ -157,7 +163,7 @@ object Utility {
         
         instrus.append(I_Move(x0, ImmVal(0)))
         
-        instrus.append(I_BranchLink(I_Label( PRINT_FLUSH_LABEL)))
+        instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
 
@@ -183,7 +189,7 @@ object Utility {
 
         instrus.append(I_Move(x0, ImmVal(0)))
 
-        instrus.append(I_BranchLink(I_Label( PRINT_FLUSH_LABEL)))
+        instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
 
@@ -193,7 +199,7 @@ object Utility {
     def printline(): Unit = {
 
         
-        addCustomisedDataMsg("%.*s", addPrintlnLabel(false))
+        addCustomisedDataMsg("", addPrintlnLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -207,7 +213,7 @@ object Utility {
 
         instrus.append(I_Move(x0, ImmVal(0)))
 
-        instrus.append(I_BranchLink(I_Label( PRINT_FLUSH_LABEL)))
+        instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
         instrus.append (I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
 
@@ -217,7 +223,7 @@ object Utility {
 
     def printp(): Unit = {
         
-        addCustomisedDataMsg("%.*s", addPrintpLabel(false))
+        addCustomisedDataMsg("%p", addPrintpLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -233,7 +239,7 @@ object Utility {
 
         instrus.append(I_Move(x0, ImmVal(0)))
 
-        instrus.append(I_BranchLink(I_Label( PRINT_FLUSH_LABEL)))
+        instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
 

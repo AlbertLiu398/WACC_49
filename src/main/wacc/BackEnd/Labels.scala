@@ -63,6 +63,7 @@ object Labels {
         result
     }
 
+    
 
     // Helper function for addDataMsg()
     def addDataMsgWithLabel(s: String, labelCounter: Int, customisedLabelName: String): String = {
@@ -80,6 +81,9 @@ object Labels {
                 elem.label
         }
     }
+
+    // def addFunctionDataMsg(s: String)
+
 
     def addIfLabel(): (String, String) ={
         val instr = (s"if_then_$ifCounter", s"if_end_$ifCounter")

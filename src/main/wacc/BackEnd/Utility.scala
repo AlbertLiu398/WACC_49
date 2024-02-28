@@ -100,7 +100,7 @@ object Utility {
 
         instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
-        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }
 
@@ -124,7 +124,7 @@ object Utility {
 
         instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
-        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
 
         instrus.append(I_Ret)
     }
@@ -167,7 +167,7 @@ object Utility {
         
         instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
-        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
 
         instrus.append(I_Ret)
         
@@ -193,7 +193,7 @@ object Utility {
 
         instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
-        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
 
         instrus.append(I_Ret)   
     }
@@ -217,7 +217,7 @@ object Utility {
 
         instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
-        instrus.append (I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
 
         instrus.append(I_Ret)
     }
@@ -243,7 +243,7 @@ object Utility {
 
         instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
 
-        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
 
         instrus.append(I_Ret)
     }
@@ -254,7 +254,7 @@ object Utility {
         instrus.append(I_Label(MALLOC_LABEL))
         instrus.append(I_BranchLink(I_Label(MALLOC_LABEL)))
         instrus.append(I_CBZ(x0, I_Label(ERR_OUT_OF_MEMORY_LABEL)))
-        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
         errOutOfMemory()
     }
@@ -285,7 +285,7 @@ object Utility {
         instrus.append(I_Move(x1, sp))
         instrus.append(I_ADR(x0, I_Label(labelRead)))
         instrus.append(I_BranchLink(I_Label(SCANF_LABEL)))
-        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }
     

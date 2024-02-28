@@ -83,7 +83,7 @@ object Utility {
 
     def printstr(): Unit = {
 
-        addCustomisedDataMsg("%.*s", addPrintsLabel(false))
+        addCustomisedDataMsg("p%.*s", addPrintsLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -142,7 +142,7 @@ object Utility {
         instrus.append(I_Branch(I_Label(".L_printb0"), NE))
 
         val labelPrint = addPrintbLabel(true)
-        addCustomisedDataMsg("true", labelPrint)
+        addCustomisedDataMsg("ptrue", labelPrint)
         instrus.append(I_ADR(x2, I_Label(labelPrint)))
 
         instrus.append(I_Branch(I_Label(".L_printb1")))
@@ -150,7 +150,7 @@ object Utility {
         instrus.append(I_Label(".L_printb0"))
         
         val labelTrue = addPrintbLabel(true)
-        addCustomisedDataMsg("false", labelTrue)
+        addCustomisedDataMsg("pfalse", labelTrue)
         instrus.append(I_ADR(x2, I_Label(labelTrue)))   
         
         instrus.append(I_Label(".L_printb1"))    
@@ -158,7 +158,7 @@ object Utility {
         instrus.append(I_LDRSW(x1, Content(x2, ImmVal(-4))))
         
         val labelFalse = addPrintbLabel(true)
-        addCustomisedDataMsg("%.*s", labelFalse)
+        addCustomisedDataMsg("p%.*s", labelFalse)
         instrus.append(I_ADR(x0, I_Label(labelFalse)))
         
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
@@ -175,7 +175,7 @@ object Utility {
 
     def printchar(): Unit = {
         
-        addCustomisedDataMsg("%.*s", addPrintcLabel(false))
+        addCustomisedDataMsg("p%.*s", addPrintcLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -201,7 +201,7 @@ object Utility {
     def printline(): Unit = {
 
         
-        addCustomisedDataMsg("", addPrintlnLabel(false))
+        addCustomisedDataMsg("p", addPrintlnLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -225,7 +225,7 @@ object Utility {
 
     def printp(): Unit = {
         
-        addCustomisedDataMsg("%p", addPrintpLabel(false))
+        addCustomisedDataMsg("p%p", addPrintpLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -260,7 +260,7 @@ object Utility {
     }
 
     private def errOutOfMemory(): Unit = {
-        addCustomisedDataMsg(ERR_OUT_OF_MEMORY_MSG, ERR_OUT_OF_MEMORY_LABEL+"_str0")
+        addCustomisedDataMsg("e" + ERR_OUT_OF_MEMORY_MSG, ERR_OUT_OF_MEMORY_LABEL+"_str0")
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(ERR_OUT_OF_MEMORY_LABEL))
         instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
@@ -268,7 +268,7 @@ object Utility {
     }
 
     def divByzero(): Unit = {
-        addCustomisedDataMsg(ERR_DIVIDE_BY_ZERO_MSG, DIVIDE_BY_ZERO_LABEL)
+        addCustomisedDataMsg("d" + ERR_DIVIDE_BY_ZERO_MSG, DIVIDE_BY_ZERO_LABEL)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(DIVIDE_BY_ZERO_LABEL))
         instrus.append(I_ADR(x0, I_Label(DIVIDE_BY_ZERO_LABEL)))
@@ -279,7 +279,7 @@ object Utility {
 
     def read(): Unit = {
         val labelRead = addReadLabel()
-        addCustomisedDataMsg("%d", labelRead)
+        addCustomisedDataMsg("r%d", labelRead)
         instrus.append(I_Label(READ_LABEL))
         instrus.append(I_StorePair(x0, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, sp))

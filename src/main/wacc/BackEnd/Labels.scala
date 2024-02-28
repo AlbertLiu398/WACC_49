@@ -35,14 +35,10 @@ object Labels {
         var instruction: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
             if (labelIndex == -1) {
                 // Use customised label name
-                var news = s
-                if (news == "p%d") {
-                    news = "%d"
-                }
                 instruction = mutable.ListBuffer(
                     I_Directive(s"      .word $actualSize"),
                     I_Label(s"$name"),
-                    I_Directive(s"      .asciz " + "\"" + news + "\"")
+                    I_Directive(s"      .asciz " + "\"" + s.substring(1) + "\"")
                 )
             } else {
                 // Use counter to generate label name

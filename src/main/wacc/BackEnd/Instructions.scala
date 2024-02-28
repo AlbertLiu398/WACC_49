@@ -180,7 +180,7 @@ object Instruction {
     }
 
     case class I_CSet(dest: Register, condition: Conditions) extends Instruction {
-        override def printInstr(): String = s"      cset${dest.getValue()}, ${condition.toString()} \n"
+        override def printInstr(): String = s"      cset ${dest.getValue()}, ${condition.toString()} \n"
     }
 
     case class I_Neg(dest: Register, src: Register, shift: Shifts) extends Instruction {
@@ -202,7 +202,7 @@ object Instruction {
         override def printInstr(): String = s"      CBZ ${reg.getValue()} ${label.labelName} \n"
 
     }
-    
+
    case class I_LDRSW(reg1: Register, content: Content) extends Instruction {
         override def printInstr(): String = s"      LDRSW ${reg1.getValue()}, ${content.getValue()} \n"
     }

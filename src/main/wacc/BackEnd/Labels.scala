@@ -29,7 +29,7 @@ object Labels {
     // read counter
     var readCounter = 0
 
-
+    
     case class DataMsg(s: String, labelIndex: Int, actualSize: Int, name: String){
         val label: String = s".L.str$labelIndex"
         var instruction: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
@@ -69,7 +69,7 @@ object Labels {
     def addDataMsgWithLabel(s: String, labelCounter: Int, customisedLabelName: String): String = {
         val len = s.length
         val msg = DataMsg(s, labelCounter, len, customisedLabelName)
-
+        
         allDataMsgs.put(s, msg)
         msg.label
             

@@ -567,7 +567,7 @@ class CodeGenerator (varList: List[Int]) {
           case StringLiter("empty") => return 0
           case _=> 
             val sizes = (e::es).map(elem => getSize(elem))
-          return sizes.sum
+          return sizes.sum + ARRAY_ELEM_SIZE
 
         }
       case CallRValue(func, args) =>

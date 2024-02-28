@@ -199,7 +199,7 @@ object Instruction {
     }
 
     case class I_CBZ(reg: Register, label: I_Label) extends Instruction {
-        override def printInstr(): String = s"      CBZ ${reg.getValue()} ${label.labelName} \n"
+        override def printInstr(): String = s"      CBZ ${reg.getValue()}, ${label.labelName} \n"
 
     }
 

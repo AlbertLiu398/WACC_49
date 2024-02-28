@@ -258,8 +258,8 @@ object Utility {
     }
 
     private def errOutOfMemory(): Unit = {
-        addCustomisedDataMsg(ERR_OUT_OF_MEMORY_MSG, ERR_OUT_OF_MEMORY_LABEL)
-        instrus.append(I_Directive("align 4"))
+        addCustomisedDataMsg(ERR_OUT_OF_MEMORY_MSG, ERR_OUT_OF_MEMORY_LABEL+"_str0")
+        instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(ERR_OUT_OF_MEMORY_LABEL))
         instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
         instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))

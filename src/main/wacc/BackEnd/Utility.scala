@@ -43,6 +43,7 @@ object Utility {
     // Labels for error messages 
     final val ERR_OUT_OF_MEMORY_LABEL = "_errOutOfMemory"
     final val ERR_NULL_LABEL = "_errNull"
+    final val ERR_OVERFLOW_LABEL = "_errOverflow"
     
     // val DIVIDE_BY_ZERO_LABEL = "_check_divide_by_zero"
     // val NULL_POINTER_LABEL = "_check_null_pointer"
@@ -266,11 +267,12 @@ object Utility {
     }
 
     def read(): Unit = {
-        addCustomisedDataMsg("%d", "_read_")
+        val labelRead = addReadLabel()
+        addCustomisedDataMsg("%d", labelRead)
         instrus.append(I_Label(READ_LABEL))
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, sp))
-        instrus.append(I_ADR(x0, I_Label(addReadLabel())))
+        instrus.append(I_ADR(x0, I_Label(labelRead)))
         instrus.append(I_BranchLink(I_Label(SCANF_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
         instrus.append(I_Ret)

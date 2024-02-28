@@ -69,7 +69,7 @@ object Labels {
     def addDataMsgWithLabel(s: String, labelCounter: Int, customisedLabelName: String): String = {
         val len = s.length
         val msg = DataMsg(s, labelCounter, len, customisedLabelName)
-        
+
         allDataMsgs.put(s, msg)
         msg.label
             
@@ -99,7 +99,7 @@ object Labels {
         
     }
     def addPrintcLabel(incrementCount: Boolean): String = {
-        val instr = s".L._printc_$printcCounter"
+        val instr = s".L._printc_str$printcCounter"
         if (incrementCount) {
             printcCounter += 1
         }
@@ -124,7 +124,7 @@ object Labels {
          
     }
    def addPrintiLabel(incrementCount: Boolean): String = {
-        val instr = s".L._printi_$printiCounter"
+        val instr = s".L._printi_str$printiCounter"
         if (incrementCount) {
             printiCounter += 1
         }
@@ -132,7 +132,7 @@ object Labels {
     }
 
     def addPrintpLabel(incrementCount: Boolean): String = {
-        val instr = s".L._printp_$printpCounter"
+        val instr = s".L._printp_str$printpCounter"
         if (incrementCount) {
             printpCounter += 1
         }
@@ -140,7 +140,7 @@ object Labels {
     }
 
     def addReadLabel(): String = {
-        val instr = s".L._read_$readCounter"
+        val instr = s".L._read_str$readCounter"
         readCounter += 1
         instr
     }

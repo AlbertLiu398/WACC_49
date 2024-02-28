@@ -199,13 +199,12 @@ object Instruction {
     }
 
     case class I_CBZ(reg: Register, label: I_Label) extends Instruction {
-        override def printInstr(): String = s"      CBZ ${reg.getValue()}, ${label.labelName} \n"
+        override def printInstr(): String = s"      cbz ${reg.getValue()}, ${label.labelName} \n"
 
     }
 
    case class I_LDRSW(reg1: Register, content: Content) extends Instruction {
-        override def printInstr(): String = s"      LDRSW ${reg1.getValue()}, ${content.getValue()} \n"
+        override def printInstr(): String = s"      ldrsw ${reg1.getValue()}, ${content.getValue()} \n"
     }
-
 
 }

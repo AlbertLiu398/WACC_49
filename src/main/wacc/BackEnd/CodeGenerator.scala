@@ -1,20 +1,19 @@
 package wacc
 
 import wacc.ast._
-import wacc.instruction._
 import scala.collection._
-import instruction._
+import Instruction._
 import scala.annotation.unused
 import Constant._
-import conditions._
+import Conditions._
 import Labels._
-import utility._
+import Utility._
 
 class CodeGenerator (varList: List[Int]) {
 
   // identMap to store all variables and their size & pointer
   // For functions specifically: size = func.returnType's size, pointer = func.paramListType.length
-  case class identMapEntry(size: Int, pointer: Int)
+  case class identMapEntry(size: Int, reg: Register)
 
   private val identMap = mutable.Map[Ident, identMapEntry]()
   private val instructions: mutable.ListBuffer[Instruction] = mutable.ListBuffer()
@@ -38,28 +37,28 @@ class CodeGenerator (varList: List[Int]) {
         I_Directive(".global main"), 
         I_Label("main"))
       
-      // Add function names to identMap
-      for(func <- functions) {
-        identMap(Ident("wacc_" + func.functionName.value)) = identMapEntry(getSize(func.returnType), func.params.paramListType.length)
-      }
+      // // Add function names to identMap
+      // for(func <- functions) {
+      //   identMap(Ident("wacc_" + func.functionName.value)) = identMapEntry(getSize(func.returnType), func.params.paramListType.length)
+      // }
 
       // Generate code for main body
-      instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+      instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), true))
       pushUsedRegs(unused_ResultRegs.toList, varList.last)
-      instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
+      instructions.append(I_Move(fp, sp))
       generateInstructions(statements)
       instructions.append(I_Move(x0, ImmVal(0)))
-      popUsedRegs(unused_ResultRegs.toList, varList.last)
+      popUsedRegs(used_ResultRegs.toList.reverse, varList.last)
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
       instructions.append(I_Ret)
 
       // Add utility function definitions
       instructions.appendAll(addUtility())
+
       // Generate code for functions
       for(func <- functions) {
         generateInstructions(func)
       }
-
 
       // Add all string labels at the top of program
       if (allDataMsgs.nonEmpty) {
@@ -78,7 +77,7 @@ class CodeGenerator (varList: List[Int]) {
     case Func(returnType, functionName, params, body) =>
 
       instructions.append(I_Label(functionName.value))
-      instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+      instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), true))
       pushUsedRegs(unused_ResultRegs.toList, varList(funcProcessed))
       instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
       generateInstructions(body)
@@ -284,19 +283,53 @@ class CodeGenerator (varList: List[Int]) {
       pushAndPopx8(16)
 
    // -------------------------- Generate instructions for statements
-    case Read(lvalue) =>
+    case Read(lValue) =>
+        lValue match {
+        case n@Ident(value) =>
+          instructions.append(I_Move(x8, getRegFromMap(n)))
+          instructions.append(I_Move(x0, x8))
+          readFlag = true
+          branchLink(instructions, READ_LABEL)
+          instructions.append(I_Move(x16, x0))
+          instructions.append(I_Move(x8, x16))
+          instructions.append(I_Move(getRegFromMap(n), x8))
+        case _=>
+        }
+
+      
         
     case NewAssignment(identType, name, value) => 
-      identMap(name) = identMapEntry(getSize(value),0 /*current pointer*/)
       generateInstructions(value)
       instructions.append(I_Move(unused_ResultRegs.head, x8))
       used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs 
       unused_ResultRegs.remove(0)
+      identMap(name) = identMapEntry(getSize(value), used_ResultRegs.head)
 
           
       
 
     case Assignment(name, value) => 
+      
+      val reg = getRegFromMap(getIdent(name))
+      name match {
+        case n@ArrElem(name, v)=>
+          generateInstructions(n)
+
+        case n@FstPairElem(values) =>
+          instructions.append(I_CBZ(reg, I_Label(ERR_NULL_LABEL)))
+        
+        case n@SndPairElem(values) => 
+          instructions.append(I_CBZ(reg, I_Label(ERR_NULL_LABEL)))
+
+          
+        case _=>
+          generateInstructions(name)
+          
+        generateInstructions(value)  
+        instructions.append(I_Move(reg, x8))
+        
+      }
+      
       
       
     
@@ -308,7 +341,7 @@ class CodeGenerator (varList: List[Int]) {
     case Exit(expr) =>
       generateInstructions(expr)
       instructions.append(I_Move(unused_ParamRegs.head, x8))
-      branchLink(instructions, "_exit")
+      branchLink(instructions, EXIT_LABEL)
 
     
 
@@ -331,20 +364,20 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr)
       val printBranch = expr.getType match {
         case "string" | "char[]" =>
-          utility.printStringFlag = true
-          branchLink(instructions,"_prints")
+          printStringFlag = true
+          branchLink(instructions,PRINT_STRING_LABEL)
 
         case "bool" =>
-          utility.printBoolFlag = true
-          branchLink(instructions,"_printb")
+          printBoolFlag = true
+          branchLink(instructions,PRINT_BOOL_LABEL)
 
         case "char" =>
-          utility.printCharFlag = true
-          branchLink(instructions,"_printc")
+          printCharFlag = true
+          branchLink(instructions,PRINT_CHAR_LABEL)
 
         case "int" =>
-          utility.printStringFlag = true
-          branchLink(instructions, "_printi")
+          printStringFlag = true
+          branchLink(instructions,PRINT_INT_LABEL)
 
         case _ =>
           
@@ -352,8 +385,8 @@ class CodeGenerator (varList: List[Int]) {
   
      
       if (newline) {
-        utility.printLineFlag = true
-        branchLink(instructions, "_println")
+        printLineFlag = true
+        branchLink(instructions, PRINT_LN_LABEL)
       }
       
 
@@ -411,7 +444,7 @@ class CodeGenerator (varList: List[Int]) {
     case NewPairRValue(expr1, expr2) =>
       instructions.append(I_Move(x0, ImmVal(getSize(expr1) + getSize(expr2))))
 
-      branchLink(instructions, "_malloc")
+      branchLink(instructions, MALLOC_LABEL)
 
       instructions.append(I_Move(x16, x0))
 
@@ -447,9 +480,9 @@ class CodeGenerator (varList: List[Int]) {
 
     case a@ArrLiter(e, es) =>
       instructions.append(I_Move(x0, ImmVal(getSize(a))))
-      branchLink(instructions, "_malloc")
+      branchLink(instructions, MALLOC_LABEL)
       instructions.append(I_Move(x16, x0))
-      instructions.append(I_Add(x16, x16, ImmVal(4)))
+      instructions.append(I_Add(x16, x16, ImmVal(ARRAY_ELEM_SIZE)))
 
       // Size of array  
       var arrSize = 0
@@ -459,7 +492,7 @@ class CodeGenerator (varList: List[Int]) {
       }
       instructions.append(I_Move(x8, ImmVal(arrSize)))
 
-      instructions.append(I_Store(x8, Content(x16, ImmVal(-4))))
+      instructions.append(I_Store(x8, Content(x16, ImmVal(-ARRAY_ELEM_SIZE))))
       var arrPointer = 0
       for (expr <- e::es) {
         arrPointer += getSize(expr)
@@ -479,7 +512,12 @@ class CodeGenerator (varList: List[Int]) {
       branchLink(instructions, "wacc_" + func.value)
       instructions.append(I_Move(x16, x0))
       instructions.append(I_Move(x8, x16))
-       
+    
+    case FstPairElem(values) =>
+      
+
+    case SndPairElem(values) => 
+
 
     case _ => 
       
@@ -495,15 +533,15 @@ class CodeGenerator (varList: List[Int]) {
   
   private def getSize(ast: ASTNode): Int = {
     ast match {
-      case IntLiter(_) => return 4
+      case IntLiter(_) => return INT_SIZE
          
-      case BoolLiter(_) => return 1
+      case BoolLiter(_) => return BOOL_SIZE
 
-      case CharLiter(_) => return 1
+      case CharLiter(_) => return CHAR_SIZE
 
-      case StringLiter(value) => return 8
+      case StringLiter(value) => return STRING_SIZE
       
-      case PairLiter => return 16
+      case PairLiter => return PAIR_SIZE
 
       case n@Ident(value) => return identMap.get(n).size
 
@@ -530,16 +568,16 @@ class CodeGenerator (varList: List[Int]) {
 
       case BaseType(name) =>
         name match {
-          case "int" => return 4
-          case "bool" => return 1
-          case "char" => return 1
-          case "string" => return 8
+          case "int" => return INT_SIZE
+          case "bool" => return BOOL_SIZE
+          case "char" => return CHAR_SIZE
+          case "string" => return STRING_SIZE
         }
-      case ArrayType(elementType) => return 16
+      case ArrayType(elementType) => return ARRAY_TYPE_SIZE
 
-      case PairType(first, second) => return 16
+      case PairType(first, second) => return PAIR_SIZE
 
-      case _ => return 0
+      case _ => return EMPTY_SIZE
     }
   }
 
@@ -557,24 +595,27 @@ class CodeGenerator (varList: List[Int]) {
   }
 
   def pushAndPopx8(size: Int):Unit = {
-    instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-size)), ImmVal(0), true))
+    instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-size)), true))
     instructions.append(I_LoadPair(x8, xzr, Content(sp), ImmVal(size)))
     instructions.append(I_Move(x8, x8))
   }
 
   def pushUsedRegs(regs: List[Register], noOfVar: Int):Unit = {
-    for (i <- 0 to noOfVar by 2) {
-      instructions.append(I_StorePair(regs(i), regs(i+1), Content(sp, ImmVal(-16)), ImmVal(0), true))
+    if (noOfVar != 0 && noOfVar != 1){
+      for (i <- 0 to noOfVar - 2 by 2) {
+        instructions.append(I_LoadPair(regs(i), regs(i+1), Content(sp, ImmVal(0)), ImmVal(16), false))
+      }
     }
-
     if (noOfVar%2 == 1) {
-      instructions.append(I_StorePair(regs.last, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+      instructions.append(I_StorePair(regs(noOfVar - 1), xzr, Content(sp, ImmVal(-16)), true))
     }
   }
 
   def popUsedRegs(regs: List[Register], noOfVar: Int):Unit = {
-    for (i <- 0 to noOfVar by 2) {
-      instructions.append(I_LoadPair(regs(i), regs(i+1), Content(sp, ImmVal(0)), ImmVal(16), false))
+    if (noOfVar != 0 && noOfVar != 1){
+      for (i <- 0 to noOfVar - 2 by 2) {
+        instructions.append(I_LoadPair(regs(i), regs(i+1), Content(sp, ImmVal(0)), ImmVal(16), false))
+      }
     }
 
     if (noOfVar%2 == 1) {
@@ -585,5 +626,21 @@ class CodeGenerator (varList: List[Int]) {
       // Helper function to append branch link instruction with a given label name
   def branchLink(instructions: mutable.ListBuffer[Instruction], s: String): Unit = {
       instructions.append(I_BranchLink(I_Label(s)))
+  }
+
+  def getRegFromMap(name: Ident): Register = {
+      identMap.get(name) match {
+        case Some(value) => return value.reg
+        case None => "no such Ident in map"
+      }
+      return xzr
+  }
+  def getIdent(lvalue: LValue): Ident = {
+    lvalue match {
+      case n@Ident(value) => return n
+      case n@ArrElem(name, value) => return name
+      case n@FstPairElem(values) => return getIdent(values)
+      case n@SndPairElem(values) => return getIdent(values)
+    }
   }
 }

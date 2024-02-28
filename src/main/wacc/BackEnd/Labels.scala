@@ -1,8 +1,8 @@
 package wacc
 
 import scala.collection.mutable
-import instruction._
-import constant._
+import Instruction._
+import Constant._
 
 object Labels {
 
@@ -17,6 +17,17 @@ object Labels {
 
     // counter for naming while labels
     var whileCounter = 0
+
+    // print counter 
+    var printbCounter = 0
+    var printcCounter = 0
+    var printiCounter = 0
+    var printsCounter = 0
+    var printpCounter = 0
+    var printLinCounter = 0
+    
+    // read counter
+    var readCounter = 0
 
 
     case class DataMsg(s: String, labelIndex: Int, actualSize: Int, name: String){
@@ -71,12 +82,58 @@ object Labels {
     }
 
     def addIfLabel(): (String, String) ={
+        val instr = (s"if_then_$ifCounter", s"if_end_$ifCounter")
         ifCounter += 1
-        (s"if_then_$ifCounter", s"if_end_$ifCounter")
+        instr
     }
 
     def addWhileLabel(): (String, String) ={
+        val instr = (s"w_condition_$whileCounter", s"w_body_$whileCounter")
         whileCounter += 1
-        (s"w_condition_$whileCounter", s"w_body_$whileCounter")
+        instr
     }
+
+    def addPrintbLabel(): String = {
+        val instr = s".L._printb_$printbCounter"
+        printbCounter += 1
+        instr
+        
+    }
+    def addPrintcLabel(): String = {
+        val instr = s".L._printc_$printcCounter"
+        printcCounter += 1
+        instr
+
+        
+    }
+    def addPrintlnLabel(): String = {
+        val instr = s".L._println_$printLinCounter"
+        printLinCounter += 1
+        instr
+        
+    }
+    def addPrintsLabel(): String = {
+        val instr = s".L._prints_$printsCounter"
+        printsCounter += 1
+        instr
+         
+    }
+   def addPrintiLabel(): String = {
+        val instr = s".L._printi_$printiCounter"
+        printiCounter += 1
+        instr 
+    }
+
+    def addPrintpLabel(): String = {
+        val instr = s".L._printp_$printpCounter"
+        printpCounter += 1
+        instr 
+    }
+
+    def addReadLabel(): String = {
+        val instr = s".L._read_$readCounter"
+        readCounter += 1
+        instr
+    }
+    
 }

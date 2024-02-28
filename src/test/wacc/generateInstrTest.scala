@@ -106,14 +106,14 @@ import org.scalatest._
   }
   it should "generate Not instruction" in {
     val ast = Invert(BoolLiter(true))
-    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Cmp(x8, ImmVal(1)),I_CSet(x8, NE), I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true), 
+    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Cmp(x8, ImmVal(1)),I_CSet(x8, NE), I_StorePair(x8, xzr, Content(sp, ImmVal(-16)),true), 
                                                     I_LoadPair(x8, xzr, Content(sp), ImmVal(16)), I_Move(x8, x8))
     codeGenerator.revertTempRegs()
   }
 
   it should "generate Neg instruction" in {
     val ast = Negate(IntLiter(1))
-    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true), 
+    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), true), 
                                                     I_LoadPair(x8, xzr, Content(sp), ImmVal(16)), I_Move(x8, x8))
     codeGenerator.revertTempRegs()
   }

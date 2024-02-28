@@ -5,8 +5,8 @@ import scala.language.implicitConversions
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import Constant._
-import instruction._
-import conditions._
+import Instruction._
+import Conditions._
 import org.scalatest._
 
 

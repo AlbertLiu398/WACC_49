@@ -136,13 +136,13 @@ object Utility {
 
         instrus.append(I_ADR(x2, I_Label(addPrintbLabel())))
 
-        instrus.append(I_Branch(I_Label(".L_printb1")))
+        instrus.append(I_Branch(I_Label(".L._printb1")))
         
         instrus.append(I_Label(".L._printb0"))
         
         instrus.append(I_ADR(x2, I_Label(addPrintbLabel())))   
         
-        instrus.append(I_Label(".L_printb1"))    
+        instrus.append(I_Label(".L_.printb1"))    
         
         instrus.append(I_LDRSW(x1, Content(x2, ImmVal(-4))))
         

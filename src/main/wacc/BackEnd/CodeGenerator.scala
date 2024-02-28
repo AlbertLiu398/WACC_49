@@ -13,6 +13,7 @@ class CodeGenerator (varList: List[Int]) {
 
   // identMap to store all variables and their size & pointer
   // For functions specifically: size = func.returnType's size, pointer = func.paramListType.length
+  
   case class identMapEntry(size: Int, reg: Register)
 
   private val identMap = mutable.Map[Ident, identMapEntry]()

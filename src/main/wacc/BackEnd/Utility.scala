@@ -104,7 +104,7 @@ object Utility {
 
     def printint(): Unit = {
 
-        addCustomisedDataMsg("%.*s", addPrintiLabel(false))
+        addCustomisedDataMsg("%d", addPrintiLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 

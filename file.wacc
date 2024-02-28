@@ -1,4 +1,8 @@
+
 begin
-  exit 42 ;
-  println "Should not print this."
+  print "True is " ;
+  println true ;
+
+  print "False is " ;
+  println false
 end

@@ -23,6 +23,7 @@ object Utility {
 
     var mallocFlag: Boolean = false
     var readFlag: Boolean = false
+    var divByZeroFlag: Boolean = false
 
     // Labels for print functions
     final val PRINT_STRING_LABEL = "_prints"
@@ -44,8 +45,8 @@ object Utility {
     final val ERR_OUT_OF_MEMORY_LABEL = "_errOutOfMemory"
     final val ERR_NULL_LABEL = "_errNull"
     final val ERR_OVERFLOW_LABEL = "_errOverflow"
-    
-    // val DIVIDE_BY_ZERO_LABEL = "_check_divide_by_zero"
+    final val DIVIDE_BY_ZERO_LABEL = "_check_divide_by_zero"
+
     // val NULL_POINTER_LABEL = "_check_null_pointer"
     // val ARRAY_BOUNDS_LABEL = "_check_array_bounds"
     // val OVERFLOW_LABEL = "_throw_overflow_error"
@@ -138,21 +139,21 @@ object Utility {
 
         instrus.append(I_Cmp(x0, ImmVal(0)))
         
-        instrus.append(I_Branch(I_Label(".L._printb0"), NE))
+        instrus.append(I_Branch(I_Label(".L_printb0"), NE))
 
         val labelPrint = addPrintbLabel(true)
         addCustomisedDataMsg("true", labelPrint)
         instrus.append(I_ADR(x2, I_Label(labelPrint)))
 
-        instrus.append(I_Branch(I_Label(".L._printb1")))
+        instrus.append(I_Branch(I_Label(".L_printb1")))
         
-        instrus.append(I_Label(".L._printb0"))
+        instrus.append(I_Label(".L_printb0"))
         
         val labelTrue = addPrintbLabel(true)
         addCustomisedDataMsg("false", labelTrue)
         instrus.append(I_ADR(x2, I_Label(labelTrue)))   
         
-        instrus.append(I_Label(".L_.printb1"))    
+        instrus.append(I_Label(".L_printb1"))    
         
         instrus.append(I_LDRSW(x1, Content(x2, ImmVal(-4))))
         
@@ -263,6 +264,16 @@ object Utility {
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(ERR_OUT_OF_MEMORY_LABEL))
         instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
+        instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
+    }
+
+    def divByzero(): Unit = {
+        addCustomisedDataMsg(ERR_DIVIDE_BY_ZERO_MSG, DIVIDE_BY_ZERO_LABEL)
+        instrus.append(I_Directive(".align 4"))
+        instrus.append(I_Label(DIVIDE_BY_ZERO_LABEL))
+        instrus.append(I_ADR(x0, I_Label(DIVIDE_BY_ZERO_LABEL)))
+        instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
+        instrus.append(I_Move(x0, ImmVal(-1)))
         instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
     }
 

@@ -146,6 +146,7 @@ class CodeGenerator (varList: List[Int]) {
           generateInstructions(expr2)
           instructions.append(I_UDiv(x8, used_TempRegs.head, x8))
       }
+      divByZeroFlag = true
 
     case Mod(expr1, expr2) =>
       generateInstructions(expr1)
@@ -596,11 +597,6 @@ class CodeGenerator (varList: List[Int]) {
       case _ => return EMPTY_SIZE
     }
   }
-
-
-
-
-
 
   def revertTempRegs():Unit = {
     used_TempRegs.clear()

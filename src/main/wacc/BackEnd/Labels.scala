@@ -93,40 +93,52 @@ object Labels {
         instr
     }
 
-    def addPrintbLabel(): String = {
+    def addPrintbLabel(incrementCount: Boolean): String = {
         val instr = s".L._printb_$printbCounter"
-        printbCounter += 1
+        if (incrementCount) {
+            printbCounter += 1
+        }
         instr
         
     }
-    def addPrintcLabel(): String = {
+    def addPrintcLabel(incrementCount: Boolean): String = {
         val instr = s".L._printc_$printcCounter"
-        printcCounter += 1
+        if (incrementCount) {
+            printcCounter += 1
+        }
         instr
 
         
     }
-    def addPrintlnLabel(): String = {
-        val instr = s".L._println_$printLinCounter"
-        printLinCounter += 1
+    def addPrintlnLabel(incrementCount: Boolean): String = {
+        val instr = s".L._println_str$printLinCounter"
+        if (incrementCount) {
+            printLinCounter += 1
+        }
         instr
         
     }
-    def addPrintsLabel(): String = {
-        val instr = s".L._prints_$printsCounter"
-        printsCounter += 1
+    def addPrintsLabel(incrementCount: Boolean): String = {
+        val instr = s".L._prints_str$printsCounter"
+        if (incrementCount) {        
+            printsCounter += 1
+        }
         instr
          
     }
-   def addPrintiLabel(): String = {
+   def addPrintiLabel(incrementCount: Boolean): String = {
         val instr = s".L._printi_$printiCounter"
-        printiCounter += 1
+        if (incrementCount) {
+            printiCounter += 1
+        }
         instr 
     }
 
-    def addPrintpLabel(): String = {
+    def addPrintpLabel(incrementCount: Boolean): String = {
         val instr = s".L._printp_$printpCounter"
-        printpCounter += 1
+        if (incrementCount) {
+            printpCounter += 1
+        }
         instr 
     }
 

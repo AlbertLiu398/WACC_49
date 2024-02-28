@@ -266,8 +266,12 @@ class CodeGenerator (varList: List[Int]) {
 
 
     case Negate(expr) =>
-      generateInstructions(expr)
-      pushAndPopx8(16)
+      expr match {
+        case IntLiter(value) => instructions.append(I_Move(x8, ImmVal(-value)))
+        case _=>
+          generateInstructions(expr)
+          pushAndPopx8(16)
+      }
 
   //   case Len(expr) =>
   //     generateInstructions(expr, unusedRegs, usedRegs)
@@ -391,7 +395,7 @@ class CodeGenerator (varList: List[Int]) {
       }
       
 
-       
+    
     case If(condition, thenStat, elseStat) =>
       generateInstructions(condition)
       val (if_then, if_end) = addIfLabel()

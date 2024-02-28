@@ -75,7 +75,7 @@ object Utility {
 
     def printstr(): Unit = {
 
-        addCustomisedDataMsg("%.*s", addPrintsLabel())
+        addCustomisedDataMsg("%.*s", addPrintsLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -85,7 +85,7 @@ object Utility {
 
         instrus.append(I_Move(x2, x0))
         instrus.append(I_LDRSW(x1, Content(x0, ImmVal(-4))))
-        instrus.append(I_ADR(x0, I_Label(addPrintsLabel())))
+        instrus.append(I_ADR(x0, I_Label(addPrintsLabel(true))))
         
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         instrus.append(I_Move(x0, ImmVal(0)))
@@ -98,7 +98,7 @@ object Utility {
 
     def printint(): Unit = {
 
-        addCustomisedDataMsg("%.*s", addPrintiLabel())
+        addCustomisedDataMsg("%.*s", addPrintiLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -108,7 +108,7 @@ object Utility {
 
         instrus.append(I_Move(x1, x0))
 
-        instrus.append(I_ADR(x0, I_Label(addPrintiLabel())))
+        instrus.append(I_ADR(x0, I_Label(addPrintiLabel(true))))
 
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL))) 
 
@@ -122,7 +122,7 @@ object Utility {
     }
 
     def printbool(): Unit = {
-        addCustomisedDataMsg("%.*s", addPrintbLabel())
+        addCustomisedDataMsg("%.*s", addPrintbLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -134,19 +134,19 @@ object Utility {
         
         instrus.append(I_Branch(I_Label(".L._printb0"), NE))
 
-        instrus.append(I_ADR(x2, I_Label(addPrintbLabel())))
+        instrus.append(I_ADR(x2, I_Label(addPrintbLabel(true))))
 
         instrus.append(I_Branch(I_Label(".L._printb1")))
         
         instrus.append(I_Label(".L._printb0"))
         
-        instrus.append(I_ADR(x2, I_Label(addPrintbLabel())))   
+        instrus.append(I_ADR(x2, I_Label(addPrintbLabel(true))))   
         
         instrus.append(I_Label(".L_.printb1"))    
         
         instrus.append(I_LDRSW(x1, Content(x2, ImmVal(-4))))
         
-        instrus.append(I_ADR(x0, I_Label(addPrintbLabel())))
+        instrus.append(I_ADR(x0, I_Label(addPrintbLabel(true))))
         
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
@@ -162,7 +162,7 @@ object Utility {
 
     def printchar(): Unit = {
         
-        addCustomisedDataMsg("%.*s", addPrintcLabel())
+        addCustomisedDataMsg("%.*s", addPrintcLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -172,7 +172,7 @@ object Utility {
 
         instrus.append(I_Move(x1, x0))
 
-        instrus.append(I_ADR(x0, I_Label(addPrintcLabel())))
+        instrus.append(I_ADR(x0, I_Label(addPrintcLabel(true))))
 
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
 
@@ -187,7 +187,9 @@ object Utility {
 
     def printline(): Unit = {
 
-        addCustomisedDataMsg("%.*s", addPrintlnLabel())
+        
+
+        addCustomisedDataMsg("%.*s", addPrintlnLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -195,7 +197,7 @@ object Utility {
 
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
 
-        instrus.append(I_ADR(x0, I_Label(addPrintlnLabel())))
+        instrus.append(I_ADR(x0, I_Label(addPrintlnLabel(true))))
         
         instrus.append(I_BranchLink(I_Label("puts")))
 
@@ -211,7 +213,7 @@ object Utility {
 
     def printp(): Unit = {
         
-        addCustomisedDataMsg("%.*s", addPrintpLabel())
+        addCustomisedDataMsg("%.*s", addPrintpLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -221,7 +223,7 @@ object Utility {
 
         instrus.append(I_Move(x1, x0))
 
-        instrus.append(I_ADR(x0, I_Label(addPrintpLabel())))
+        instrus.append(I_ADR(x0, I_Label(addPrintpLabel(true))))
 
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
 

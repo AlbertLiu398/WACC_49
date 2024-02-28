@@ -34,7 +34,7 @@ object instruction {
 
     case class spReg(n: Int) extends Register{
         var sp = "0"
-        override def getValue(): String = s"x$n"
+        override def getValue(): String = s"sp"
     }
 
     case class Reg(n: Int) extends Register {

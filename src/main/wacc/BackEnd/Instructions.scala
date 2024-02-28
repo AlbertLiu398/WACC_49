@@ -80,27 +80,52 @@ object Instruction {
         override def printInstr(): String = s"      udiv ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
     }
 
-    case class I_Load(dest: Register, op: Operand, update_sp: Boolean) extends Instruction {
-        override def printInstr(): String = s"      ldr ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) " !\n" else "\n")
+    case class I_Load(dest: Register, op: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
+        override def printInstr(): String = 
+            op2 match {
+                case ImmVal(0) => s"      ldr ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) " !\n" else "\n")
+                case _ => s"      ldr ${dest.getValue()},, ${op.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
+            }
     }
 
-    case class I_LoadSByte(dest: Register, op: Operand, update_sp: Boolean) extends Instruction {
-        override def printInstr(): String = s"      ldrb ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) " !\n" else "\n")
+    case class I_LoadSByte(dest: Register, op: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
+        override def printInstr(): String = 
+            op2 match {
+                case ImmVal(0) => s"      ldrb ${dest.getValue()}, ${op.getValue()}" + (if (update_sp) " !\n" else "\n")
+                case _ => s"      ldrp ${dest.getValue()},, ${op.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
+            }
     }
 
-    case class I_LoadPair(dest1: Register, dest2: Register, op: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
-        override def printInstr(): String = s"      ldp ${dest1.getValue()}, ${dest2.getValue()}, ${op.getValue()}, ${op2.getValue()}" + (if (update_sp) " !\n" else "\n")
+    case class I_LoadPair(src1: Register, src2: Register, dst: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
+        override def printInstr(): String = 
+            op2 match {
+                case ImmVal(0) => s"      ldp ${src1.getValue()}, ${src2.getValue()}, ${dst.getValue()}" + (if (update_sp) "!\n" else "")
+                case _ => s"      ldp ${src1.getValue()}, ${src2.getValue()}, ${dst.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
+            }
     }
 
-    case class I_Store(src: Register, dest: Operand, update_sp: Boolean = false) extends Instruction {
-        override def printInstr(): String = s"      str ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) " !\n" else "")
+    case class I_Store(src: Register, dest: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
+        override def printInstr(): String = 
+            op2 match {
+                    case ImmVal(0) => s"      str ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) "!\n" else "\n")
+                    case _ => s"      str ${src.getValue()}, ${dest.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
+                }
     }
-    case class I_StorePair(src1: Register, src2: Register, dest: Operand, update_sp: Boolean = false) extends Instruction {
-        override def printInstr(): String = s"      stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}" + (if (update_sp) "!\n" else "")
+    case class I_StorePair(src1: Register, src2: Register, dest: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
+        override def printInstr(): String = 
+            op2 match {
+                case ImmVal(0) => s"      stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}" + (if (update_sp) "!\n" else "")
+                case _ => s"      stp ${src1.getValue()}, ${src2.getValue()}, ${dest.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
+            }
     }
 
-    case class I_StoreByte(src: Register, dest:Operand, update_sp: Boolean) extends Instruction {
-        override def printInstr(): String = s"      strb ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) "!\n" else "")
+    case class I_StoreByte(src: Register, dest:Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {
+        override def printInstr(): String = 
+            op2 match {
+                    case ImmVal(0) => s"      strb ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) "!\n" else "\n")
+                    case _ => s"      strb ${src.getValue()}, ${dest.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
+                }
+        
     }
 
     case class I_Move(dest: Register, op: Operand) extends Instruction {

@@ -43,13 +43,13 @@ class CodeGenerator (varList: List[Int]) {
       // }
 
       // Generate code for main body
-      instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), true))
+      instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
       pushUsedRegs(unused_ResultRegs.toList, varList.last)
       instructions.append(I_Move(fp, sp))
       generateInstructions(statements)
       instructions.append(I_Move(x0, ImmVal(0)))
       popUsedRegs(used_ResultRegs.toList.reverse, varList.last)
-      instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
+      instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
       instructions.append(I_Ret)
 
       // Add utility function definitions
@@ -77,12 +77,12 @@ class CodeGenerator (varList: List[Int]) {
     case Func(returnType, functionName, params, body) =>
 
       instructions.append(I_Label(functionName.value))
-      instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), true))
+      instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
       pushUsedRegs(unused_ResultRegs.toList, varList(funcProcessed))
       instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
       generateInstructions(body)
       popUsedRegs(unused_ResultRegs.toList, varList(funcProcessed))
-      instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16), false))
+      instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
       instructions.append(I_Ret)
       funcProcessed += 1
 
@@ -595,7 +595,7 @@ class CodeGenerator (varList: List[Int]) {
   }
 
   def pushAndPopx8(size: Int):Unit = {
-    instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-size)), true))
+    instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-size)), ImmVal(0), true))
     instructions.append(I_LoadPair(x8, xzr, Content(sp), ImmVal(size)))
     instructions.append(I_Move(x8, x8))
   }
@@ -607,7 +607,7 @@ class CodeGenerator (varList: List[Int]) {
       }
     }
     if (noOfVar%2 == 1) {
-      instructions.append(I_StorePair(regs(noOfVar - 1), xzr, Content(sp, ImmVal(-16)), true))
+      instructions.append(I_StorePair(regs(noOfVar - 1), xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
     }
   }
 

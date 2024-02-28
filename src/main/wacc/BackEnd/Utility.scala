@@ -81,7 +81,7 @@ object Utility {
 
         instrus.append(I_Label(PRINT_STRING_LABEL))
 
-        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), true))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
 
         instrus.append(I_Move(x2, x0))
         instrus.append(I_LDRSW(x1, Content(x0, ImmVal(-4))))
@@ -104,7 +104,7 @@ object Utility {
 
         instrus.append(I_Label(PRINT_INT_LABEL))
 
-        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), true))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
 
         instrus.append(I_Move(x1, x0))
 
@@ -128,7 +128,7 @@ object Utility {
 
         instrus.append(I_Label(PRINT_BOOL_LABEL ))
 
-        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), true))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
 
         instrus.append(I_Cmp(x0, ImmVal(0)))
         
@@ -168,7 +168,7 @@ object Utility {
 
         instrus.append(I_Label(PRINT_CHAR_LABEL))
 
-        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), true))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
 
         instrus.append(I_Move(x1, x0))
 
@@ -193,7 +193,7 @@ object Utility {
 
         instrus.append(I_Label(PRINT_LN_LABEL))
 
-        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), true))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
 
         instrus.append(I_ADR(x0, I_Label(addPrintlnLabel())))
         
@@ -217,7 +217,7 @@ object Utility {
 
         instrus.append(I_Label(PRINT_P_LABEL))
 
-        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), true))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
 
         instrus.append(I_Move(x1, x0))
 
@@ -256,7 +256,7 @@ object Utility {
     def read(): Unit = {
         addCustomisedDataMsg("%d", "_read_")
         instrus.append(I_Label(READ_LABEL))
-        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), true))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, sp))
         instrus.append(I_ADR(x0, I_Label(addReadLabel())))
         instrus.append(I_BranchLink(I_Label(SCANF_LABEL)))

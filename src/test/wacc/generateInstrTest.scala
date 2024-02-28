@@ -113,8 +113,7 @@ import org.scalatest._
 
   it should "generate Neg instruction" in {
     val ast = Negate(IntLiter(1))
-    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true), 
-                                                    I_LoadPair(x8, xzr, Content(sp), ImmVal(16)), I_Move(x8, x8))
+    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(-1)))
     codeGenerator.revertTempRegs()
   }
   // it should "generate IntLiter instruction" in {

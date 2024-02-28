@@ -37,14 +37,14 @@ object Labels {
                 // Use customised label name
                 instruction = mutable.ListBuffer(
                     I_Directive(s"      .word $actualSize"),
-                    I_Label(s".L.$name"),
+                    I_Label(s"$name"),
                     I_Directive(s"      .asciz " + "\"" + s + "\"")
                 )
             } else {
                 // Use counter to generate label name
                 instruction = mutable.ListBuffer(
                     I_Directive(s"      .word $actualSize"),
-                    I_Label(s".L.str$labelIndex"),
+                    I_Label(label),
                     I_Directive(s"      .asciz " + "\"" + s + "\"")
                 ) 
             }
@@ -94,7 +94,7 @@ object Labels {
     }
 
     def addPrintbLabel(incrementCount: Boolean): String = {
-        val instr = s".L._printb_$printbCounter"
+        val instr = s".L._printb_str$printbCounter"
         if (incrementCount) {
             printbCounter += 1
         }

@@ -8,6 +8,6 @@
 # Program:
 
 begin
-  exit 42 ;
-  println "Should not print this."
+  bool b = true;
+  print b
 end

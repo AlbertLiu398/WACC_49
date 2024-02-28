@@ -122,7 +122,6 @@ object Utility {
     }
 
     def printbool(): Unit = {
-        addCustomisedDataMsg("%.*s", addPrintbLabel(false))
 
         instrus.append(I_Directive(".align 4"))
 
@@ -134,19 +133,25 @@ object Utility {
         
         instrus.append(I_Branch(I_Label(".L._printb0"), NE))
 
-        instrus.append(I_ADR(x2, I_Label(addPrintbLabel(true))))
+        val labelPrint = addPrintbLabel(true)
+        addCustomisedDataMsg("true", labelPrint)
+        instrus.append(I_ADR(x2, I_Label(labelPrint)))
 
         instrus.append(I_Branch(I_Label(".L._printb1")))
         
         instrus.append(I_Label(".L._printb0"))
         
-        instrus.append(I_ADR(x2, I_Label(addPrintbLabel(true))))   
+        val labelTrue = addPrintbLabel(true)
+        addCustomisedDataMsg("false", labelTrue)
+        instrus.append(I_ADR(x2, I_Label(labelTrue)))   
         
         instrus.append(I_Label(".L_.printb1"))    
         
         instrus.append(I_LDRSW(x1, Content(x2, ImmVal(-4))))
         
-        instrus.append(I_ADR(x0, I_Label(addPrintbLabel(true))))
+        val labelFalse = addPrintbLabel(true)
+        addCustomisedDataMsg("%.*s", labelFalse)
+        instrus.append(I_ADR(x0, I_Label(labelFalse)))
         
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
@@ -188,7 +193,6 @@ object Utility {
     def printline(): Unit = {
 
         
-
         addCustomisedDataMsg("%.*s", addPrintlnLabel(false))
 
         instrus.append(I_Directive(".align 4"))

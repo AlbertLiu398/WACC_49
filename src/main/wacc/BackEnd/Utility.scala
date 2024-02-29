@@ -62,6 +62,7 @@ object Utility {
     final val EXIT_LABEL = "_exit"
     final val ARRLOAD_LABEL = "_arrLoad"
     final val FREE_PAIR_LABEL = "_freePair"
+    final val FREE_LABEL = "free"
 
     // Labels for error messages 
     final val ERR_OUT_OF_MEMORY_LABEL = "_errOutOfMemory"
@@ -70,6 +71,7 @@ object Utility {
     final val ERR_OVERFLOW_LABEL = "_errOverflow"
     final val ERR_DIV_ZERO_LABEL = "_errDivZero"
     final val ERR_BAD_CHAR_LABEL = "_errBadChar"
+
 
 
     
@@ -108,7 +110,6 @@ object Utility {
             readint()
         }
 
-
         // ----other utilities----
 
         if (mallocFlag) {
@@ -134,24 +135,22 @@ object Utility {
         if (arithmeticFlag) {
             printStringFlag = true
             errOverFlow()
-        
+        }
+
+         if (errOutOfBoundFlag) {
+            printStringFlag = true
+            errOutOfBounds()
         }
 
         if (badCharFlag) {
             printStringFlag = true
             errBadChar()
         }
-
-
         
         if (!arrloadFlag.isEmpty) {
             for (size <- arrloadFlag) {
                 arrLoad(size)
             }
-        }
-
-        if (errOutOfBoundFlag) {
-            errOutOfBounds()
         }
 
         if (freePairFlag) {
@@ -416,6 +415,7 @@ object Utility {
         instrus.append(I_Label(FREE_PAIR_LABEL))
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Cbz(x0, I_Label(ERR_NULL_LABEL)))
+        instrus.append(I_BranchLink(I_Label(FREE_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }

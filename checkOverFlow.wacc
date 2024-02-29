@@ -1,4 +1,0 @@
-begin
-  int x = 2147483646 ;
-  x = x + 1
-end

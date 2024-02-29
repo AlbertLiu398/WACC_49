@@ -78,7 +78,7 @@ class CodeGenerator (varList: List[Int]) {
       pushUsedRegs(unused_ResultRegs.toList, varList(funcProcessed))
       instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
       generateInstructions(body)
-      popUsedRegs(unused_ResultRegs.toList, varList(funcProcessed))
+      popUsedRegs(used_ResultRegs.toList.reverse, varList(funcProcessed))
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
       instructions.append(I_Ret)
       funcProcessed += 1

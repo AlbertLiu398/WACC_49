@@ -25,26 +25,26 @@ import org.scalatest._
 
     it should "generate Add instruction" in {
       val ast = Add(IntLiter(1), IntLiter(1))
-      refreshAndGenerate(ast) shouldBe List(I_Move(x8, ImmVal(1)), I_Add(x8, x8, ImmVal(1)))
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Add(Reg(8), Reg(8), ImmVal(1)), I_Branch(I_Label("_errOverflow"), VS))
       codeGenerator.revertTempRegs()
     }
 
     it should "generate Sub instruction easy" in {
       val ast = Sub(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(x8, ImmVal(1)), I_Sub(x8, x8, ImmVal(2),false))
+      refreshAndGenerate(ast) shouldBe List(I_Move(x8, ImmVal(1)), I_Sub(x8, x8, ImmVal(2),false), I_Branch(I_Label("_errOverflow"), VS))
       codeGenerator.revertTempRegs()
     }
   
 
     it should "generate Sub instruction" in {
        val ast = Sub(IntLiter(1), Sub(IntLiter(2), IntLiter(1)))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8),ImmVal(1)), I_Move(Reg(9),Reg(8)), I_Move(Reg(8),ImmVal(2)), I_Sub(Reg(8),Reg(8),ImmVal(1),false), I_Sub(Reg(8),Reg(9),Reg(8),false))
+      refreshAndGenerate(ast) shouldBe   List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Sub(Reg(8), Reg(8), ImmVal(1), false), I_Branch(I_Label("_errOverflow"), VS), I_Sub(Reg(8), Reg(9), Reg(8), false), I_Branch(I_Label("_errOverflow"), VS))
       codeGenerator.revertTempRegs()
     }
 
     it should "generate Mul instruction" in {
       val ast = Mul(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8),ImmVal(1)), I_Move(Reg(9),Reg(8)), I_Move(Reg(8),ImmVal(2)), I_Mul(Reg(8),Reg(9),Reg(8)))
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8),ImmVal(1)), I_Move(Reg(9),Reg(8)), I_Move(Reg(8),ImmVal(2)), I_Mul(Reg(8),Reg(9),Reg(8)), I_Branch(I_Label("_errOverflow"), VS))
       codeGenerator.revertTempRegs()
     }
 
@@ -56,42 +56,43 @@ import org.scalatest._
 
     it should "generate Mod instruction" in {
       val ast = Mod(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_UDiv(Reg(10), Reg(9), Reg(8)), I_Mul(Reg(10), Reg(10), Reg(8)), I_Sub(Reg(8), Reg(9), Reg(10), false))
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cbz(Reg(9), I_Label("_errDivZero")), I_UDiv(Reg(10), Reg(9), Reg(8)), I_Mul(Reg(10), Reg(10), Reg(8)), I_Sub(Reg(8), Reg(9), Reg(10), false), I_Branch(I_Label("_errOverflow"), VS)) 
       codeGenerator.revertTempRegs()
     }
 
     it should "generate LessThan instruction" in {
       val ast = LessThan(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), LT)) 
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(10), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(10), Reg(8)), I_CSet(Reg(8), LT))
       codeGenerator.revertTempRegs()
     }
 
     it should "generate LessThanEq instruction" in {
       val ast = LessThanEq(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), LE)) 
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), LT))
       codeGenerator.revertTempRegs()
     }
   
   it should "generate GreaterThan instruction" in {
     val ast = GreaterThan(IntLiter(1), IntLiter(2))
-    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), GT))
+    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(12), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(12), Reg(8)), I_CSet(Reg(8), GT))
     codeGenerator.revertTempRegs()
   }
+
   it should "generate GreaterThanEq instruction" in {
     val ast = GreaterThanEq(IntLiter(1), IntLiter(2))
-    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), GE))
+    refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(12), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(12), Reg(8)), I_CSet(Reg(8), GE))
    codeGenerator.revertTempRegs()
 }
 
   it should "generate Eq instruction" in {
     val ast = Eq(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), EQ))
+      refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(13), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(13), Reg(8)), I_CSet(Reg(8), EQ))
       codeGenerator.revertTempRegs()
   }
 
   it should "generate NotEq instruction" in {
     val ast = NotEq(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), NE))
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), NE))
       codeGenerator.revertTempRegs()
   }
   it should "generate And instruction" in {

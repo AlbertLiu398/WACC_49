@@ -80,9 +80,9 @@ object Utility {
         if (printIntFlag) {
             printint()
         }
-        if (printStringFlag) {
-            printstr()
-        }
+        // if (printStringFlag) {
+        //     printstr()
+        // }
         if (printBoolFlag) {
             printbool()
         }
@@ -103,27 +103,39 @@ object Utility {
         // ----other utilities----
 
         if (mallocFlag) {
+            printStringFlag = true
             malloc()
         }
 
         if (divByZeroFlag) {
+            printStringFlag = true
             errDivByzero()
         }
 
         if (nullPointerFlag) {
+            printStringFlag = true
             errNull()
         }
 
         if (arrayBoundsFlag) {
+            printStringFlag = true
             errOutOfBounds()
         }
 
         if (arithmeticFlag) {
+            printStringFlag = true
             errOverFlow()
+        
         }
 
         if (badCharFlag) {
+            printStringFlag = true
             errBadChar()
+        }
+
+        // Finally check if need to add prints
+        if (printStringFlag) {
+            printstr()
         }
         
         instrus
@@ -321,9 +333,6 @@ object Utility {
     }
 
     def errOverFlow(): Unit = {
-         if (!printStringFlag) {
-            printStringFlag = true
-        }
         val label = addErrOverflowLabel()
         addCustomisedDataMsg("e" + ERR_OVERFLOW_MSG, label)
         instrus.append(I_Directive(".align 4"))
@@ -332,10 +341,6 @@ object Utility {
     }
 
     def errBadChar(): Unit = {
-        if (!printStringFlag) {
-            printStringFlag = true
-        }
-        
         val label = addErrBadCharLabel()
         addCustomisedDataMsg("e" + ERR_BAD_CHAR_MSG, label)
         instrus.append(I_Directive(".align 4"))
@@ -351,9 +356,7 @@ object Utility {
     
    // helper function to extract common parts of error handlers
     def throwError(label: String): Unit = {
-        if (!printStringFlag) {
-            printStringFlag = true
-        }
+        
         instrus.append(I_ADR(x0, I_Label(label)))
         instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
         instrus.append(I_Move(x0, ImmVal(-1)))

@@ -1,13 +1,7 @@
-
-# common error exit statement
-
-# Output:
-
-# Exit:
-# 255
-
-# Program:
-
 begin
-  skip
+  int inc(int x) is
+    int g = 1;
+    return g
+  end
+  int x = 1
 end

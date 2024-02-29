@@ -1,6 +1,6 @@
 package wacc 
 
-import java.io.{BufferedWriter, File, FileWriter}
+import java.io._
 import java.nio.file.{Files, Paths, StandardCopyOption}
 
 
@@ -16,28 +16,30 @@ object FileConverter {
     result
   }
 
-  def convertToAssembly(filePath: String, prog : ast.ASTNode, list : List[Int]): Unit = {
+  def convertToAssembly(filePath: String, prog: ast.ASTNode, list: List[Int]): Unit = {
     val waccFile = new File(filePath)
-    
+
     if (waccFile.exists() && waccFile.isFile && filePath.endsWith(".wacc")) {
       val asmFileName = waccFile.getName.replaceAll("\\.wacc$", ".s")
       val asmFile = new File(asmFileName)
-      
-      if (asmFile.createNewFile()) {
 
-        //  generate assembly code and write to asm file
-        val writer = new BufferedWriter(new FileWriter(asmFile))
-        
+      try {
+        val fos = new FileOutputStream(asmFile, false)
+        val writer = new BufferedWriter(new OutputStreamWriter(fos))
+
+        // generate assembly code and write to asm file
         writer.write(generateAssemblyCode(prog, list))
-        
+
         writer.close()
-        
-        println(s"Assembly file created: $asmFileName")
-      } else {
-        println("Error creating assembly file.")
+
+        println(s"Assembly file created/overwritten: $asmFileName")
+      } catch {
+        case e: IOException =>
+          println(s"Error creating/overwriting assembly file: ${e.getMessage}")
       }
     } else {
       println("Invalid or non-existent WACC file.")
     }
   }
+
 }

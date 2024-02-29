@@ -100,15 +100,13 @@ class CodeGenerator (varList: List[Int]) {
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
-          // print(unused_TempRegs)
+          val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          // print(used_TempRegs)
-          instructions.append(I_Add(x8, used_TempRegs.head, x8))
+          instructions.append(I_Add(x8, fstReg, x8))
 
       }
       checkOverflowHandler() 
-      revertTempRegs()
 
       
     case Sub(expr1, expr2) => 
@@ -123,9 +121,10 @@ class CodeGenerator (varList: List[Int]) {
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
+          val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Sub(x8, used_TempRegs.head, x8))
+          instructions.append(I_Sub(x8, fstReg, x8))
       }
       checkOverflowHandler()
 
@@ -137,12 +136,12 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr1)  // mov x8 expr1
       instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x8 x9 
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
+      val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
       generateInstructions(expr2)  //mov x8 epr2 
       
-      instructions.append(I_Mul(x8, used_TempRegs.head, x8))  // mul x8 x9 x8
+      instructions.append(I_Mul(x8, fstReg, x8))  // mul x8 x9 x8
       checkOverflowHandler()
-      revertTempRegs()
 
 
     case Div(expr1, expr2) =>
@@ -158,11 +157,12 @@ class CodeGenerator (varList: List[Int]) {
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
+          val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
 
-          instructions.append(I_Cbz(used_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL))) 
-          instructions.append(I_UDiv(x8, used_TempRegs.head, x8))
+          instructions.append(I_Cbz(fstReg, I_Label(ERR_DIV_ZERO_LABEL))) 
+          instructions.append(I_UDiv(x8, fstReg, x8))
       }
       checkOverflowHandler()
 
@@ -173,13 +173,14 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
+      val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
       generateInstructions(expr2)
 
-      instructions.append(I_Cbz(used_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL)))
-      instructions.append(I_UDiv(unused_TempRegs.head, used_TempRegs.head, x8))
+      instructions.append(I_Cbz(fstReg, I_Label(ERR_DIV_ZERO_LABEL)))
+      instructions.append(I_UDiv(unused_TempRegs.head, fstReg, x8))
       instructions.append(I_Mul(unused_TempRegs.head, unused_TempRegs.head, x8))
-      instructions.append(I_Sub(x8, used_TempRegs.head, unused_TempRegs.head))
+      instructions.append(I_Sub(x8, fstReg, unused_TempRegs.head))
       checkOverflowHandler()
       
 
@@ -188,10 +189,11 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
+      val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
       generateInstructions(expr2)
 
-      instructions.append(I_Cmp(used_TempRegs.head, x8))
+      instructions.append(I_Cmp(fstReg, x8))
       instructions.append(I_CSet(x8, LT))
       //push and pop x8
         
@@ -199,50 +201,55 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
+      val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
       generateInstructions(expr2)
 
-      instructions.append(I_Cmp(used_TempRegs.head, x8))
+      instructions.append(I_Cmp(fstReg, x8))
       instructions.append(I_CSet(x8, LE))
 
     case GreaterThan(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
+      val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
       generateInstructions(expr2)
 
-      instructions.append(I_Cmp(used_TempRegs.head, x8))
+      instructions.append(I_Cmp(fstReg, x8))
       instructions.append(I_CSet(x8, GT))
 
     case GreaterThanEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
+      val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
       generateInstructions(expr2)
 
-      instructions.append(I_Cmp(used_TempRegs.head, x8))
+      instructions.append(I_Cmp(fstReg, x8))
       instructions.append(I_CSet(x8, GE))
 
     case Eq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
+      val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
       generateInstructions(expr2)
 
-      instructions.append(I_Cmp(used_TempRegs.head, x8))
+      instructions.append(I_Cmp(fstReg, x8))
       instructions.append(I_CSet(x8, EQ))
     
     case NotEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
+      val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
       generateInstructions(expr2)
 
-      instructions.append(I_Cmp(used_TempRegs.head, x8))
+      instructions.append(I_Cmp(fstReg, x8))
       instructions.append(I_CSet(x8, NE))
 
     case And(expr1, expr2) =>
@@ -257,9 +264,10 @@ class CodeGenerator (varList: List[Int]) {
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
+          val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_And(x8, used_TempRegs.head, x8))
+          instructions.append(I_And(x8, fstReg, x8))
       }
 
     case Or(expr1, expr2) =>
@@ -271,9 +279,10 @@ class CodeGenerator (varList: List[Int]) {
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
+          val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Orr(x8, used_TempRegs.head, x8))
+          instructions.append(I_Orr(x8, fstReg, x8))
       }
 
     case Invert(expr) =>
@@ -663,7 +672,7 @@ class CodeGenerator (varList: List[Int]) {
     unused_TempRegs = mutable.ListBuffer() ++ unused_TempRegs_copy
   }
 
-    def revertResultRegs():Unit = {
+  def revertResultRegs():Unit = {
     used_ResultRegs.clear()
     unused_ResultRegs = mutable.ListBuffer() ++ unused_GeneralRegs_copy
   }

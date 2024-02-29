@@ -1,10 +1,10 @@
 .data 
-      .word 4 
-.L._prints_str0: 
-      .asciz "*s" 
       .word 17 
 .L.str0: 
-      .asciz "dsa\"dasas" 
+      .asciz "adasdas\"sdaa\"sdas" 
+      .word 4 
+.L._prints_str0: 
+      .asciz "%.*s" 
       .word 0 
 .L._println_str0: 
       .asciz "" 

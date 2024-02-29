@@ -100,8 +100,10 @@ class CodeGenerator (varList: List[Int]) {
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
+          // print(unused_TempRegs)
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
+          // print(used_TempRegs)
           instructions.append(I_Add(x8, used_TempRegs.head, x8))
 
       }

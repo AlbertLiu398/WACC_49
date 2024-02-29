@@ -368,7 +368,39 @@ class CodeGenerator (varList: List[Int]) {
       val reg = getRegFromMap(getIdent(name))
       name match {
         case n@ArrElem(name, v)=>
-          generateInstructions(n)
+          var counter = v.length * 4
+          for (expr <- v) {
+            arrloadFlag += counter
+            generateInstructions(expr)
+            if (counter != 4) {
+              instructions.append(I_Move(x17, x8))
+              if (counter !=  v.length * 4) {
+                instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
+              }
+              instructions.append(I_Move(x7, getRegFromMap(name)))
+              branchLink(s"_arrLoad$counter")
+              counter -= 4
+            
+              instructions.append(I_Move(x8, x7))
+              instructions.append(I_Move(x8, x8))
+              instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+            }
+            else {
+              var fstReg = getRegFromMap(name)
+              if (v.length != 1) {
+                instructions.append(I_LoadPair(unused_TempRegs.head, xzr, Content(sp), ImmVal(16)))
+                used_TempRegs = unused_TempRegs.head +: used_TempRegs
+                var fstReg = used_TempRegs.head
+                unused_TempRegs.remove(0)
+              }
+              instructions.append(I_Move(x17, x8))
+              generateInstructions(value)
+              instructions.append(I_Move(x7, fstReg))
+              
+              branchLink(s"_arrLoad$counter")
+            }
+          errOutOfBoundFlag = true
+        }
 
         case n@FstPairElem(values) =>
           nullPointerFlag = true
@@ -380,8 +412,9 @@ class CodeGenerator (varList: List[Int]) {
 
         case _=>
           generateInstructions(name)
+          generateInstructions(value)
           
-        generateInstructions(value)  
+         
         instructions.append(I_Move(reg, x8))
         revertTempRegs()
         
@@ -548,15 +581,17 @@ class CodeGenerator (varList: List[Int]) {
       for (expr <- value) {
         arrloadFlag += counter
         generateInstructions(expr)
-        instructions.append(I_Move(x7, x19)) 
+        instructions.append(I_Move(x17, x8))
+        instructions.append(I_Move(x7, getRegFromMap(name))) 
         branchLink(s"_arrLoad$counter")
-        instructions.append(I_Move(x8, x7))
-        instructions.append(I_Move(x8, x8))
+
         counter -= 4
         if (counter != 0) {
+          instructions.append(I_Move(x8, x7))
+          instructions.append(I_Move(x8, x8))
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_Move(x7, ImmVal(1)))
-          instructions.append(I_LoadPair(x8, xzr, Content(sp), ImmVal(16)))
+          instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
         }
         errOutOfBoundFlag = true
       }

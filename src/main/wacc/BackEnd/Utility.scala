@@ -146,7 +146,7 @@ object Utility {
             printStringFlag = true
             errBadChar()
         }
-        
+        arrloadFlag = arrloadFlag.distinct
         if (!arrloadFlag.isEmpty) {
             for (size <- arrloadFlag) {
                 arrLoad(size)

@@ -8,6 +8,7 @@ import Constant._
 import Conditions._
 import Labels._
 import ErrorMsgs._
+import Shift._
 
 object Utility {
 
@@ -56,6 +57,7 @@ object Utility {
     final val MALLOC_LABEL = "_malloc"
     final val MALLOC_FUNC_LABEL = "malloc"
     final val EXIT_LABEL = "_exit"
+    final val ARRLOAD_LABEL = "_arrLoad"
 
     // Labels for error messages 
     final val ERR_OUT_OF_MEMORY_LABEL = "_errOutOfMemory"
@@ -185,25 +187,25 @@ object Utility {
         
         instrus.append(I_Branch(I_Label(".L_printb0"), NE))
 
-        val labelPrint = addPrintbLabel()
-        addCustomisedDataMsg("ptrue", labelPrint)
-        instrus.append(I_ADR(x2, I_Label(labelPrint)))
+        val labelTrue = addPrintbLabel()
+        addCustomisedDataMsg("ptrue", labelTrue)
+        instrus.append(I_ADR(x2, I_Label(labelTrue)))
 
         instrus.append(I_Branch(I_Label(".L_printb1")))
         
         instrus.append(I_Label(".L_printb0"))
         
-        val labelTrue = addPrintbLabel()
-        addCustomisedDataMsg("pfalse", labelTrue)
-        instrus.append(I_ADR(x2, I_Label(labelTrue)))   
+        val labelFalse = addPrintbLabel()
+        addCustomisedDataMsg("pfalse", labelFalse)
+        instrus.append(I_ADR(x2, I_Label(labelFalse)))   
         
         instrus.append(I_Label(".L_printb1"))    
         
         instrus.append(I_Ldrsw(x1, Content(x2, ImmVal(-4))))
         
-        val labelFalse = addPrintbLabel()
-        addCustomisedDataMsg("p%.*s", labelFalse)
-        instrus.append(I_ADR(x0, I_Label(labelFalse)))
+        val labelString = addPrintbLabel()
+        addCustomisedDataMsg("a%.*s", labelString)
+        instrus.append(I_ADR(x0, I_Label(labelString)))
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
         printEnd()
@@ -278,7 +280,7 @@ object Utility {
 
     def readchar() : Unit = {
         val labelRead = addReadcLabel()
-        addCustomisedDataMsg("r %c", labelRead)
+        addCustomisedDataMsg("r%c", labelRead)
         instrus.append(I_Label(READC_LABEL))
         
         read(labelRead)
@@ -370,6 +372,38 @@ object Utility {
         instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
         instrus.append(I_Move(x0, ImmVal(-1)))
         instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
+    }
+
+
+// 91	_arrLoad8:
+// 92		// Special calling convention: array ptr passed in X7, index in X17, LR (W30) is used as general register, and return into X7
+// 93		// push {lr}
+// 94		stp lr, xzr, [sp, #-16]!
+// 95		sxtw x17, w17
+// 96		cmp w17, #0
+// 97		csel x1, x17, x1, lt
+// 98		b.lt _errOutOfBounds
+// 99		ldrsw lr, [x7, #-4]
+// 100		cmp w17, w30
+// 101		csel x1, x17, x1, ge
+// 102		b.ge _errOutOfBounds
+// 103		ldr x7, [x7, x17, lsl #3]
+// 104		// pop {lr}
+// 105		ldp lr, xzr, [sp], #16
+// 106		ret
+    def arrLoad(size: Int): Unit = {
+        instrus.append(I_Label(ARRLOAD_LABEL + size))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+        instrus.append(I_Cmp(x17, ImmVal(0)))
+        instrus.append(I_Csel(x1, x17, x1, LT))
+        instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), LT))
+        instrus.append(I_Ldrsw(lr, Content(x7, ImmVal(-4))))
+        instrus.append(I_Cmp(x17, lr))
+        instrus.append(I_Csel(x1, x17, x1, GE))
+        instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), GE))
+        instrus.append(I_Load(x7, Content(x7, x17, LSL(size/4 + 1))))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
+        instrus.append(I_Ret)
     }
     
 }

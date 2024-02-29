@@ -37,8 +37,12 @@ class CodeGenerator (varList: List[Int]) {
         I_Directive(".text"),
         I_Directive(".global main"), 
         I_Label("main"))
-      
 
+      // Put Functions into identMap
+      for(func <- functions) {
+        identMap(func.functionName) = identMapEntry(getSize(func.returnType), xzr)
+      }
+      
       // Generate code for main body
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
       pushUsedRegs(unused_ResultRegs.toList, varList.last)
@@ -504,9 +508,15 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Add(x8, x8, Op(s":lo12:$label")))
       pushAndPopx8(16)
       
-      
-      
+    case ArrElem(name, value) => 
+      for (expr <- value) {
+        generateInstructions(expr)
+      }
 
+      branchLink( "_arrLoad4")
+      instructions.append(I_Move(x8, x8))
+
+    
     
     case PairLiter => 
 

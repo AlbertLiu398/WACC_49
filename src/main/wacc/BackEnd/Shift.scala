@@ -6,15 +6,15 @@ object Shift {
         def getValue() : String
     }
     case class LSL(value: Int) extends Shifts {
-        override def getValue(): String = s"LSL #$value"
+        override def getValue(): String = s"lsl #$value"
     }
     case class LSR(value: Int) extends Shifts {
-        override def getValue(): String = s"LSR #$value"
+        override def getValue(): String = s"lsr #$value"
     }
     case class ASR(value: Int) extends Shifts {
-        override def getValue(): String = s"ASR #$value"
+        override def getValue(): String = s"asr #$value"
     }
     case class ROR(value: Int) extends Shifts {
-        override def getValue(): String = s"ROR #$value"
+        override def getValue(): String = s"ror #$value"
     }
 }

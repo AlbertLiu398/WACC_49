@@ -62,6 +62,7 @@ object Labels {
 
     // Generate a data message from a string and add to allDataMsgs
     def addDataMsg(s:String): String = {
+        // print("Adding data message: " + s + "     COUNTER:  " +  dataMsgCounter + "\n")
         val result = addDataMsgWithLabel(s, dataMsgCounter, "")
         dataMsgCounter = dataMsgCounter + 1
         result
@@ -80,6 +81,7 @@ object Labels {
         val len = s.length
         val msg = DataMsg(s, labelCounter, len, customisedLabelName)
 
+        
         allDataMsgs += (s -> msg)
         msg.label
             

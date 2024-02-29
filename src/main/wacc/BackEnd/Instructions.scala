@@ -27,10 +27,16 @@ object Instruction {
         override def getValue(): String = value
     }
 
-    case class Content(reg : Register, offset: ImmVal = ImmVal(0)) extends Operand {
+    case class Content(reg : Register, offset: Operand = ImmVal(0), shift: Shifts = LSL(0)) extends Operand {
         override def getValue(): String = { 
-            if (offset.value != 0) return s"[${reg.getValue()}, ${offset.getValue()}]"
-            else return s"[${reg.getValue()}]"
+            var s = s"[${reg.getValue()}]"
+            if (offset != ImmVal(0)) {
+                s += s", ${offset.getValue()}]"
+            }
+            if (shift != LSL(0)) {
+                s += s", ${shift.getValue()}]"
+            }
+            s
         }
     }
 

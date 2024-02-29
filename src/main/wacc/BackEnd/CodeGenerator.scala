@@ -329,6 +329,10 @@ class CodeGenerator (varList: List[Int]) {
    // -------------------------- Generate instructions for statements
     case Read(lValue) =>
         val n = getIdent(lValue)
+        instructions.append(I_Cbz(x19, I_Label(ERR_NULL_LABEL)))
+        instructions.append(I_Load(x8, Content(x19, ImmVal(0))))
+      
+        
         instructions.append(I_Move(x8, getRegFromMap(n)))
         instructions.append(I_Move(x0, x8))
 
@@ -346,7 +350,10 @@ class CodeGenerator (varList: List[Int]) {
 
       
         
-    case NewAssignment(identType, name, value) => 
+    case NewAssignment(identType, name, value) =>
+
+      nullPointerFlag = true
+       
       generateInstructions(value)
       instructions.append(I_Move(unused_ResultRegs.head, x8))
       used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs 
@@ -383,7 +390,7 @@ class CodeGenerator (varList: List[Int]) {
     
     case Free(expr) => 
       generateInstructions(expr)
-      instructions.append(I_Move(x8, x8))
+      instructions.append(I_Move(x0, x8))
       branchLink(FREE_PAIR_LABEL)
       nullPointerFlag = true
       freePairFlag = true
@@ -560,10 +567,8 @@ class CodeGenerator (varList: List[Int]) {
     
     
     case PairLiter => 
-
+      instructions.append(I_Move(x8, ImmVal(0)))
       
-      
-
     case a@ArrLiter(e, es) =>
       instructions.append(I_Move(x0, ImmVal(getSize(a))))
       branchLink(MALLOC_LABEL)

@@ -378,6 +378,12 @@ class CodeGenerator (varList: List[Int]) {
       
     
     case Free(expr) => 
+      generateInstructions(expr)
+      instructions.append(I_Move(x8, x8))
+      branchLink(FREE_PAIR_LABEL)
+      nullPointerFlag = true
+      freePairFlag = true
+
     case Return(expr) => 
       generateInstructions(expr)
       instructions.append(I_Move(x0, x8))
@@ -385,7 +391,7 @@ class CodeGenerator (varList: List[Int]) {
     case Exit(expr) =>
       generateInstructions(expr)
       instructions.append(I_Move(unused_ParamRegs.head, x8))
-      branchLink( EXIT_LABEL)
+      branchLink(EXIT_LABEL)
 
     
 

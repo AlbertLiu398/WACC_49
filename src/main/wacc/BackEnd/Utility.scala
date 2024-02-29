@@ -37,6 +37,7 @@ object Utility {
     var badCharFlag: Boolean = false
     var arrloadFlag: mutable.ListBuffer[Int] = mutable.ListBuffer()
     var errOutOfBoundFlag = false
+    var freePairFlag = false
 
     // Labels for print functions
     final val PRINT_STRING_LABEL = "_prints"
@@ -60,6 +61,7 @@ object Utility {
     final val MALLOC_FUNC_LABEL = "malloc"
     final val EXIT_LABEL = "_exit"
     final val ARRLOAD_LABEL = "_arrLoad"
+    final val FREE_PAIR_LABEL = "_freePair"
 
     // Labels for error messages 
     final val ERR_OUT_OF_MEMORY_LABEL = "_errOutOfMemory"
@@ -140,10 +142,6 @@ object Utility {
             errBadChar()
         }
 
-        // Finally check if need to add prints
-        if (printStringFlag) {
-            printstr()
-        }
 
         
         if (!arrloadFlag.isEmpty) {
@@ -154,6 +152,15 @@ object Utility {
 
         if (errOutOfBoundFlag) {
             errOutOfBounds()
+        }
+
+        if (freePairFlag) {
+            freePair()
+        }
+
+        // Finally check if need to add prints
+        if (printStringFlag) {
+            printstr()
         }
 
         instrus
@@ -382,7 +389,7 @@ object Utility {
 
     
    // helper function to extract common parts of error handlers
-    def throwError(label: String): Unit = {
+    private def throwError(label: String): Unit = {
         instrus.append(I_ADR(x0, I_Label(label)))
         instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
         instrus.append(I_Move(x0, ImmVal(-1)))
@@ -401,6 +408,14 @@ object Utility {
         instrus.append(I_Csel(x1, x17, x1, GE))
         instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), GE))
         instrus.append(I_Ldrsw(x7, Content(x7, x17, LSL(size/4 + 1))))
+        instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
+        instrus.append(I_Ret)
+    }
+
+    def freePair(): Unit = {
+        instrus.append(I_Label(FREE_PAIR_LABEL))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+        instrus.append(I_Cbz(x0, I_Label(ERR_NULL_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }

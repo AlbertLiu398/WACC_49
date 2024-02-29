@@ -1,7 +1,8 @@
 begin
-  int f() is
-    return 0
+  int f(int f) is
+    return f
   end
-  int x = call f() ;
-  println x
+
+  int f = call f(99);
+  println f
 end

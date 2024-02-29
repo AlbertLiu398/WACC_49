@@ -12,8 +12,7 @@ import Utility._
 class CodeGenerator (varList: List[Int]) {
 
   // identMap to store all variables and their size & pointer
-  // For functions specifically: size = func.returnType's size, pointer = func.paramListType.length
-  
+  // For functions specifically: size = func.returnType's size
   case class identMapEntry(size: Int, reg: Register)
 
   private val identMap = mutable.Map[Ident, identMapEntry]()
@@ -22,6 +21,10 @@ class CodeGenerator (varList: List[Int]) {
   private var funcProcessed = 0
 
   private var assemblyFcuntions = mutable.Map[String, List[Instruction]]()
+
+  private var inFunc = false
+  private val funcIdentMap = mutable.Map[Ident, identMapEntry]()
+  private val funcMap = mutable.Map[Ident, ParamList]()
   
   /* 
     generateInstructions (recursive function)
@@ -40,6 +43,7 @@ class CodeGenerator (varList: List[Int]) {
 
       // Put Functions into identMap
       for(func <- functions) {
+        funcMap(func.functionName) = func.params
         identMap(func.functionName) = identMapEntry(getSize(func.returnType), xzr)
       }
       
@@ -55,9 +59,11 @@ class CodeGenerator (varList: List[Int]) {
       revertResultRegs()
 
       // Generate code for functions
+      inFunc = true
       for(func <- functions) {
         generateInstructions(func)
       }
+      inFunc = false
 
       // Add utility function definitions
       instructions.appendAll(addUtility())
@@ -582,10 +588,13 @@ class CodeGenerator (varList: List[Int]) {
       for (i <- 0 until args.exprl.length) {
         generateInstructions(args.exprl(i))
         instructions.append(I_Move(unused_ParamRegs(i), x8))
+        val p = getFuncFromMap(func).paramListType(i)
+        funcIdentMap(p.paramName) = identMapEntry(getSize(p.paramType), unused_ParamRegs(i))
       }
       branchLink( "wacc_" + func.value)
       instructions.append(I_Move(x16, x0))
       instructions.append(I_Move(x8, x16))
+
     
     case FstPairElem(values) =>
       val reg = getRegFromMap(getIdent(values))
@@ -603,7 +612,12 @@ class CodeGenerator (varList: List[Int]) {
       nullPointerFlag = true
 
     case Ident(value) => 
-      instructions.append(I_Move(x8, getRegFromMap(Ident(value))))
+      if (inFunc) {
+        instructions.append(I_Move(x8, getFuncRegFromMap(Ident(value))))
+      } else {
+        instructions.append(I_Move(x8, getRegFromMap(Ident(value))))
+      }
+      
 
     case _ => 
       
@@ -756,6 +770,23 @@ class CodeGenerator (varList: List[Int]) {
         case None => "no such Ident in map"
       }
       return xzr
+  }
+
+
+  def getFuncRegFromMap(name: Ident): Register = {
+      funcIdentMap.get(name) match {
+        case Some(value) => return value.reg
+        case None => "no such Ident in map"
+      }
+      return xzr
+  }
+
+  def getFuncFromMap(name: Ident): ParamList = {
+      funcMap.get(name) match {
+        case Some(value) => return value
+        case None => "no such Func in map"
+      }
+      return ParamList(List())
   }
 
   def getIdent(lvalue: LValue): Ident = {

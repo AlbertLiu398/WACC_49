@@ -86,8 +86,8 @@ object Instruction {
         override def printInstr(): String = s"      mul ${dest1.getValue()}, ${dest2.getValue()}, ${src1.getValue()} \n"
     }
 
-    case class I_UDiv(dest: Register, src: Register, op: Operand) extends Instruction {
-        override def printInstr(): String = s"      udiv ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+    case class I_SDiv(dest: Register, src: Register, op: Operand) extends Instruction {
+        override def printInstr(): String = s"      sdiv ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
     }
 
     case class I_Load(dest: Register, op: Operand, op2: Operand = ImmVal(0), update_sp: Boolean = false) extends Instruction {

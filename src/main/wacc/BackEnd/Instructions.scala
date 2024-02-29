@@ -140,7 +140,7 @@ object Instruction {
         override def printInstr(): String = {
             condition match {
                 case null => return s"      b ${label.labelName} \n"
-                case _ =>  return s"        b.$condition ${label.labelName} \n"
+                case _ =>  return s"      b.$condition ${label.labelName} \n"
             }
         }
     }

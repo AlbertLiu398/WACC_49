@@ -274,10 +274,6 @@ class CodeGenerator (varList: List[Int]) {
           pushAndPopx8(16)
       }
 
-  //   case Len(expr) =>
-  //     generateInstructions(expr, unusedRegs, usedRegs)
-  //     instructions.append(I_Move(usedRegs.head, usedRegs.head))
-
     case Ord(expr) =>
       generateInstructions(expr)
 
@@ -290,17 +286,21 @@ class CodeGenerator (varList: List[Int]) {
 
    // -------------------------- Generate instructions for statements
     case Read(lValue) =>
-        lValue match {
-        case n@Ident(value) =>
-          instructions.append(I_Move(x8, getRegFromMap(n)))
-          instructions.append(I_Move(x0, x8))
-          readFlag = true
-          branchLink(READ_LABEL)
-          instructions.append(I_Move(x16, x0))
-          instructions.append(I_Move(x8, x16))
-          instructions.append(I_Move(getRegFromMap(n), x8))
-        case _=>
+        val n = getIdent(lValue)
+        instructions.append(I_Move(x8, getRegFromMap(n)))
+        instructions.append(I_Move(x0, x8))
+
+        val readBranch = lValue.getType match {
+          case "int" => 
+            readIntFlag = true
+            branchLink(READI_LABEL)
+          case "char" =>
+            readCharFlag = true
+            branchLink(READC_LABEL)
         }
+        instructions.append(I_Move(x16, x0))
+        instructions.append(I_Move(x8, x16))
+        instructions.append(I_Move(getRegFromMap(n), x8))
 
       
         
@@ -438,7 +438,7 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(condition)
       
       // Jump back to body of while if condition holds
-      instructions.append(I_Branch(I_Label(while_body), EQ))
+      instructions.append(I_Branch(I_Label(while_body), NE))
       
     case Begin(stmt) =>
       generateInstructions(stmt)
@@ -496,7 +496,7 @@ class CodeGenerator (varList: List[Int]) {
 
     case a@ArrLiter(e, es) =>
       instructions.append(I_Move(x0, ImmVal(getSize(a))))
-      branchLink( MALLOC_LABEL)
+      branchLink(MALLOC_LABEL)
       instructions.append(I_Move(x16, x0))
       instructions.append(I_Add(x16, x16, ImmVal(ARRAY_ELEM_SIZE)))
 
@@ -619,13 +619,27 @@ class CodeGenerator (varList: List[Int]) {
   }
 
   def pushUsedRegs(regs: List[Register], noOfVar: Int):Unit = {
+    var first = true
     if (noOfVar != 0 && noOfVar != 1){
       for (i <- 0 to noOfVar - 2 by 2) {
-        instructions.append(I_LoadPair(regs(i), regs(i+1), Content(sp, ImmVal(0)), ImmVal(16), false))
+        if (first) {
+          instructions.append(I_StorePair(regs(i), regs(i+1), Content(sp, ImmVal(getPointer(noOfVar))), ImmVal(0), true))
+          first = false
+        } else {
+          instructions.append(I_StorePair(regs(i), regs(i+1), Content(sp, ImmVal(16 * (i/2))), ImmVal(0), false))
+        }
       }
     }
     if (noOfVar%2 == 1) {
-      instructions.append(I_StorePair(regs(noOfVar - 1), xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+      instructions.append(I_StorePair(regs(noOfVar - 1), xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+    }
+  }
+
+  def getPointer (noOfVar: Int): Int = {
+    if (noOfVar > 8){
+      return -80
+    } else {
+      return -(math.floorDiv(noOfVar, 2) * 16)
     }
   }
 
@@ -635,13 +649,14 @@ class CodeGenerator (varList: List[Int]) {
         instructions.append(I_LoadPair(regs(i), regs(i+1), Content(sp, ImmVal(0)), ImmVal(16), false))
       }
     }
-
     if (noOfVar%2 == 1) {
       instructions.append(I_LoadPair(regs.last, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
     }
   }
 
-      // Helper function to append branch link instruction with a given label name
+
+
+  // Helper function to append branch link instruction with a given label name
   def branchLink(s: String): Unit = {
       instructions.append(I_BranchLink(I_Label(s)))
   }

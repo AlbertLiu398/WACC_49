@@ -1,8 +1,13 @@
-
 begin
-  print "True is " ;
-  println true ;
-
-  print "False is " ;
-  println false
+  char continue = 'Y' ;
+  int buff = 0 ;
+  while continue != 'N' do
+    print "Please input an integer: " ;
+    read buff ;
+    print "echo input: \n" ;
+    println buff ;
+    println "Do you want to continue entering i nput?" ;
+    println "(enter Y for \'yes\' and N for \'no\')" ;
+    read continue
+  done
 end

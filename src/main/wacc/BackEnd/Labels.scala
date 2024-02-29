@@ -27,7 +27,13 @@ object Labels {
     var printLinCounter = 0
     
     // read counter
-    var readCounter = 0
+    var readiCounter = 0
+    var readcCounter = 0
+
+    // error handler label counter
+    var errNullCounter = 0
+    // var errOutOfBoundCounter = 0
+    
 
     
     case class DataMsg(s: String, labelIndex: Int, actualSize: Int, name: String){
@@ -36,7 +42,7 @@ object Labels {
             if (labelIndex == -1) {
                 // Use customised label name
                 instruction = mutable.ListBuffer(
-                    I_Directive(s"      .word $actualSize"),
+                    I_Directive(s"      .word ${actualSize - 1}"),
                     I_Label(s"$name"),
                     I_Directive(s"      .asciz " + "\"" + s.substring(1) + "\"")
                 )
@@ -79,13 +85,13 @@ object Labels {
 
 
     def addIfLabel(): (String, String) ={
-        val instr = (s"if_then_$ifCounter", s"if_end_$ifCounter")
+        val instr = (s".if_then_$ifCounter", s".if_end_$ifCounter")
         ifCounter += 1
         instr
     }
 
     def addWhileLabel(): (String, String) ={
-        val instr = (s"w_condition_$whileCounter", s"w_body_$whileCounter")
+        val instr = (s".w_condition_$whileCounter", s".w_body_$whileCounter")
         whileCounter += 1
         instr
     }
@@ -139,10 +145,31 @@ object Labels {
         instr 
     }
 
-    def addReadLabel(): String = {
-        val instr = s".L._read_str$readCounter"
-        readCounter += 1
+    def addReadiLabel(): String = {
+        val instr = s".L._readi_str$readiCounter"
+        readiCounter += 1
         instr
     }
-    
+
+    def addReadcLabel(): String = {
+        val instr = s".L._readc_str$readcCounter"
+        readcCounter += 1
+        instr
+    }
+
+    def addErrNullLabel(): String = {
+        val instr = s".L._errNull_str$readcCounter"
+        readcCounter += 1
+        instr
+    }
+
+    /* 
+    def addErrOutOfBoundLabel(): String = {
+        val instr = s".L._errOutOfBound_str$errOutOfBoundCounter"
+        errOutOfBoundCounter += 1
+        instr
+    }
+    */
+
+
 }

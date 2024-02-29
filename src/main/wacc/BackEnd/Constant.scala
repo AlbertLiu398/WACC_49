@@ -6,8 +6,6 @@ object Constant {
 
     // Store size
 
-    final val EOF: String = "\n"
-
     final val BYTE_SIZE: Int = 1
     final val WORD_SIZE: Int = 4
     final val CHAR_SIZE: Int = 1

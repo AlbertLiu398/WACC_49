@@ -87,14 +87,14 @@ object Utility {
         if (printIntFlag) {
             printint()
         }
-        // if (printStringFlag) {
-        //     printstr()
-        // }
         if (printBoolFlag) {
             printbool()
         }
         if (printLineFlag) {
             printline()
+        }
+        if (printPFlag) {
+            printp()
         }
 
         // ----read----
@@ -144,6 +144,7 @@ object Utility {
         if (printStringFlag) {
             printstr()
         }
+
         
         if (!arrloadFlag.isEmpty) {
             for (size <- arrloadFlag) {
@@ -219,8 +220,7 @@ object Utility {
         instrus.append(I_ADR(x0, I_Label(labelString)))
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
-        printEnd()
-        
+        printEnd() 
     }
 
     def printchar(): Unit = {
@@ -351,7 +351,12 @@ object Utility {
         addCustomisedDataMsg("e" + ERR_OUT_OF_BOUND_MSG, label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(ERR_OUT_OF_BOUND_LABEL))
-        throwError(label)
+        instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
+        instrus.append(I_Move(x0, ImmVal(0)))
+        instrus.append(I_BranchLink(I_Label(FLUSH_LABEL)))
+        instrus.append(I_Move(x0, ImmVal(-1)))
+        instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
     }
 
     def errOverFlow(): Unit = {
@@ -385,22 +390,6 @@ object Utility {
     }
 
 
-// 91	_arrLoad8:
-// 92		// Special calling convention: array ptr passed in X7, index in X17, LR (W30) is used as general register, and return into X7
-// 93		// push {lr}
-// 94		stp lr, xzr, [sp, #-16]!
-// 95		sxtw x17, w17
-// 96		cmp w17, #0
-// 97		csel x1, x17, x1, lt
-// 98		b.lt _errOutOfBounds
-// 99		ldrsw lr, [x7, #-4]
-// 100		cmp w17, w30
-// 101		csel x1, x17, x1, ge
-// 102		b.ge _errOutOfBounds
-// 103		ldr x7, [x7, x17, lsl #3]
-// 104		// pop {lr}
-// 105		ldp lr, xzr, [sp], #16
-// 106		ret
     def arrLoad(size: Int): Unit = {
         instrus.append(I_Label(ARRLOAD_LABEL + size))
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
@@ -411,7 +400,7 @@ object Utility {
         instrus.append(I_Cmp(x17, lr))
         instrus.append(I_Csel(x1, x17, x1, GE))
         instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), GE))
-        instrus.append(I_Load(x7, Content(x7, x17, LSL(size/4 + 1))))
+        instrus.append(I_Ldrsw(x7, Content(x7, x17, LSL(size/4 + 1))))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }

@@ -158,16 +158,30 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append(I_Cbz(unused_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL)))
-          instructions.append(I_SDiv(x8, x8, ImmVal(value)))
+          // Store the quotient
+          val fstReg = unused_TempRegs.head
+          instructions.append(I_Move(fstReg, ImmVal(value)))
+          // Check for division by zero
+          instructions.append(I_Cbz(fstReg, I_Label(ERR_DIV_ZERO_LABEL)))
+          // Perform division
+          instructions.append(I_SDiv(x8, x8, fstReg))
+          
         case _=> 
+          // x8 contains divdent, Move x8 to another register 
           instructions.append(I_Move(unused_TempRegs.head, x8))
+          // add the new register to used_TempRegs
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
+        
+          // fstReg is the new register, containing the divident
           val fstReg = used_TempRegs.head
+          // remove the new register from unused_TempRegs
           unused_TempRegs.remove(0)
+
+          // Store the quotient in x8
           generateInstructions(expr2)
 
-          instructions.append(I_Cbz(fstReg, I_Label(ERR_DIV_ZERO_LABEL))) 
+          // Need to compare x8 with 0 to check for division by zero
+          instructions.append(I_Cbz(x8, I_Label(ERR_DIV_ZERO_LABEL))) 
           instructions.append(I_SDiv(x8, fstReg, x8))
       }
       checkOverflowHandler()
@@ -329,8 +343,8 @@ class CodeGenerator (varList: List[Int]) {
    // -------------------------- Generate instructions for statements
     case Read(lValue) =>
         val n = getIdent(lValue)
-        instructions.append(I_Cbz(x19, I_Label(ERR_NULL_LABEL)))
-        instructions.append(I_Load(x8, Content(x19, ImmVal(0))))
+        // instructions.append(I_Cbz(x19, I_Label(ERR_NULL_LABEL)))
+        // instructions.append(I_Load(x8, Content(x19, ImmVal(0))))
       
         
         instructions.append(I_Move(x8, getRegFromMap(n)))

@@ -579,8 +579,8 @@ class CodeGenerator (varList: List[Int]) {
       val reg = getRegFromMap(getIdent(values))
       instructions.append(I_Cbz(reg, I_Label("_errNull")))
       instructions.append(I_Load(x8, Content(reg, ImmVal(0))))
-      
-      errNullFlag = true
+
+      nullPointerFlag = true
       
 
     case SndPairElem(values) => 
@@ -588,7 +588,7 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Cbz(reg, I_Label("_errNull")))
       instructions.append(I_Load(x8, Content(reg, ImmVal(8))))
 
-      errNullFlag = true
+      nullPointerFlag = true
 
     case Ident(value) => 
       instructions.append(I_Move(x8, getRegFromMap(Ident(value))))

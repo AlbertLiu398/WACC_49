@@ -87,14 +87,14 @@ object Utility {
         if (printIntFlag) {
             printint()
         }
-        // if (printStringFlag) {
-        //     printstr()
-        // }
         if (printBoolFlag) {
             printbool()
         }
         if (printLineFlag) {
             printline()
+        }
+        if (printPFlag) {
+            printp()
         }
 
         // ----read----
@@ -144,6 +144,7 @@ object Utility {
         if (printStringFlag) {
             printstr()
         }
+
         
         if (!arrloadFlag.isEmpty) {
             for (size <- arrloadFlag) {
@@ -219,8 +220,7 @@ object Utility {
         instrus.append(I_ADR(x0, I_Label(labelString)))
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
-        printEnd()
-        
+        printEnd() 
     }
 
     def printchar(): Unit = {
@@ -390,22 +390,6 @@ object Utility {
     }
 
 
-// 91	_arrLoad8:
-// 92		// Special calling convention: array ptr passed in X7, index in X17, LR (W30) is used as general register, and return into X7
-// 93		// push {lr}
-// 94		stp lr, xzr, [sp, #-16]!
-// 95		sxtw x17, w17
-// 96		cmp w17, #0
-// 97		csel x1, x17, x1, lt
-// 98		b.lt _errOutOfBounds
-// 99		ldrsw lr, [x7, #-4]
-// 100		cmp w17, w30
-// 101		csel x1, x17, x1, ge
-// 102		b.ge _errOutOfBounds
-// 103		ldr x7, [x7, x17, lsl #3]
-// 104		// pop {lr}
-// 105		ldp lr, xzr, [sp], #16
-// 106		ret
     def arrLoad(size: Int): Unit = {
         instrus.append(I_Label(ARRLOAD_LABEL + size))
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))

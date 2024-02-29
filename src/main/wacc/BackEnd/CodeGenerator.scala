@@ -410,8 +410,8 @@ class CodeGenerator (varList: List[Int]) {
           branchLink(PRINT_INT_LABEL)
 
         case _ =>
-
-          
+          printPFlag = true
+          branchLink(PRINT_P_LABEL)
       }
   
      

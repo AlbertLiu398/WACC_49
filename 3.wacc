@@ -8,10 +8,5 @@
 # Program:
 
 begin
-  print "True is " ;
-  println true ;
-
-  print "False is " ;
-  println false
+  println "adasdas\"sdaa\"sdas"
 end
-

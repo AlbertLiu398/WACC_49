@@ -80,15 +80,20 @@ object Labels {
         var i = 0
         while (i < input.length) {
         val currentChar = input.charAt(i)
-        if (currentChar == '\\' && i + 1 < input.length) {
+        if ( i + 1 < input.length) {
             val nextChar = input.charAt(i + 1)
+            print("currentChar: " + currentChar + " nextChar: " + nextChar + "\n")
             nextChar match {
-            // case '\\' => result.append('\\')
-            // case '\'' => result.append('\'')
-            case '\"' => result.append('\"')
+            case '"' => 
+                print("HERE!!!!!!")
+                result.append('\\')
+                
+                result.append(nextChar)
 
             // Add more cases for other escape characters as needed
-            case _ => result.append(nextChar)
+            case _ => 
+                print("HERE ?????????? ")
+                result.append(nextChar)
             }
             i += 2 // Skip the next character
         } else {
@@ -102,7 +107,9 @@ object Labels {
     // Helper function for addDataMsg()
     def addDataMsgWithLabel(s: String, labelCounter: Int, customisedLabelName: String): String = {
         val len = s.length
-        var s_escaped = replaceEscapeCharacters(s)
+        print(" enter addDataMsgWithLabel: " + s + " " + labelCounter + " " + customisedLabelName + "\n")
+        var s_escaped = s
+        //var s_escaped = replaceEscapeCharacters(s)
 
         // using default to handle non-existing keys
         val dataMsgSets = allDataMsgs(s_escaped)

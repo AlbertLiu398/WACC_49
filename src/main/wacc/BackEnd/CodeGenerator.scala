@@ -331,7 +331,7 @@ class CodeGenerator (varList: List[Int]) {
       used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs 
       unused_ResultRegs.remove(0)
       identMap(name) = identMapEntry(getSize(value), used_ResultRegs.head)
-
+      revertTempRegs()
           
       
 

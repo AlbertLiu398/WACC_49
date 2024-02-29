@@ -31,6 +31,9 @@ object Labels {
     var readiCounter = 0
     var readcCounter = 0
 
+    // freePair counter
+    var freePairCounter = 0
+
     // error handler label counter
     var errOutOfMemoryCounter = 0
     var errNullCounter = 0
@@ -204,6 +207,13 @@ object Labels {
     def addErrBadCharLabel() : String = {
         val instr = s".L._errBadChar_str$errBadCharCounter"
         errBadCharCounter += 1
+        instr
+    }
+
+    // function to add free label
+    def addFreePairLabel(): String = {
+        val instr = s".L._free_str$freePairCounter"
+        freePairCounter += 1
         instr
     }
 

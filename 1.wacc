@@ -1,6 +1,7 @@
-
-
 begin
-  pair(int, int) x = newpair(1,2);
-  int a = fst x
+  bool a = false ;
+  bool b = false ;
+  bool c = true ;
+  println a && b || c ;
+  println a && (b || c)
 end

@@ -8,7 +8,7 @@ object Labels {
 
     // HashMap to store all string data stored in program
     // val allDataMsgs: mutable.Map[String, DataMsg] = mutable.HashMap.empty[String, DataMsg]
-    val allDataMsgs = new mutable.HashMap[String, mutable.Set[DataMsg]] with mutable.MultiMap[String, DataMsg]   
+    val allDataMsgs = new mutable.HashMap[String, mutable.Set[DataMsg]].withDefault(_ => mutable.Set.empty[DataMsg])
 
     // Counter for naming data messages labels
     var dataMsgCounter = 0
@@ -75,7 +75,7 @@ object Labels {
         result
     }
 
-    def replaceEscapeCharacters(input: String): String = {
+    private def replaceEscapeCharacters(input: String): String = {
         val result = new StringBuilder
         var i = 0
         while (i < input.length) {
@@ -103,10 +103,12 @@ object Labels {
     def addDataMsgWithLabel(s: String, labelCounter: Int, customisedLabelName: String): String = {
         val len = s.length
         var s_escaped = replaceEscapeCharacters(s)
+
+        // using default to handle non-existing keys
+        val dataMsgSets = allDataMsgs(s_escaped)
         val msg = DataMsg(s_escaped, labelCounter, len, customisedLabelName)
-        allDataMsgs.addBinding(s, msg)
+        allDataMsgs(s_escaped) = dataMsgSets.union(Set(msg))
         msg.label
-            
     }
 
     // def addFunctionDataMsg(s: String)

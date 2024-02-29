@@ -199,22 +199,21 @@ object Utility {
         
         instrus.append(I_Branch(I_Label(".L_printb0"), NE))
 
+        
+        
+        val labelFalse = addPrintbLabel()
+        addCustomisedDataMsg("pfalse", labelFalse)
+        instrus.append(I_ADR(x2, I_Label(labelFalse)))  
+        instrus.append(I_Branch(I_Label(".L_printb1"))) 
+        
+        instrus.append(I_Label(".L_printb0"))    
         val labelTrue = addPrintbLabel()
         addCustomisedDataMsg("ptrue", labelTrue)
         instrus.append(I_ADR(x2, I_Label(labelTrue)))
 
-        instrus.append(I_Branch(I_Label(".L_printb1")))
-        
-        instrus.append(I_Label(".L_printb0"))
-        
-        val labelFalse = addPrintbLabel()
-        addCustomisedDataMsg("pfalse", labelFalse)
-        instrus.append(I_ADR(x2, I_Label(labelFalse)))   
-        
-        instrus.append(I_Label(".L_printb1"))    
-        
+        instrus.append(I_Label(".L_printb1"))
         instrus.append(I_Ldrsw(x1, Content(x2, ImmVal(-4))))
-        
+
         val labelString = addPrintbLabel()
         addCustomisedDataMsg("a%.*s", labelString)
         instrus.append(I_ADR(x0, I_Label(labelString)))
@@ -271,7 +270,6 @@ object Utility {
 
     // helper function to extract common parts of print functions
     private def printEnd(): Unit = {
-     
         instrus.append(I_Move(x0, ImmVal(0)))
         instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))

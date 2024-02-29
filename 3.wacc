@@ -1,26 +1,17 @@
+# basic Boolean printing
+
+# Output:
+# True is true
+# False is false
+#
+
+# Program:
+
 begin
-  string s1 = "Hi" ;
-  string s2 = "Hello" ;
-  print "s1 is " ;
-  println s1 ;
-  print "s2 is " ;
-  println s2 ;
-  if s1 == s2 then
-    println "They are the same string."
-  else
-    println "They are not the same string."
-  fi ;
+  print "True is " ;
+  println true ;
 
-  println "Now make s1 = s2" ;
-  s1 = s2 ;
-
-  print "s1 is " ;
-  println s1 ;
-  print "s2 is " ;
-  println s2 ;
-  if s1 == s2 then
-    println "They are the same string."
-  else
-    println "They are not the same string."
-  fi
+  print "False is " ;
+  println false
 end
+

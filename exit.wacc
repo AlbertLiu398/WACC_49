@@ -1,14 +1,7 @@
 begin
-  int a = 13;
-  if a == 13
-  then
-    if a > 5
-    then
-      println "correct"
-    else
-      println "incorrect"
-    fi
-  else
-    println "incorrect"
-  fi
+  int f() is
+    return 0
+  end
+  int x = call f() ;
+  println x
 end

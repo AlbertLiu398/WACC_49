@@ -77,7 +77,7 @@ class CodeGenerator (varList: List[Int]) {
 
     case Func(returnType, functionName, params, body) =>
 
-      instructions.append(I_Label(functionName.value))
+      instructions.append(I_Label("wacc_"+functionName.value))
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
       pushUsedRegs(unused_GeneralRegs_copy, varList(funcProcessed))
       instructions.append(I_Move(fp, sp))
@@ -355,6 +355,7 @@ class CodeGenerator (varList: List[Int]) {
           
         generateInstructions(value)  
         instructions.append(I_Move(reg, x8))
+        revertTempRegs()
         
       }
       

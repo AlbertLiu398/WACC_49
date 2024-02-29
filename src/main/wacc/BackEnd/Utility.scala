@@ -290,6 +290,7 @@ object Utility {
 
     def malloc(): Unit = {
         instrus.append(I_Label(MALLOC_LABEL))
+        instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_BranchLink(I_Label(MALLOC_LABEL)))
         instrus.append(I_Cbz(x0, I_Label(ERR_OUT_OF_MEMORY_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
@@ -356,7 +357,6 @@ object Utility {
     
    // helper function to extract common parts of error handlers
     def throwError(label: String): Unit = {
-        
         instrus.append(I_ADR(x0, I_Label(label)))
         instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
         instrus.append(I_Move(x0, ImmVal(-1)))

@@ -159,7 +159,7 @@ class CodeGenerator (varList: List[Int]) {
       expr2 match {
         case IntLiter(value) => 
           instructions.append(I_Cbz(used_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL)))
-          instructions.append(I_UDiv(x8, x8, ImmVal(value)))
+          instructions.append(I_SDiv(x8, x8, ImmVal(value)))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
@@ -168,7 +168,7 @@ class CodeGenerator (varList: List[Int]) {
           generateInstructions(expr2)
 
           instructions.append(I_Cbz(fstReg, I_Label(ERR_DIV_ZERO_LABEL))) 
-          instructions.append(I_UDiv(x8, fstReg, x8))
+          instructions.append(I_SDiv(x8, fstReg, x8))
       }
       checkOverflowHandler()
 
@@ -184,7 +184,7 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr2)
 
       instructions.append(I_Cbz(fstReg, I_Label(ERR_DIV_ZERO_LABEL)))
-      instructions.append(I_UDiv(unused_TempRegs.head, fstReg, x8))
+      instructions.append(I_SDiv(unused_TempRegs.head, fstReg, x8))
       instructions.append(I_Mul(unused_TempRegs.head, unused_TempRegs.head, x8))
       instructions.append(I_Sub(x8, fstReg, unused_TempRegs.head))
       checkOverflowHandler()
@@ -309,7 +309,11 @@ class CodeGenerator (varList: List[Int]) {
         case IntLiter(value) => instructions.append(I_Move(x8, ImmVal(-value)))
         case _=>
           generateInstructions(expr)
-          pushAndPopx8(16)
+          instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+          instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
+          instructions.append(I_Move(x8, ImmVal(0)))
+          instructions.append(I_Sub(x8, x8, x9))
+          checkOverflowHandler()
       }
 
     case Ord(expr) =>
@@ -618,8 +622,15 @@ class CodeGenerator (varList: List[Int]) {
       nullPointerFlag = true
 
     case Ident(value) => 
+
+
       if (inFunc) {
-        instructions.append(I_Move(x8, getFuncRegFromMap(Ident(value))))
+        var reg: Register = getFuncRegFromMap(Ident(value))
+        if (reg == xzr) {
+          reg = getRegFromMap(Ident(value))
+        }
+        instructions.append(I_Move(x8, reg))
+
       } else {
         instructions.append(I_Move(x8, getRegFromMap(Ident(value))))
       }

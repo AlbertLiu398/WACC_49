@@ -50,50 +50,49 @@ import org.scalatest._
 
     it should "generate Div instruction" in {
       val ast = Div(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(x8, ImmVal(1)), I_UDiv(x8, x8, ImmVal(2)))
-     codeGenerator.revertTempRegs()
+      refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Cbz(Reg(9), I_Label("_errDivZero")), I_SDiv(Reg(8), Reg(8), ImmVal(2)), I_Branch(I_Label("_errOverflow"), VS))
+      codeGenerator.revertTempRegs()
     }
 
     it should "generate Mod instruction" in {
       val ast = Mod(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cbz(Reg(9), I_Label("_errDivZero")), I_UDiv(Reg(10), Reg(9), Reg(8)), I_Mul(Reg(10), Reg(10), Reg(8)), I_Sub(Reg(8), Reg(9), Reg(10), false), I_Branch(I_Label("_errOverflow"), VS)) 
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cbz(Reg(9), I_Label("_errDivZero")), I_SDiv(Reg(10), Reg(9), Reg(8)), I_Mul(Reg(10), Reg(10), Reg(8)), I_Sub(Reg(8), Reg(9), Reg(10), false), I_Branch(I_Label("_errOverflow"), VS)) 
       codeGenerator.revertTempRegs()
     }
 
     it should "generate LessThan instruction" in {
       val ast = LessThan(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(10), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(10), Reg(8)), I_CSet(Reg(8), LT))
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), LT))
       codeGenerator.revertTempRegs()
     }
 
     it should "generate LessThanEq instruction" in {
       val ast = LessThanEq(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), LT))
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), LE))
       codeGenerator.revertTempRegs()
     }
   
   it should "generate GreaterThan instruction" in {
     val ast = GreaterThan(IntLiter(1), IntLiter(2))
-    refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(12), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(12), Reg(8)), I_CSet(Reg(8), GT))
+    refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), GT))
     codeGenerator.revertTempRegs()
   }
 
   it should "generate GreaterThanEq instruction" in {
     val ast = GreaterThanEq(IntLiter(1), IntLiter(2))
-    refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(12), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(12), Reg(8)), I_CSet(Reg(8), GE))
-   codeGenerator.revertTempRegs()
+    refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), GE))
+    codeGenerator.revertTempRegs()
 }
 
   it should "generate Eq instruction" in {
     val ast = Eq(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(13), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(13), Reg(8)), I_CSet(Reg(8), EQ))
-      codeGenerator.revertTempRegs()
+    refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), EQ))
+    codeGenerator.revertTempRegs()
   }
 
   it should "generate NotEq instruction" in {
     val ast = NotEq(IntLiter(1), IntLiter(2))
       refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8), ImmVal(1)), I_Move(Reg(9), Reg(8)), I_Move(Reg(8), ImmVal(2)), I_Cmp(Reg(9), Reg(8)), I_CSet(Reg(8), NE))
-      codeGenerator.revertTempRegs()
   }
   it should "generate And instruction" in {
     val ast = And(IntLiter(1), IntLiter(2))
@@ -117,7 +116,6 @@ import org.scalatest._
     refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(-1)))
     codeGenerator.revertTempRegs()
   }
-
 
 }
 

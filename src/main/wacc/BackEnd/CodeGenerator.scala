@@ -158,7 +158,7 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append(I_Cbz(used_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL)))
+          instructions.append(I_Cbz(unused_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL)))
           instructions.append(I_SDiv(x8, x8, ImmVal(value)))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))

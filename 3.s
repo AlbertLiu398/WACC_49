@@ -1,31 +1,43 @@
 .data 
-      .word 0 
-.L._println_str0: 
-      .asciz "" 
-      .word 2 
-.L.str0: 
-      .asciz "Hi" 
-      .word 29 
-.L.str9: 
-      .asciz "They are not the same string." 
-      .word 5 
-.L.str1: 
-      .asciz "Hello" 
-      .word 16 
-.L.str6: 
-      .asciz "Now make s1 = s2" 
-      .word 25 
-.L.str10: 
-      .asciz "They are the same string." 
-      .word 4 
-.L._prints_str0: 
-      .asciz "%.*s" 
+      .word 6 
+.L.str3: 
+      .asciz "s2 is " 
+      .word 6 
+.L.str8: 
+      .asciz "s2 is " 
       .word 6 
 .L.str7: 
       .asciz "s1 is " 
       .word 6 
-.L.str8: 
-      .asciz "s2 is " 
+.L.str2: 
+      .asciz "s1 is " 
+      .word 4 
+.L._prints_str0: 
+      .asciz "%.*s" 
+      .word 25 
+.L.str5: 
+      .asciz "They are the same string." 
+      .word 25 
+.L.str10: 
+      .asciz "They are the same string." 
+      .word 16 
+.L.str6: 
+      .asciz "Now make s1 = s2" 
+      .word 5 
+.L.str1: 
+      .asciz "Hello" 
+      .word 29 
+.L.str4: 
+      .asciz "They are not the same string." 
+      .word 29 
+.L.str9: 
+      .asciz "They are not the same string." 
+      .word 2 
+.L.str0: 
+      .asciz "Hi" 
+      .word 0 
+.L._println_str0: 
+      .asciz "" 
 .align 4 
 .text 
 .global main 

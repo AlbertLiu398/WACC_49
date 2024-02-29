@@ -7,7 +7,8 @@ import Constant._
 object Labels {
 
     // HashMap to store all string data stored in program
-    val allDataMsgs: mutable.Map[String, DataMsg] = mutable.Map.empty
+    // val allDataMsgs: mutable.Map[String, DataMsg] = mutable.HashMap.empty[String, DataMsg]
+    val allDataMsgs = new mutable.HashMap[String, mutable.Set[DataMsg]] with mutable.MultiMap[String, DataMsg]   
 
     // Counter for naming data messages labels
     var dataMsgCounter = 0
@@ -74,15 +75,36 @@ object Labels {
         result
     }
 
-    
+    def replaceEscapeCharacters(input: String): String = {
+        val result = new StringBuilder
+        var i = 0
+        while (i < input.length) {
+        val currentChar = input.charAt(i)
+        if (currentChar == '\\' && i + 1 < input.length) {
+            val nextChar = input.charAt(i + 1)
+            nextChar match {
+            // case '\\' => result.append('\\')
+            // case '\'' => result.append('\'')
+            case '\"' => result.append('\"')
+
+            // Add more cases for other escape characters as needed
+            case _ => result.append(nextChar)
+            }
+            i += 2 // Skip the next character
+        } else {
+            result.append(currentChar)
+            i += 1
+        }
+        }
+        result.toString
+    }
 
     // Helper function for addDataMsg()
     def addDataMsgWithLabel(s: String, labelCounter: Int, customisedLabelName: String): String = {
         val len = s.length
-        val msg = DataMsg(s, labelCounter, len, customisedLabelName)
-
-        
-        allDataMsgs += (s -> msg)
+        var s_escaped = replaceEscapeCharacters(s)
+        val msg = DataMsg(s_escaped, labelCounter, len, customisedLabelName)
+        allDataMsgs.addBinding(s, msg)
         msg.label
             
     }

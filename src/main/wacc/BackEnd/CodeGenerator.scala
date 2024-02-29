@@ -66,7 +66,7 @@ class CodeGenerator (varList: List[Int]) {
       if (allDataMsgs.nonEmpty) {
 
         // Add the DataMsg.instruction of all (String, DataMsg) pairs in the hashmap before all other instructions
-        allDataMsgs.flatMap(kv => kv._2.instruction) ++=: instructions
+        allDataMsgs.values.flatten.foreach(dataMsg => instructions.prependAll(dataMsg.instruction))
 
         // Add .data directive to the very top of program
         I_Directive(".data") +=: instructions
@@ -509,16 +509,32 @@ class CodeGenerator (varList: List[Int]) {
       pushAndPopx8(16)
       
     case ArrElem(name, value) => 
+      var counter = value.length * 4
       for (expr <- value) {
+        arrloadFlag += counter
         generateInstructions(expr)
+        instructions.append(I_Move(x7, x8)) 
+        branchLink(s"_arrLoad$counter")
+        instructions.append(I_Move(x8, x7))
+        instructions.append(I_Move(x8, x8))
+        counter -= 4
+        if (counter != 0) {
+          instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+          instructions.append(I_Move(x7, ImmVal(1)))
+          instructions.append(I_LoadPair(x8, xzr, Content(sp), ImmVal(16)))
+        }
+        errOutOfBoundFlag = true
       }
 
-      branchLink( "_arrLoad4")
+      
       instructions.append(I_Move(x8, x8))
 
     
     
     case PairLiter => 
+
+      
+      
 
     case a@ArrLiter(e, es) =>
       instructions.append(I_Move(x0, ImmVal(getSize(a))))
@@ -560,9 +576,19 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Move(x8, x16))
     
     case FstPairElem(values) =>
+      val reg = getRegFromMap(getIdent(values))
+      instructions.append(I_Cbz(reg, I_Label("_errNull")))
+      instructions.append(I_Load(x8, Content(reg, ImmVal(0))))
+      
+      errNullFlag = true
       
 
     case SndPairElem(values) => 
+      val reg = getRegFromMap(getIdent(values))
+      instructions.append(I_Cbz(reg, I_Label("_errNull")))
+      instructions.append(I_Load(x8, Content(reg, ImmVal(8))))
+
+      errNullFlag = true
 
     case Ident(value) => 
       instructions.append(I_Move(x8, getRegFromMap(Ident(value))))

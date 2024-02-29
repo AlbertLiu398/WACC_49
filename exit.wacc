@@ -1,8 +1,14 @@
 begin
-  int inc(int x, int l, int p) is
-    int g = 1;
-    int j = 2;
-    return g
-  end
-  int x = 1
+  int a = 13;
+  if a == 13
+  then
+    if a > 5
+    then
+      println "correct"
+    else
+      println "incorrect"
+    fi
+  else
+    println "incorrect"
+  fi
 end

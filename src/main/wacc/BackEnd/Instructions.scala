@@ -29,14 +29,14 @@ object Instruction {
 
     case class Content(reg : Register, offset: Operand = ImmVal(0), shift: Shifts = LSL(0)) extends Operand {
         override def getValue(): String = { 
-            var s = s"[${reg.getValue()}]"
+            var s = s"[${reg.getValue()}"
             if (offset != ImmVal(0)) {
-                s += s", ${offset.getValue()}]"
+                s += s", ${offset.getValue()}"
             }
             if (shift != LSL(0)) {
-                s += s", ${shift.getValue()}]"
+                s += s", ${shift.getValue()}"
             }
-            s
+            s + "]"
         }
     }
 

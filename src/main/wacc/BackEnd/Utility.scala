@@ -35,6 +35,8 @@ object Utility {
     var arithmeticFlag: Boolean = false
     var nullPointerFlag: Boolean = false
     var badCharFlag: Boolean = false
+    var arrloadFlag: mutable.ListBuffer[Int] = mutable.ListBuffer()
+    var errOutOfBoundFlag = false
 
     // Labels for print functions
     final val PRINT_STRING_LABEL = "_prints"
@@ -143,6 +145,16 @@ object Utility {
             printstr()
         }
         
+        if (!arrloadFlag.isEmpty) {
+            for (size <- arrloadFlag) {
+                arrLoad(size)
+            }
+        }
+
+        if (errOutOfBoundFlag) {
+            errOutOfBounds()
+        }
+
         instrus
     }
 

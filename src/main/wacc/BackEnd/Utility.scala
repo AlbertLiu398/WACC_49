@@ -30,8 +30,10 @@ object Utility {
     // Flags for other utility checks
     var mallocFlag: Boolean = false
     var divByZeroFlag: Boolean = false
-    var checkArrayBoundsFlag: Boolean = false
+    var arrayBoundsFlag: Boolean = false
+    var arithmeticFlag: Boolean = false
     var nullPointerFlag: Boolean = false
+    var badCharFlag: Boolean = false
 
     // Labels for print functions
     final val PRINT_STRING_LABEL = "_prints"
@@ -57,10 +59,11 @@ object Utility {
     final val ERR_OUT_OF_BOUND_LABEL = "_errOutOfBounds"
     final val ERR_NULL_LABEL = "_errNull"
     final val ERR_OVERFLOW_LABEL = "_errOverflow"
-    final val DIVIDE_BY_ZERO_LABEL = "_check_divide_by_zero"
+    final val ERR_DIV_ZERO_LABEL = "_errDivZero"
+    final val ERR_BAD_CHAR_LABEL = "_errBadChar"
 
-    // val NULL_POINTER_LABEL = "_check_null_pointer"
-    // val ARRAY_BOUNDS_LABEL = "_check_array_bounds"
+
+    
     // val OVERFLOW_LABEL = "_throw_overflow_error"
     // val RUNTIME_LABEL = "_throw_runtime_error"
 
@@ -68,6 +71,8 @@ object Utility {
     var instrus: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
 
     def addUtility():  mutable.ListBuffer[Instruction]  = {
+
+        // ----print-----
 
         if (printCharFlag) {
             printchar()
@@ -84,17 +89,41 @@ object Utility {
         if (printLineFlag) {
             printline()
         }
-        if (mallocFlag) {
-            malloc()
-        }
+
+        // ----read----
+
         if (readCharFlag) {
             readchar()
         }
         if (readIntFlag) {
             readint()
         }
+
+
+        // ----other utilities----
+
+        if (mallocFlag) {
+            malloc()
+        }
+
+        if (divByZeroFlag) {
+            errDivByzero()
+        }
+
         if (nullPointerFlag) {
-            checkNullPointer()
+            errNull()
+        }
+
+        if (arrayBoundsFlag) {
+            errOutOfBounds()
+        }
+
+        if (arithmeticFlag) {
+            errOverFlow()
+        }
+
+        if (badCharFlag) {
+            errBadChar()
         }
         
         instrus
@@ -103,22 +132,21 @@ object Utility {
     // -----------------print functions-------------------- 
 
     def printstr(): Unit = {
-        val label = addPrintsLabel(true)
+        val label = addPrintsLabel()
         addCustomisedDataMsg("p%.*s", label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(PRINT_STRING_LABEL))
 
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x2, x0))
-        instrus.append(I_LDRSW(x1, Content(x0, ImmVal(-4))))
+        instrus.append(I_Ldrsw(x1, Content(x0, ImmVal(-4))))
         instrus.append(I_ADR(x0, I_Label(label)))
         
         printEnd()
     }
 
     def printint(): Unit = {
-
-        val label = addPrintiLabel(true)
+        val label = addPrintiLabel()
         addCustomisedDataMsg("p%d", label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(PRINT_INT_LABEL))
@@ -140,7 +168,7 @@ object Utility {
         
         instrus.append(I_Branch(I_Label(".L_printb0"), NE))
 
-        val labelPrint = addPrintbLabel(true)
+        val labelPrint = addPrintbLabel()
         addCustomisedDataMsg("ptrue", labelPrint)
         instrus.append(I_ADR(x2, I_Label(labelPrint)))
 
@@ -148,15 +176,15 @@ object Utility {
         
         instrus.append(I_Label(".L_printb0"))
         
-        val labelTrue = addPrintbLabel(true)
+        val labelTrue = addPrintbLabel()
         addCustomisedDataMsg("pfalse", labelTrue)
         instrus.append(I_ADR(x2, I_Label(labelTrue)))   
         
         instrus.append(I_Label(".L_printb1"))    
         
-        instrus.append(I_LDRSW(x1, Content(x2, ImmVal(-4))))
+        instrus.append(I_Ldrsw(x1, Content(x2, ImmVal(-4))))
         
-        val labelFalse = addPrintbLabel(true)
+        val labelFalse = addPrintbLabel()
         addCustomisedDataMsg("p%.*s", labelFalse)
         instrus.append(I_ADR(x0, I_Label(labelFalse)))
         
@@ -166,7 +194,7 @@ object Utility {
 
     def printchar(): Unit = {
         
-        val label = addPrintcLabel(true)
+        val label = addPrintcLabel()
         addCustomisedDataMsg("p%.*s", label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(PRINT_CHAR_LABEL))
@@ -180,7 +208,7 @@ object Utility {
 
     def printline(): Unit = {
 
-        val label = addPrintlnLabel(true)
+        val label = addPrintlnLabel()
         addCustomisedDataMsg("p", label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(PRINT_LN_LABEL))
@@ -194,7 +222,7 @@ object Utility {
 
     def printp(): Unit = {
 
-        val label = addPrintpLabel(true)
+        val label = addPrintpLabel()
         addCustomisedDataMsg("p%p", label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(PRINT_P_LABEL))
@@ -246,57 +274,90 @@ object Utility {
         instrus.append(I_Ret)
     }
 
-    //  ------------ other utility functions -----------------
+    //  ------------ other utility functions (malloc) -----------------
 
     def malloc(): Unit = {
         instrus.append(I_Label(MALLOC_LABEL))
         instrus.append(I_BranchLink(I_Label(MALLOC_LABEL)))
-        instrus.append(I_CBZ(x0, I_Label(ERR_OUT_OF_MEMORY_LABEL)))
+        instrus.append(I_Cbz(x0, I_Label(ERR_OUT_OF_MEMORY_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
         errOutOfMemory()
     }
 
+
+    // --------------error handlers----------------------------
+
     private def errOutOfMemory(): Unit = {
-        addCustomisedDataMsg("e" + ERR_OUT_OF_MEMORY_MSG, ERR_OUT_OF_MEMORY_LABEL+"_str0")
-        // instrus.append(I_Directive(".align 4"))
-        instrus.append(I_Label(ERR_OUT_OF_MEMORY_LABEL))
-        instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
-        instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
-    }
-
-    // def checkArrayBounds(): Unit = { }
-
-    def divByzero(): Unit = {
-        addCustomisedDataMsg("d" + ERR_DIVIDE_BY_ZERO_MSG, DIVIDE_BY_ZERO_LABEL)
+        val label = addErrOutOfMemoryLabel()
+        addCustomisedDataMsg("e" + ERR_OUT_OF_MEMORY_MSG, label)
         instrus.append(I_Directive(".align 4"))
-        instrus.append(I_Label(DIVIDE_BY_ZERO_LABEL))
-        instrus.append(I_ADR(x0, I_Label(DIVIDE_BY_ZERO_LABEL)))
-        instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
-        instrus.append(I_Move(x0, ImmVal(-1)))
-        instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
+        instrus.append(I_Label(ERR_OUT_OF_MEMORY_LABEL))
+        throwError(label)
     }
 
-    def checkNullPointer() : Unit  = {
-        addCustomisedDataMsg("e" + ERR_NULL_MSG, ERR_NULL_LABEL)
+    def errDivByzero(): Unit = {
+        val label = addErrDivZeroLabel()
+        addCustomisedDataMsg("d" + ERR_DIV_ZERO_MSG, label)
+        instrus.append(I_Directive(".align 4"))
+        instrus.append(I_Label(ERR_DIV_ZERO_LABEL))
+        throwError(label)
+    }
+
+    def errNull() : Unit  = {
+        val label = addErrNullLabel()
+        addCustomisedDataMsg("e" + ERR_NULL_MSG, label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(ERR_NULL_LABEL))
-        instrus.append(I_ADR(x0, I_Label(ERR_NULL_LABEL)))
-        instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
+        throwError(label)
+    }
+
+    def errOutOfBounds(): Unit = {
+        val label = addErrOutOfBoundLabel()
+        addCustomisedDataMsg("e" + ERR_OUT_OF_BOUND_MSG, label)
+        instrus.append(I_Directive(".align 4"))
+        instrus.append(I_Label(ERR_OUT_OF_BOUND_LABEL))
+        throwError(label)
+    }
+
+    def errOverFlow(): Unit = {
+         if (!printStringFlag) {
+            printStringFlag = true
+        }
+        val label = addErrOverflowLabel()
+        addCustomisedDataMsg("e" + ERR_OVERFLOW_MSG, label)
+        instrus.append(I_Directive(".align 4"))
+        instrus.append(I_Label(ERR_OVERFLOW_LABEL))
+        throwError(label)
+    }
+
+    def errBadChar(): Unit = {
+        if (!printStringFlag) {
+            printStringFlag = true
+        }
+        
+        val label = addErrBadCharLabel()
+        addCustomisedDataMsg("e" + ERR_BAD_CHAR_MSG, label)
+        instrus.append(I_Directive(".align 4"))
+        instrus.append(I_Label(ERR_BAD_CHAR_LABEL))
+        instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
+        instrus.append(I_Move(x0, ImmVal(0)))
+        instrus.append(I_BranchLink(I_Label(FLUSH_LABEL)))
         instrus.append(I_Move(x0, ImmVal(-1)))
         instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
     }
 
-     // def checkArrayBounds(): Unit = { }
     
-
-// .word 45
-// 71	.L._errNull_str0:
-// 72		.asciz "fatal error: null pair dereferenced or freed\n"
-// 73	.align 4
-//     _errNull:
-// 75		adr x0, .L._errNull_str0
-// 76		bl _prints
-// 77		mov w0, #-1
-// 78		bl exit
+   // helper function to extract common parts of error handlers
+    def throwError(label: String): Unit = {
+        if (!printStringFlag) {
+            printStringFlag = true
+        }
+        instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PRINT_STRING_LABEL)))
+        instrus.append(I_Move(x0, ImmVal(-1)))
+        instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
+    }
+    
 }

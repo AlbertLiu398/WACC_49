@@ -116,18 +116,6 @@ import org.scalatest._
     refreshAndGenerate(ast) shouldBe  List(I_Move(Reg(8), ImmVal(-1)))
     codeGenerator.revertTempRegs()
   }
-  // it should "generate IntLiter instruction" in {
-  //   val ast = IntLiter(1)
-  //   refreshInstructions()
-  //   val result = CodeGenerator.generateInstructions(ast)
-  //   // result shouldBe Success(mutable.ListBuffer(I_Move(x8, ImmVal(1)))
-  // }
-  // it should "generate BoolLiter instruction" in {
-  //   val ast = BoolLiter(true)
-  //   refreshInstructions()
-  //   val result = CodeGenerator.generateInstructions(ast)
-  //   // result shouldBe Success(mutable.ListBuffer(I_Move(x8, ImmVal(1)))
-  // }
 
 
 }

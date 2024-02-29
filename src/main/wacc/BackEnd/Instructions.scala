@@ -202,13 +202,20 @@ object Instruction {
         override def printInstr(): String = "      ret \n"
     }
 
-    case class I_CBZ(reg: Register, label: I_Label) extends Instruction {
+    case class I_Cbz(reg: Register, label: I_Label) extends Instruction {
         override def printInstr(): String = s"      cbz ${reg.getValue()}, ${label.labelName} \n"
 
     }
 
-   case class I_LDRSW(reg1: Register, content: Content) extends Instruction {
+   case class I_Ldrsw(reg1: Register, content: Content) extends Instruction {
         override def printInstr(): String = s"      ldrsw ${reg1.getValue()}, ${content.getValue()} \n"
     }
 
+    case class I_Csel(reg1: Register, reg2: Register, reg3: Register, condition: Conditions) extends Instruction {
+        override def printInstr(): String = s"      csel ${reg1.getValue()}, ${reg2.getValue()}, ${reg3.getValue()}, ${condition.toString()} \n"
+    }
+
+    case class I_tst(reg1: Register, op: Operand) extends Instruction {
+        override def printInstr(): String = s"      tst ${reg1.getValue()}, ${op.getValue()} \n"
+    }
 }

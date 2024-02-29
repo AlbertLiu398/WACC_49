@@ -31,8 +31,12 @@ object Labels {
     var readcCounter = 0
 
     // error handler label counter
+    var errOutOfMemoryCounter = 0
     var errNullCounter = 0
-    // var errOutOfBoundCounter = 0
+    var errDivZeroCounter = 0
+    var errOutOfBoundCounter = 0
+    var errOverflowCounter = 0
+    var errBadCharCounter = 0
     
 
     
@@ -96,52 +100,40 @@ object Labels {
         instr
     }
 
-    def addPrintbLabel(incrementCount: Boolean): String = {
+    def addPrintbLabel(): String = {
         val instr = s".L._printb_str$printbCounter"
-        if (incrementCount) {
-            printbCounter += 1
-        }
+        printbCounter += 1
         instr
         
     }
-    def addPrintcLabel(incrementCount: Boolean): String = {
+    def addPrintcLabel(): String = {
         val instr = s".L._printc_str$printcCounter"
-        if (incrementCount) {
-            printcCounter += 1
-        }
+        printcCounter += 1
         instr
 
         
     }
-    def addPrintlnLabel(incrementCount: Boolean): String = {
+    def addPrintlnLabel(): String = {
         val instr = s".L._println_str$printLinCounter"
-        if (incrementCount) {
-            printLinCounter += 1
-        }
+        printLinCounter += 1
         instr
         
     }
-    def addPrintsLabel(incrementCount: Boolean): String = {
-        val instr = s".L._prints_str$printsCounter"
-        if (incrementCount) {        
-            printsCounter += 1
-        }
+    def addPrintsLabel(): String = {
+        val instr = s".L._prints_str$printsCounter"     
+        printsCounter += 1
         instr
          
     }
-   def addPrintiLabel(incrementCount: Boolean): String = {
+   def addPrintiLabel(): String = {
         val instr = s".L._printi_str$printiCounter"
-        if (incrementCount) {
-            printiCounter += 1
-        }
+        printiCounter += 1
         instr 
     }
 
-    def addPrintpLabel(incrementCount: Boolean): String = {
+    def addPrintpLabel(): String = {
         val instr = s".L._printp_str$printpCounter"
-        if (incrementCount) {
-            printpCounter += 1
-        }
+        printpCounter += 1
         instr 
     }
 
@@ -157,19 +149,43 @@ object Labels {
         instr
     }
 
-    def addErrNullLabel(): String = {
-        val instr = s".L._errNull_str$readcCounter"
-        readcCounter += 1
+
+
+    // functions to add error handlers label
+
+    def addErrOutOfMemoryLabel() : String = {
+        val instr = s".L._errOutOfMemory_str$errOutOfMemoryCounter"
+        errOutOfMemoryCounter += 1
         instr
     }
 
-    /* 
+    def addErrNullLabel(): String = {
+        val instr = s".L._errNull_str$errNullCounter"
+        errNullCounter += 1
+        instr
+    }
+
+    def addErrDivZeroLabel(): String = {
+        val instr = s".L._errDivZero_str$errDivZeroCounter"
+        errDivZeroCounter += 1
+        instr
+    }
+    
     def addErrOutOfBoundLabel(): String = {
         val instr = s".L._errOutOfBound_str$errOutOfBoundCounter"
         errOutOfBoundCounter += 1
         instr
     }
-    */
 
+    def addErrOverflowLabel() : String = {
+        val instr = s".L._errOverflow_str$errOverflowCounter"
+        errOverflowCounter += 1
+        instr
+    }
+    def addErrBadCharLabel() : String = {
+        val instr = s".L._errBadChar_str$errBadCharCounter"
+        errBadCharCounter += 1
+        instr
+    }
 
 }

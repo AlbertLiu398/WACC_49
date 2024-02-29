@@ -38,10 +38,6 @@ class CodeGenerator (varList: List[Int]) {
         I_Directive(".global main"), 
         I_Label("main"))
       
-      // // Add function names to identMap
-      // for(func <- functions) {
-      //   identMap(Ident("wacc_" + func.functionName.value)) = identMapEntry(getSize(func.returnType), func.params.paramListType.length)
-      // }
 
       // Generate code for main body
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
@@ -50,17 +46,18 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(statements)
       instructions.append(I_Move(x0, ImmVal(0)))
       popUsedRegs(used_ResultRegs.toList.reverse, varList.last)
+      print(used_ResultRegs.toList.reverse)
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
       instructions.append(I_Ret)
-
-      // Add utility function definitions
-      instructions.appendAll(addUtility())
 
       // Generate code for functions
       for(func <- functions) {
         generateInstructions(func)
       }
 
+      // Add utility function definitions
+      instructions.appendAll(addUtility())
+      
       // Add all string labels at the top of program
       if (allDataMsgs.nonEmpty) {
 
@@ -69,7 +66,6 @@ class CodeGenerator (varList: List[Int]) {
 
         // Add .data directive to the very top of program
         I_Directive(".data") +=: instructions
-
       }
 
       
@@ -89,29 +85,35 @@ class CodeGenerator (varList: List[Int]) {
 
     /* --------------------------- generate expressions */
     case Add(expr1, expr2) =>
+      arithmeticFlag = true
+
       generateInstructions(expr1)
       
       expr2 match {
         case IntLiter(value) => 
           instructions.append(I_Add(x8, x8, ImmVal(value)))
+
         case _=> 
-          // int x = 1- (2 - 1)
-          // mov x9 x8 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
           instructions.append(I_Add(x8, used_TempRegs.head, x8))
+
       }
+      checkOverflowHandler() 
       revertTempRegs()
 
       
     case Sub(expr1, expr2) => 
+      arithmeticFlag = true
+
       generateInstructions(expr1)
       
       expr2 match {
         case IntLiter(value) => 
           instructions.append(I_Sub(x8, x8, ImmVal(value)))
+        
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
@@ -119,10 +121,13 @@ class CodeGenerator (varList: List[Int]) {
           generateInstructions(expr2)
           instructions.append(I_Sub(x8, used_TempRegs.head, x8))
       }
+      checkOverflowHandler()
 
       
 
     case Mul(expr1, expr2) =>
+      arithmeticFlag = true
+      
       generateInstructions(expr1)  // mov x8 expr1
       instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x8 x9 
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
@@ -130,39 +135,47 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr2)  //mov x8 epr2 
       
       instructions.append(I_Mul(x8, used_TempRegs.head, x8))  // mul x8 x9 x8
+      checkOverflowHandler()
       revertTempRegs()
 
 
     case Div(expr1, expr2) =>
+      arithmeticFlag = true
+      divByZeroFlag = true
+
       generateInstructions(expr1)
       
       expr2 match {
         case IntLiter(value) => 
+          instructions.append(I_Cbz(used_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL)))
           instructions.append(I_UDiv(x8, x8, ImmVal(value)))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
+
+          instructions.append(I_Cbz(used_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL))) 
           instructions.append(I_UDiv(x8, used_TempRegs.head, x8))
       }
-      divByZeroFlag = true
+      checkOverflowHandler()
 
     case Mod(expr1, expr2) =>
+      arithmeticFlag = true
+      divByZeroFlag = true
+       
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
       unused_TempRegs.remove(0)
       generateInstructions(expr2)
-      
-      // x8 = expr2, used_TempRegs.head = expr2
-      
-      // UDIV unused_TempRegs.head, x8, used_TempRegs.head  
-      // MUL  unused_TempRegs.head, unused_TempRegs.head, used_TempRegs.head   
-      // SUB  x8, x8, unused_TempRegs.head
+
+      instructions.append(I_Cbz(used_TempRegs.head, I_Label(ERR_DIV_ZERO_LABEL)))
       instructions.append(I_UDiv(unused_TempRegs.head, used_TempRegs.head, x8))
       instructions.append(I_Mul(unused_TempRegs.head, unused_TempRegs.head, x8))
       instructions.append(I_Sub(x8, used_TempRegs.head, unused_TempRegs.head))
+      checkOverflowHandler()
+      
 
 
     case LessThan(expr1, expr2) =>
@@ -267,6 +280,10 @@ class CodeGenerator (varList: List[Int]) {
 
 
     case Negate(expr) =>
+      // Need to check for overflow if the max negative number is negated to be positive, 
+      // which will exceed the upper bound causing overflow
+      arithmeticFlag = true
+      
       expr match {
         case IntLiter(value) => instructions.append(I_Move(x8, ImmVal(-value)))
         case _=>
@@ -280,8 +297,8 @@ class CodeGenerator (varList: List[Int]) {
 
     case Chr(expr) =>   
       generateInstructions(expr)
-      //check the number of char is in ASCII table
 
+      //check the number of char is in ASCII table
       pushAndPopx8(16)
 
    // -------------------------- Generate instructions for statements
@@ -322,12 +339,13 @@ class CodeGenerator (varList: List[Int]) {
           generateInstructions(n)
 
         case n@FstPairElem(values) =>
-          instructions.append(I_CBZ(reg, I_Label(ERR_NULL_LABEL)))
+          nullPointerFlag = true
+          instructions.append(I_Cbz(reg, I_Label(ERR_NULL_LABEL)))
         
         case n@SndPairElem(values) => 
-          instructions.append(I_CBZ(reg, I_Label(ERR_NULL_LABEL)))
+          nullPointerFlag = true
+          instructions.append(I_Cbz(reg, I_Label(ERR_NULL_LABEL)))
 
-          
         case _=>
           generateInstructions(name)
           
@@ -335,8 +353,6 @@ class CodeGenerator (varList: List[Int]) {
         instructions.append(I_Move(reg, x8))
         
       }
-      
-      
       
     
     case Free(expr) => 
@@ -607,9 +623,6 @@ class CodeGenerator (varList: List[Int]) {
   def revertTempRegs():Unit = {
     used_TempRegs.clear()
     unused_TempRegs = mutable.ListBuffer() ++ unused_TempRegs_copy
-    // print(used_TempRegs)
-    // print(unused_TempRegs_copy)
-    // print(unused_TempRegs)
   }
 
   def pushAndPopx8(size: Int):Unit = {
@@ -623,38 +636,62 @@ class CodeGenerator (varList: List[Int]) {
     if (noOfVar != 0 && noOfVar != 1){
       for (i <- 0 to noOfVar - 2 by 2) {
         if (first) {
-          instructions.append(I_StorePair(regs(i), regs(i+1), Content(sp, ImmVal(getPointer(noOfVar))), ImmVal(0), true))
+          instructions.append(I_StorePair(regs(i), regs(i+1), Content(sp, ImmVal(-getPointer(noOfVar))), ImmVal(0), true))
           first = false
         } else {
           instructions.append(I_StorePair(regs(i), regs(i+1), Content(sp, ImmVal(16 * (i/2))), ImmVal(0), false))
         }
       }
     }
-    if (noOfVar%2 == 1) {
-      instructions.append(I_StorePair(regs(noOfVar - 1), xzr, Content(sp, ImmVal(16)), ImmVal(0), false))
+    if (noOfVar == 1) {
+      instructions.append(I_StorePair(regs(noOfVar - 1), xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+    }
+    else if (noOfVar%2 == 1) {
+      instructions.append(I_StorePair(regs(noOfVar - 1), xzr, Content(sp, ImmVal(math.floorDiv(noOfVar, 2) * 16)), ImmVal(0), false))
     }
   }
 
   def getPointer (noOfVar: Int): Int = {
     if (noOfVar > 8){
-      return -80
+      return 80
     } else {
-      return -(math.floorDiv(noOfVar, 2) * 16)
+      return math.ceil(noOfVar.toDouble/2).toInt * 16
     }
   }
 
-  def popUsedRegs(regs: List[Register], noOfVar: Int):Unit = {
+  def popUsedRegs(registers: List[Register], n: Int):Unit = {
+    var noOfVar = n
+    var regs = mutable.ListBuffer().appendAll(registers)
+    if (regs.length >= 2) {
+      regs.remove(0)
+      regs.remove(0)
+      noOfVar -= 2
+    }
+    var noOfLoop = 0
     if (noOfVar != 0 && noOfVar != 1){
       for (i <- 0 to noOfVar - 2 by 2) {
-        instructions.append(I_LoadPair(regs(i), regs(i+1), Content(sp, ImmVal(0)), ImmVal(16), false))
+        instructions.append(I_LoadPair(regs(i), regs(i+1), Content(sp, ImmVal(16 * ((i/2)+1)))))
+        noOfLoop = i
       }
+
     }
-    if (noOfVar%2 == 1) {
-      instructions.append(I_LoadPair(regs.last, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
+    if (noOfVar%2 == 1){
+      if (n == 1) {
+        instructions.append(I_LoadPair(regs.last, xzr, Content(sp), ImmVal((math.floorDiv(noOfVar, 2) + 1) * 16)))
+      }
+      else {
+        instructions.append(I_LoadPair(regs.last, xzr, Content(sp, ImmVal((math.floorDiv(noOfVar, 2) + 1) * 16))))
+      }
+      
+    }
+    
+
+    if (registers.length >= 2 && n != 0) {
+      instructions.append(I_LoadPair(registers(0), registers(1), Content(sp, ImmVal(0)), ImmVal((math.ceil(noOfVar.toDouble/ 2).toInt + 1) * 16)))
     }
   }
 
-
+  
 
   // Helper function to append branch link instruction with a given label name
   def branchLink(s: String): Unit = {
@@ -668,6 +705,7 @@ class CodeGenerator (varList: List[Int]) {
       }
       return xzr
   }
+
   def getIdent(lvalue: LValue): Ident = {
     lvalue match {
       case n@Ident(value) => return n
@@ -675,5 +713,10 @@ class CodeGenerator (varList: List[Int]) {
       case n@FstPairElem(values) => return getIdent(values)
       case n@SndPairElem(values) => return getIdent(values)
     }
+  }
+
+  // Helper function:  Jump to overflow handler if overflow occurs
+  def checkOverflowHandler(): Unit = { 
+    instructions.append(I_Branch(I_Label(ERR_OVERFLOW_LABEL), VS))
   }
 }

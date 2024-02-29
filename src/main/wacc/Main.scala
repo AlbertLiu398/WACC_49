@@ -47,12 +47,6 @@ object Main {
                         sys.exit(syntaxError)
                     }
                 } 
-                // match {
-                //     case Success(_) => 
-                //     case Failure(e) => 
-                //       println(e)
-                //         sys.exit(syntaxError)
-                //   }
             case None => println("please enter a file name")
         }
     }

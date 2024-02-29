@@ -75,6 +75,7 @@ object Constant {
     final val x28 = Reg(28)
     var used_ResultRegs: mutable.ListBuffer[Register] = mutable.ListBuffer()
     var unused_ResultRegs: mutable.ListBuffer[Register] = mutable.ListBuffer(x19, x20, x21, x22, x23, x24, x25, x26, x27, x28)
+    final val unused_GeneralRegs_copy = List(x19, x20, x21, x22, x23, x24, x25, x26, x27, x28)
 
    // ------------- Register (x29) frame pointer -------------
     final val fp = Reg(29)

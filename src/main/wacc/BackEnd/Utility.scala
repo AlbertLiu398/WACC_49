@@ -41,8 +41,10 @@ object Utility {
     final val PRINT_BOOL_LABEL = "_printb"
     final val PRINT_LN_LABEL = "_println"
     final val PRINT_CHAR_LABEL = "_printc"
-    final val PRINT_F_LABEL = "printf"
     final val PRINT_P_LABEL = "_printp"
+
+    final val PRINT_F_LABEL = "printf"
+    final val PUTS_LABEL = "puts"
 
     // Labels for read functions
     final val READI_LABEL = "_readi"
@@ -52,6 +54,7 @@ object Utility {
     final val SCANF_LABEL = "scanf"
     final val FLUSH_LABEL =  "fflush"
     final val MALLOC_LABEL = "_malloc"
+    final val MALLOC_FUNC_LABEL = "malloc"
     final val EXIT_LABEL = "_exit"
 
     // Labels for error messages 
@@ -153,6 +156,7 @@ object Utility {
         instrus.append(I_Move(x2, x0))
         instrus.append(I_Ldrsw(x1, Content(x0, ImmVal(-4))))
         instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
         printEnd()
     }
@@ -166,6 +170,7 @@ object Utility {
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, x0))
         instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
 
         printEnd()
     }
@@ -199,6 +204,7 @@ object Utility {
         val labelFalse = addPrintbLabel()
         addCustomisedDataMsg("p%.*s", labelFalse)
         instrus.append(I_ADR(x0, I_Label(labelFalse)))
+        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
         printEnd()
         
@@ -207,13 +213,14 @@ object Utility {
     def printchar(): Unit = {
         
         val label = addPrintcLabel()
-        addCustomisedDataMsg("p%.*s", label)
+        addCustomisedDataMsg("p%c", label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(PRINT_CHAR_LABEL))
 
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, x0))
         instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
 
         printEnd()
     }
@@ -227,6 +234,7 @@ object Utility {
 
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PUTS_LABEL)))
         
         printEnd()
     }
@@ -242,13 +250,14 @@ object Utility {
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, x0))
         instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
 
         printEnd()
     }
 
     // helper function to extract common parts of print functions
     private def printEnd(): Unit = {
-        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
+     
         instrus.append(I_Move(x0, ImmVal(0)))
         instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
@@ -291,7 +300,7 @@ object Utility {
     def malloc(): Unit = {
         instrus.append(I_Label(MALLOC_LABEL))
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
-        instrus.append(I_BranchLink(I_Label(MALLOC_LABEL)))
+        instrus.append(I_BranchLink(I_Label(MALLOC_FUNC_LABEL)))
         instrus.append(I_Cbz(x0, I_Label(ERR_OUT_OF_MEMORY_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)

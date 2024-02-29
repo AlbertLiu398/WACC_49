@@ -1,6 +1,7 @@
 begin
-  int inc(int x) is
+  int inc(int x, int l, int p) is
     int g = 1;
+    int j = 2;
     return g
   end
   int x = 1

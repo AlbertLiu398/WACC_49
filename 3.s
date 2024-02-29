@@ -1,45 +1,65 @@
 .data 
-      .word 82 
-.L._errOverflow_str0: 
-      .asciz "OverflowError: the result is too small/large to store in a 4-byte signed-integer.
-" 
       .word 0 
 .L._println_str0: 
       .asciz "" 
       .word 4 
 .L._prints_str0: 
       .asciz "%.*s" 
-      .word 2 
-.L._printi_str0: 
-      .asciz "%d" 
+      .word 5 
+.L._printb_str1: 
+      .asciz "false" 
+      .word 8 
+.L.str0: 
+      .asciz "True is " 
+      .word 4 
+.L._printb_str0: 
+      .asciz "true" 
+      .word 9 
+.L.str1: 
+      .asciz "False is " 
 .align 4 
 .text 
 .global main 
 main: 
       stp fp, lr, [sp, #-16]!
-      stp x19, x20, [sp, #-16]!
       mov fp, sp 
-      mov x8, #5 
-      mov x19, x8 
-      mov x8, #3 
-      mov x20, x8 
-      mov x8, x19 
-      mov x9, x8 
-      mov x8, x20 
-      mul x8, x9, x8 
-      b.VS _errOverflow 
+      adrp x8, .L.str0 
+      add x8, x8, :lo12:.L.str0 
+      stp x8, xzr, [sp, #-16]!
+      ldp x8, xzr, [sp], #16
+      mov x8, x8 
       mov x0, x8 
-      bl _printi 
+      bl _prints 
+      mov x8, #1 
+      mov x0, x8 
+      bl _printb 
+      bl _println 
+      adrp x8, .L.str1 
+      add x8, x8, :lo12:.L.str1 
+      stp x8, xzr, [sp, #-16]!
+      ldp x8, xzr, [sp], #16
+      mov x8, x8 
+      mov x0, x8 
+      bl _prints 
+      mov x8, #0 
+      mov x0, x8 
+      bl _printb 
       bl _println 
       mov x0, #0 
-      ldp x19, x20, [sp], #16
       ldp fp, lr, [sp], #16
       ret 
 .align 4 
-_printi: 
+_printb: 
       stp lr, xzr, [sp, #-16]!
-      mov x1, x0 
-      adr x0, .L._printi_str0 
+      cmp x0, #0 
+      b.NE .L_printb0 
+      adr x2, .L._printb_str0 
+      b .L_printb1 
+.L_printb0: 
+      adr x2, .L._printb_str1 
+.L_printb1: 
+      ldrsw x1, [x2, #-4] 
+      adr x0, .L._printb_str2 
       bl printf 
       mov x0, #0 
       bl fflush 
@@ -49,17 +69,11 @@ _printi:
 _println: 
       stp lr, xzr, [sp, #-16]!
       adr x0, .L._println_str0 
-      bl printf 
+      bl puts 
       mov x0, #0 
       bl fflush 
       ldp lr, xzr, [sp], #16
       ret 
-.align 4 
-_errOverflow: 
-      adr x0, .L._errOverflow_str0 
-      bl _prints 
-      mov x0, #-1 
-      bl _exit 
 .align 4 
 _prints: 
       stp lr, xzr, [sp, #-16]!

@@ -27,7 +27,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           semanticCheck(func)
         }
         semanticCheck(stmts)
-        symbolTable.exitMain(funcList.length)
+        symbolTable.exitMain(funcList)
         symbolTable.exitScope()
 
       case n@Func(returnType, functionName, params, body) =>

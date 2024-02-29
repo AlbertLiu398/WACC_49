@@ -46,9 +46,9 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(statements)
       instructions.append(I_Move(x0, ImmVal(0)))
       popUsedRegs(used_ResultRegs.toList.reverse, varList.last)
-      print(used_ResultRegs.toList.reverse)
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
       instructions.append(I_Ret)
+      revertResultRegs()
 
       // Generate code for functions
       for(func <- functions) {
@@ -75,8 +75,8 @@ class CodeGenerator (varList: List[Int]) {
 
       instructions.append(I_Label(functionName.value))
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
-      pushUsedRegs(unused_ResultRegs.toList, varList(funcProcessed))
-      instructions.append(I_Move(fp, Content(sp, ImmVal(0))))
+      pushUsedRegs(unused_GeneralRegs_copy, varList(funcProcessed))
+      instructions.append(I_Move(fp, sp))
       generateInstructions(body)
       popUsedRegs(used_ResultRegs.toList.reverse, varList(funcProcessed))
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
@@ -358,7 +358,7 @@ class CodeGenerator (varList: List[Int]) {
     case Free(expr) => 
     case Return(expr) => 
       generateInstructions(expr)
-      instructions.append(I_Move(x0, used_ResultRegs.head))
+      instructions.append(I_Move(x0, x8))
       
     case Exit(expr) =>
       generateInstructions(expr)
@@ -528,16 +528,15 @@ class CodeGenerator (varList: List[Int]) {
       var arrPointer = 0
       if (arrSize != 0) {
     for (expr <- e::es) {
-          arrPointer += getSize(expr)
           generateInstructions(expr)
           // StoreByte for char and bool
           instructions.append(I_Store(x8, Content(x16, ImmVal(arrPointer))))
+          arrPointer += getSize(expr)
         }
       }
       
 
       instructions.append(I_Move(x8, x16))
-      instructions.append(I_Move(x19, x8))
 
       mallocFlag = true
     
@@ -623,6 +622,11 @@ class CodeGenerator (varList: List[Int]) {
   def revertTempRegs():Unit = {
     used_TempRegs.clear()
     unused_TempRegs = mutable.ListBuffer() ++ unused_TempRegs_copy
+  }
+
+    def revertResultRegs():Unit = {
+    used_ResultRegs.clear()
+    unused_ResultRegs = mutable.ListBuffer() ++ unused_GeneralRegs_copy
   }
 
   def pushAndPopx8(size: Int):Unit = {

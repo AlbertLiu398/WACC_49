@@ -101,9 +101,12 @@ class SymbolTable {
     return scopeStack.top.contains(ident)
   }
 
-  def exitMain(funcListLength: Int): Unit = {
+  def exitMain(funcList: List[Func]): Unit = {
     varList.append(varCounter)
-    varList(0) -= funcListLength
+    varList(0) -= funcList.length
+    for (i <- 0 until varList.length - 1) {
+      varList(i) -= funcList(i).params.paramListType.length
+    }
   }
 
   def getVarList(): List[Int] = varList.toList

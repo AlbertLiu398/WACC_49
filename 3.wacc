@@ -1,5 +1,7 @@
 begin
-  int x = 5 ;
-  int y = 3 ;
-  println x * y
+  print "True is " ;
+  println true ;
+
+  print "False is " ;
+  println false
 end

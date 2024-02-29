@@ -351,7 +351,12 @@ object Utility {
         addCustomisedDataMsg("e" + ERR_OUT_OF_BOUND_MSG, label)
         instrus.append(I_Directive(".align 4"))
         instrus.append(I_Label(ERR_OUT_OF_BOUND_LABEL))
-        throwError(label)
+        instrus.append(I_ADR(x0, I_Label(label)))
+        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
+        instrus.append(I_Move(x0, ImmVal(0)))
+        instrus.append(I_BranchLink(I_Label(FLUSH_LABEL)))
+        instrus.append(I_Move(x0, ImmVal(-1)))
+        instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
     }
 
     def errOverFlow(): Unit = {
@@ -411,7 +416,7 @@ object Utility {
         instrus.append(I_Cmp(x17, lr))
         instrus.append(I_Csel(x1, x17, x1, GE))
         instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), GE))
-        instrus.append(I_Load(x7, Content(x7, x17, LSL(size/4 + 1))))
+        instrus.append(I_Ldrsw(x7, Content(x7, x17, LSL(size/4 + 1))))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }

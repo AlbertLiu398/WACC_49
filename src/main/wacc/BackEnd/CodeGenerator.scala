@@ -516,7 +516,7 @@ class CodeGenerator (varList: List[Int]) {
       for (expr <- value) {
         arrloadFlag += counter
         generateInstructions(expr)
-        instructions.append(I_Move(x7, x8)) 
+        instructions.append(I_Move(x7, x19)) 
         branchLink(s"_arrLoad$counter")
         instructions.append(I_Move(x8, x7))
         instructions.append(I_Move(x8, x8))
@@ -530,7 +530,7 @@ class CodeGenerator (varList: List[Int]) {
       }
 
       
-      instructions.append(I_Move(x8, x8))
+       // instructions.append(I_Move(x8, x8))
 
     
     

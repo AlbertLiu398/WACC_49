@@ -3,8 +3,11 @@ package wacc
 import java.io._
 import java.nio.file.{Files, Paths, StandardCopyOption}
 
+  /* 1. create assembly file 
+     2. generate assembly code and write to asm file */
 
 object FileConverter {
+  // genearte assembly code use the codeGenerator 
 
   def generateAssemblyCode(prog : ast.ASTNode, list : List[Int]): String = {
     val codeGenerator = new CodeGenerator(list)

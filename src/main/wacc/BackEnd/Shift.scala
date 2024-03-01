@@ -1,6 +1,6 @@
 package wacc
 
-
+// Stores shift types
 object Shift {
     sealed trait Shifts {
         def getValue() : String

@@ -76,7 +76,8 @@ object Utility {
 
     // Local list of instructions, to be appended to final instructions list in CodeGenerator
     var instrus: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
-
+    
+    // called when generating entire program, to concat local instrs list to global instructions list
     def addUtility():  mutable.ListBuffer[Instruction]  = {
 
         // ----print-----

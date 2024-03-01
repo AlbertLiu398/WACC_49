@@ -45,7 +45,7 @@ object Labels {
     var errBadCharCounter = 0
     
 
-    
+    // Stores non-utility strings encountered in program
     case class DataMsg(s: String, labelIndex: Int, actualSize: Int, name: String){
         val label: String = s".L.str$labelIndex"
         var instruction: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
@@ -66,9 +66,8 @@ object Labels {
             }
     }
 
-    // Generate a data message from a string and add to allDataMsgs
+    // Generate a data message from a string and add to allDataMsgs, Called when generating StringLiter
     def addDataMsg(s:String): String = {
-        // print("Adding data message: " + s + "     COUNTER:  " +  dataMsgCounter + "\n")
         val result = addDataMsgWithLabel(s, dataMsgCounter, "")
         dataMsgCounter = dataMsgCounter + 1
         result
@@ -80,6 +79,7 @@ object Labels {
         result
     }
 
+    // Helper function to add '\' before char
     private def replaceEscapeCharacters(input: String): String = {
         val result = new StringBuilder
         var i = 0
@@ -87,6 +87,7 @@ object Labels {
             val nextChar = input.charAt(i)
             nextChar match {
             case '"' => 
+                // Add escape slash before the double quote
                 result.append('\\')
                 result.append(nextChar)
 
@@ -112,18 +113,23 @@ object Labels {
         msg.label
     }
 
+    /* ----------------------------- add Iabel for different purpose -------------------------- */
+
+    // Generate a pair of string labels for if
     def addIfLabel(): (String, String) ={
         val instr = (s".if_then_$ifCounter", s".if_end_$ifCounter")
         ifCounter += 1
         instr
     }
 
+    // Generate a pair of string labels for while
     def addWhileLabel(): (String, String) ={
         val instr = (s".w_condition_$whileCounter", s".w_body_$whileCounter")
         whileCounter += 1
         instr
     }
 
+    // Generate simple label 
     def addLabel(): String = {
         val instr = s".L$labelCounter"
         labelCounter += 1
@@ -136,6 +142,7 @@ object Labels {
         instr
         
     }
+
     def addPrintcLabel(): String = {
         val instr = s".L._printc_str$printcCounter"
         printcCounter += 1
@@ -181,7 +188,7 @@ object Labels {
 
 
 
-    // functions to add error handlers label
+    // --------functions to add error handlers label-----------------
 
     def addErrOutOfMemoryLabel() : String = {
         val instr = s".L._errOutOfMemory_str$errOutOfMemoryCounter"
@@ -218,7 +225,7 @@ object Labels {
         instr
     }
 
-    // function to add free label
+    // function to add free pair label
     def addFreePairLabel(): String = {
         val instr = s".L._free_str$freePairCounter"
         freePairCounter += 1

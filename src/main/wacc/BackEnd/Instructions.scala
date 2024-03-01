@@ -73,7 +73,6 @@ object Instruction {
         override def getValue(): String = s"xzr"
     }
 
-
     // ---------------- Instructions --------------
     sealed trait Instruction {
         def printInstr() : String
@@ -86,7 +85,6 @@ object Instruction {
     case class I_Adds(dest: Register, src: Register, op: Operand) extends Instruction {
         override def printInstr(): String = s"      adds ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
     }
-
 
     case class I_Sub(dest: Register, src: Register, op: Operand, signed: Boolean=false) extends Instruction {
         override def printInstr(): String = s"      sub ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
@@ -107,7 +105,6 @@ object Instruction {
     case class I_SMul(dest: Register, src: Register, op: Operand) extends Instruction {
         override def printInstr(): String = s"      smull ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
     }
-
 
     case class I_SDiv(dest: Register, src: Register, op: Operand) extends Instruction {
         override def printInstr(): String = s"      sdiv ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
@@ -158,7 +155,6 @@ object Instruction {
                     case ImmVal(0) => s"      strb ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) "!\n" else "\n")
                     case _ => s"      strb ${src.getValue()}, ${dest.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
                 }
-        
     }
 
     case class I_Move(dest: Register, op: Operand) extends Instruction {
@@ -172,7 +168,6 @@ object Instruction {
     case class I_Movk(dest: Register, op: Operand, shift: Shifts) extends Instruction {
         override def printInstr(): String = s"      movk ${dest.getValue()}, ${op.getValue()}, ${shift.getValue()} \n"
     }
-
 
     case class I_Branch(label: I_Label, condition: Conditions = null) extends Instruction {
         override def printInstr(): String = {
@@ -218,7 +213,6 @@ object Instruction {
     case class I_Label(labelName: String) extends Instruction  {
         override def printInstr(): String = s"$labelName: \n"
         def getValue(): String = labelName
-        
     }
 
     case class I_Directive(name: String) extends Instruction {
@@ -246,7 +240,6 @@ object Instruction {
 
     case class I_Cbz(reg: Register, label: I_Label) extends Instruction {
         override def printInstr(): String = s"      cbz ${reg.getValue()}, ${label.labelName} \n"
-
     }
 
    case class I_Ldrsw(reg1: Register, content: Content) extends Instruction {

@@ -296,7 +296,7 @@ object Utility {
 
     def readchar() : Unit = {
         val labelRead = addReadcLabel()
-        addCustomisedDataMsg("r%c", labelRead)
+        addCustomisedDataMsg("r %c", labelRead)
         instrus.append(I_Label(READC_LABEL))
         
         read(labelRead)

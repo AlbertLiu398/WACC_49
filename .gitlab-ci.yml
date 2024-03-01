@@ -6,7 +6,7 @@ build:
   stage: build
   script:
     - make clean 
-    - scala-cli compile .
+    - make
   tags:
     - shell
 

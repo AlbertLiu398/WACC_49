@@ -363,7 +363,7 @@ class CodeGenerator (varList: List[Int]) {
         // instructions.append(I_Load(x8, Content(x19, ImmVal(0))))
       
         
-        instructions.append(I_Move(x8, getRegFromMap(n)))
+        // instructions.append(I_Move(x8, getRegFromMap(n)))
         instructions.append(I_Move(x0, x8))
 
         val readBranch = lValue.getType match {

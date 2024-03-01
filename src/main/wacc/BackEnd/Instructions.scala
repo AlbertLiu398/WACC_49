@@ -221,7 +221,7 @@ object Instruction {
         override def printInstr(): String = s"      csel ${reg1.getValue()}, ${reg2.getValue()}, ${reg3.getValue()}, ${condition.toString()} \n"
     }
 
-    case class I_tst(reg1: Register, op: Operand) extends Instruction {
+    case class I_Tst(reg1: Register, op: Operand) extends Instruction {
         override def printInstr(): String = s"      tst ${reg1.getValue()}, ${op.getValue()} \n"
     }
 }

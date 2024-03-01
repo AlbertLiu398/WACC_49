@@ -335,13 +335,21 @@ class CodeGenerator (varList: List[Int]) {
 
 
     case Chr(expr) =>   
+      badCharFlag = true
       generateInstructions(expr)
 
       //check the number of char is in ASCII table
+      instructions.append(I_Tst(x8, ImmVal(0xffffff80)))
+      instructions.append(I_Csel(x8, x8, x8, NE))
+      instructions.append(I_Branch(I_Label(ERR_BAD_CHAR_LABEL), NE))
+
       pushAndPopx8(16)
 
    // -------------------------- Generate instructions for statements
     case Read(lValue) =>
+
+        generateInstructions(lValue)
+    
         val n = getIdent(lValue)
         // instructions.append(I_Cbz(x19, I_Label(ERR_NULL_LABEL)))
         // instructions.append(I_Load(x8, Content(x19, ImmVal(0))))
@@ -366,7 +374,7 @@ class CodeGenerator (varList: List[Int]) {
         
     case NewAssignment(identType, name, value) =>
 
-      nullPointerFlag = true
+      // nullPointerFlag = true
        
       generateInstructions(value)
       instructions.append(I_Move(unused_ResultRegs.head, x8))
@@ -552,9 +560,12 @@ class CodeGenerator (varList: List[Int]) {
     case Skip =>
     
     case NewPairRValue(expr1, expr2) =>
+
+      mallocFlag = true
+
       instructions.append(I_Move(x0, ImmVal(getSize(expr1) + getSize(expr2))))
 
-      branchLink( MALLOC_LABEL)
+      branchLink(MALLOC_LABEL)
 
       instructions.append(I_Move(x16, x0))
 
@@ -568,7 +579,6 @@ class CodeGenerator (varList: List[Int]) {
 
       instructions.append(I_Move(x8, x16))
 
-      mallocFlag = true
       
     
 
@@ -580,7 +590,8 @@ class CodeGenerator (varList: List[Int]) {
         case false => instructions.append(I_Move(x8, ImmVal(0)))
       }
 
-    case CharLiter(value) => instructions.append(I_Move(x8, ImmValChar(value)))
+    case CharLiter(value) => 
+      instructions.append(I_Move(x8, ImmValChar(value)))
 
     case StringLiter(value) => 
       // Create label string with the given string 

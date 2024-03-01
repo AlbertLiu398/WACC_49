@@ -156,7 +156,7 @@ class CodeGenerator (varList: List[Int]) {
       }
       }
       checkOverflowHandler()
-      // pushAndPopx8(16)
+
 
       
 
@@ -430,8 +430,8 @@ class CodeGenerator (varList: List[Int]) {
         instructions.append(I_Move(fstReg, x8))
         identMap(name) = identMapEntry(getSize(value), used_ResultRegs.head)
       } else {
-        pushToStack()
-        identStackMap(name) = identMapStackEntry(getSize(value), initial_offset)
+        // pushToStack()
+        // identStackMap(name) = identMapStackEntry(getSize(value), initial_offset)
       }
       revertTempRegs()
           
@@ -488,13 +488,17 @@ class CodeGenerator (varList: List[Int]) {
           errOutOfBoundFlag = true
         }
 
-        case n@FstPairElem(values) =>
+        case n@FstPairElem(v) =>
           nullPointerFlag = true
           instructions.append(I_Cbz(reg, I_Label(ERR_NULL_LABEL)))
+          generateInstructions(value)
+          instructions.append(I_Store(x8, Content(reg)))
         
-        case n@SndPairElem(values) => 
+        case n@SndPairElem(v) => 
           nullPointerFlag = true
           instructions.append(I_Cbz(reg, I_Label(ERR_NULL_LABEL)))
+          generateInstructions(value)
+          instructions.append(I_Store(x8, Content(reg, ImmVal(8))))
 
         case _=>
           generateInstructions(name)
@@ -1040,13 +1044,16 @@ class CodeGenerator (varList: List[Int]) {
   
 
   def loadImmediate(value: Int) : Unit = {
-    // print("HEREEEE" + value)
-    if (value > MOV_MAX || value < MOV_MIN) {
+    // if (value > MOV_MAX || value < MOV_MIN) {
+    if (value > MOV_MAX) {
+      
       // Cannot load in one single instruction
       if (true){
         val fstReg = allocateTempReg()
-        instructions.append(I_Movz(fstReg, ImmVal(value >> 16), LSL(16)))
-        instructions.append(I_Movk(fstReg, ImmVal(value & 0xffff)))
+        // Use two separate instructions to load
+        instructions.append(I_Move(fstReg, ImmVal(value >> 16)))
+        instructions.append(I_Movk(fstReg, ImmVal(value & 0xFFFF), LSL(16)))
+
         instructions.append(I_Move(x8, fstReg))
       } else {
         pushToStack()

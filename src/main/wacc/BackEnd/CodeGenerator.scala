@@ -528,9 +528,14 @@ class CodeGenerator (varList: List[Int]) {
     case If(condition, thenStat, elseStat) =>
       generateInstructions(condition)
       val (if_then, if_end) = addIfLabel()
-
       // Branch instruction, Jump to then clause if condition is EQ, otherwise continue to else clause
-      instructions.append(I_Branch(I_Label(if_then), NE)) 
+      condition match {
+        case NotEq(expr1, expr2) => 
+          instructions.append(I_Branch(I_Label(if_then), NE)) 
+        case _=> 
+          instructions.append(I_Branch(I_Label(if_then), EQ)) 
+      }
+       
 
       // Generate else clause
       generateInstructions(elseStat)

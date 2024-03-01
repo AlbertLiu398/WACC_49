@@ -27,6 +27,8 @@ class CodeGenerator (varList: List[Int]) {
   private val funcIdentMap = mutable.Map[Ident, identMapEntry]()
   private val funcMap = mutable.Map[Ident, ParamList]()
   
+  final val MOV_MAX: Int = 65536
+  final val MOV_MIN: Int = -65537
   /* 
     generateInstructions (recursive function)
   */
@@ -588,7 +590,15 @@ class CodeGenerator (varList: List[Int]) {
       
     
 
-    case IntLiter(value)=> instructions.append(I_Move(x8, ImmVal(value)))
+    case IntLiter(value)=> 
+      print("HERE")
+      if (value > MOV_MAX || value < MOV_MIN) {
+
+        instructions.append(I_Movz(x8, ImmVal(value & 0xFFFF), LSL(0)))
+        instructions.append(I_Movk(x8, ImmVal(value >> 16), LSL(16)))
+      } else {
+        instructions.append(I_Move(x8, ImmVal(value)))
+      }
          
     case BoolLiter(value) => 
       value match {

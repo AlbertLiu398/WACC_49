@@ -14,15 +14,15 @@
       .word 39 
 .L.str2: 
       .asciz "Do you want to continue entering input?" 
+      .word 3 
+.L._readc_str0: 
+      .asciz " %c" 
       .word 12 
 .L.str1: 
       .asciz "echo input: " 
-      .word 3 
-.L.str4: 
-      .asciz "r%c" 
-      .word 3 
-.L.str5: 
-      .asciz "r%d" 
+      .word 2 
+.L._readi_str0: 
+      .asciz "%d" 
       .word 0 
 .L._println_str0: 
       .asciz "" 

@@ -29,17 +29,17 @@
 .align 4
 .text
 .global main
-main:
-	  stp fp, lr, [sp, #-16]!
+main: 
+      stp fp, lr, [sp, #-16]!
       stp x19, x20, [sp, #-16]!
       mov fp, sp 
       mov x8, #89 
       mov x19, x8 
       mov x8, #0 
       mov x20, x8 
-      b .L0 
-.L1:
-	  adrp x8, .L.str0 
+      b .w_condition_0 
+.w_body_0: 
+      adrp x8, .L.str0 
       add x8, x8, :lo12:.L.str0 
       stp x8, xzr, [sp, #-16]!
       ldp x8, xzr, [sp], #16
@@ -85,20 +85,20 @@ main:
       mov x16, x0 
       mov x8, x16 
       mov x19, x8 
-.L0:
-	mov x8, x19 
-	mov x9, x8 
-	mov x8, #78 
-	cmp x9, x8 
-	cset x8, NE 
-	b.NE .L1
-	mov x0, #0 
-	ldp x19, x20, [sp], #16
-	ldp fp, lr, [sp], #16
-	ret 
-.align 4
-_printi:
-	  stp lr, xzr, [sp, #-16]!
+.w_condition_0: 
+      mov x8, x19 
+      mov x9, x8 
+      mov x8, #78 
+      cmp x9, x8 
+      cset x8, NE 
+      b.NE .w_body_0 
+      mov x0, #0 
+      ldp x19, x20, [sp], #16
+      ldp fp, lr, [sp], #16
+      ret 
+.align 4 
+_printi: 
+      stp lr, xzr, [sp, #-16]!
       mov x1, x0 
       adr x0, .L._printi_str0 
       bl printf 
@@ -106,34 +106,32 @@ _printi:
       bl fflush 
       ldp lr, xzr, [sp], #16
       ret 
-.align 4
-_println:
-	stp lr, xzr, [sp, #-16]!
-	adr x0, .L._println_str0
-	bl puts
-	mov x0, #0
-	bl fflush
-	ldp lr, xzr, [sp], #16
-	ret
-.align 4
-_readc:
-	 stp x0, lr, [sp, #-16]!
+.align 4 
+_println: 
+      stp lr, xzr, [sp, #-16]!
+      adr x0, .L._println_str0 
+      bl puts 
+      mov x0, #0 
+      bl fflush 
+      ldp lr, xzr, [sp], #16
+      ret 
+_readc: 
+      stp x0, lr, [sp, #-16]!
       mov x1, sp 
       adr x0, .L._readc_str0 
       bl scanf 
       ldp x0, lr, [sp], #16
-      ret
-.align 4
-_readi:
-	 stp x0, lr, [sp, #-16]!
+      ret 
+_readi: 
+      stp x0, lr, [sp, #-16]!
       mov x1, sp 
       adr x0, .L._readi_str0 
       bl scanf 
       ldp x0, lr, [sp], #16
       ret 
-.align 4
-_prints:
-	  stp lr, xzr, [sp, #-16]!
+.align 4 
+_prints: 
+      stp lr, xzr, [sp, #-16]!
       mov x2, x0 
       ldrsw x1, [x0, #-4] 
       adr x0, .L._prints_str0 

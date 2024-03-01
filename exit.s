@@ -12,8 +12,6 @@ main:
       stp fp, lr, [sp, #-16]!
       stp x19, xzr, [sp, #-16]!
       mov fp, sp 
-      mov x8, #99 
-      mov x0, x8 
       bl wacc_f 
       mov x16, x0 
       mov x8, x16 
@@ -29,7 +27,7 @@ main:
 wacc_f: 
       stp fp, lr, [sp, #-16]!
       mov fp, sp 
-      mov x8, x0 
+      mov x8, #3 
       mov x0, x8 
       ldp fp, lr, [sp], #16
       ret 

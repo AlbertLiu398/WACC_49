@@ -1,16 +1,18 @@
-# evaluating a moderately complex integer expression
+# Simple conditional statement with int comparison test
 
 # Output:
-# Correct
+# correct
 #
 
 # Program:
 
 begin
-  int a = ( 10 * 1 + 2 * 15 );
-  if a == 40 then
-    println "Correct"
+  int a = 13;
+  if a != 13
+  then
+    println "incorrect"
   else
-    println "Wrong"
+    println "correct"
   fi
 end
+

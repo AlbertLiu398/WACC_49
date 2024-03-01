@@ -66,6 +66,7 @@ class CodeGenerator (varList: List[Int]) {
       // Generate code for functions
       inFunc = true
       for(func <- functions) {
+        funcReturned = false
         generateInstructions(func)
       }
       inFunc = false
@@ -461,8 +462,13 @@ class CodeGenerator (varList: List[Int]) {
       freePairFlag = true
 
     case Return(expr) => 
-      generateInstructions(expr)
-      instructions.append(I_Move(x0, x8))
+
+      if (!funcReturned){
+        generateInstructions(expr)
+        instructions.append(I_Move(x0, x8))
+        funcReturned = true
+      }
+      
       
     case Exit(expr) =>
       generateInstructions(expr)

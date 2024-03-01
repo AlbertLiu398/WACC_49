@@ -415,7 +415,11 @@ object Utility {
         instrus.append(I_Cmp(x17, lr))
         instrus.append(I_Csel(x1, x17, x1, GE))
         instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), GE))
-        instrus.append(I_Ldrsw(x7, Content(x7, x17, LSL(size/4 + 1))))
+        if (size == 4) {
+            instrus.append(I_Ldrsw(x7, Content(x7, x17, LSL(size/4 + 1))))
+        } else {
+            instrus.append(I_Load(x7, Content(x7, x17, LSL(size/4 + 1))))
+        }
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }
@@ -423,14 +427,15 @@ object Utility {
     def arrStore(size: Int): Unit = {
         instrus.append(I_Label(ARRSTORE_LABEL + size))
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
-        instrus.append(I_Cmp(x17, ImmVal(0)))
+        instrus.append(I_Sxtw(x17, x17.toW()))
+        instrus.append(I_Cmp(x17.toW(), ImmVal(0)))
         instrus.append(I_Csel(x1, x17, x1, LT))
         instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), LT))
         instrus.append(I_Ldrsw(lr, Content(x7, ImmVal(-4))))
         instrus.append(I_Cmp(x17, lr))
         instrus.append(I_Csel(x1, x17, x1, GE))
         instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), GE))
-        instrus.append(I_Store(x8, Content(x7, x17, LSL(size/4 + 1))))
+        instrus.append(I_Store(x8.toW(), Content(x7, x17, LSL(size/4 + 1))))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }

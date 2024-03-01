@@ -85,6 +85,7 @@ class CodeGenerator (varList: List[Int]) {
       }
 
       
+      
 
 
     case Func(returnType, functionName, params, body) =>
@@ -107,10 +108,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append((I_Adds(x8.toW(), x8.toW(), ImmVal(value))))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
-          val fstReg = allocateTempReg()
-          generateInstructions(expr2)
-          instructions.append(I_Adds(x8.toW(), fstReg.toW(), x8.toW()))
-
+          temp_checkRegisterAvability(expr2)
       }
       checkOverflowHandler() 
 
@@ -126,9 +124,7 @@ class CodeGenerator (varList: List[Int]) {
         
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
-          val fstReg = allocateTempReg()
-          generateInstructions(expr2)
-          instructions.append(I_Subs(x8.toW(), fstReg.toW(), x8.toW()))
+          temp_checkRegisterAvability(expr2)
       }
       checkOverflowHandler()
 
@@ -139,6 +135,7 @@ class CodeGenerator (varList: List[Int]) {
       
       generateInstructions(expr1)  // mov x8 expr1
       instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x9 x8 
+      if (!checkIfneedStack()){
       val fstReg = allocateTempReg()
       generateInstructions(expr2)  //mov x8 epr2 
       
@@ -147,6 +144,9 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Sbfx(fstReg, x8, ImmVal(31), ImmVal(1)))
       // now take the top 32 bits of the result, shift and sign extend to 64 bits
       instructions.append(I_Cmp_Shift(fstReg, x8, ASR(32)))
+      } else {
+        pushToStack()
+      }
       // if they are not equal then overflow occured
       instructions.append(I_Branch(I_Label(ERR_OVERFLOW_LABEL), NE))
 
@@ -170,14 +170,16 @@ class CodeGenerator (varList: List[Int]) {
           // x8 contains divdent, Move x8 to another register 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           // add the new register to used_TempRegs
-          val fstReg = allocateTempReg()
+          if (!checkIfneedStack()){
+            val fstReg = allocateTempReg()
 
-          // Store the quotient in x8
-          generateInstructions(expr2)
+            // Store the quotient in x8
+            generateInstructions(expr2)
 
-          // Need to compare x8 with 0 to check for division by zero
-          instructions.append(I_Cbz(x8, I_Label(ERR_DIV_ZERO_LABEL))) 
-          instructions.append(I_SDiv(x8, fstReg, x8))
+            // Need to compare x8 with 0 to check for division by zero
+            instructions.append(I_Cbz(x8, I_Label(ERR_DIV_ZERO_LABEL))) 
+            instructions.append(I_SDiv(x8, fstReg, x8))
+          }
       }
       checkOverflowHandler()
 
@@ -189,13 +191,16 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr1)
       // Move 
       instructions.append(I_Move(unused_TempRegs.head, x8))
+      if (!checkIfneedStack()){
       val fstReg = allocateTempReg()
       generateInstructions(expr2)
-
       instructions.append(I_Cbz(x8, I_Label(ERR_DIV_ZERO_LABEL)))
       instructions.append(I_SDiv(unused_TempRegs.head, fstReg, x8))
       instructions.append(I_Mul(unused_TempRegs.head, unused_TempRegs.head, x8))
       instructions.append(I_Sub(x8, fstReg, unused_TempRegs.head))
+      } else {
+        pushToStack()
+      }
       checkOverflowHandler()
       
 
@@ -203,40 +208,38 @@ class CodeGenerator (varList: List[Int]) {
     case LessThan(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
+      if (!checkIfneedStack()){
       val fstReg = allocateTempReg()
       generateInstructions(expr2)
-
       instructions.append(I_Cmp(fstReg, x8))
+      } else {
+        pushToStack()
+      }
       instructions.append(I_CSet(x8, LT))
       //push and pop x8
 
     case LessThanEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
+      if (!checkIfneedStack()) {
       val fstReg = allocateTempReg()
       generateInstructions(expr2)
-
       instructions.append(I_Cmp(fstReg, x8))
+      } else {
+        pushToStack()
+      }
       instructions.append(I_CSet(x8, LE))
 
     case GreaterThan(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateTempReg()
-      generateInstructions(expr2)
-
-  
-
-      instructions.append(I_Cmp(fstReg, x8))
+      temp_checkRegisterAvability(expr2)
       instructions.append(I_CSet(x8, GT))
 
     case GreaterThanEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateTempReg()
-      generateInstructions(expr2)
-
-      instructions.append(I_Cmp(fstReg, x8))
+      temp_checkRegisterAvability(expr2)
       instructions.append(I_CSet(x8, GE))
 
     case Eq(expr1, expr2) =>
@@ -377,7 +380,7 @@ class CodeGenerator (varList: List[Int]) {
         case n@ArrElem(name, v)=>
           var counter = v.length * 4
           for (expr <- v) {
-            arrstoreFlag += counter
+
             generateInstructions(expr)
             if (counter != 4) {
               instructions.append(I_Move(x17.toW(), x8.toW()))
@@ -385,7 +388,7 @@ class CodeGenerator (varList: List[Int]) {
                 instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
               }
               instructions.append(I_Move(x7, getRegFromMap(name, identMap)))
-              branchLink(s"_arrStore$counter")
+              branchLink(s"_arrLoad$counter")
               counter -= 4
             
               instructions.append(I_Move(x8, x7))
@@ -393,6 +396,7 @@ class CodeGenerator (varList: List[Int]) {
               instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
             }
             else {
+              arrstoreFlag += counter
               var fstReg = getRegFromMap(name, identMap)
               if (v.length != 1) {
                 instructions.append(I_LoadPair(unused_TempRegs.head, xzr, Content(sp), ImmVal(16)))
@@ -466,6 +470,12 @@ class CodeGenerator (varList: List[Int]) {
     
 
     case Print(expr, newline) =>
+
+      if (inFunc){
+        instructions.append(I_StorePair(x0, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
+        instructions.append(I_Move(x16, sp))
+      }
+
       generateInstructions(expr)
       instructions.append(I_Move(x0, x8))
 
@@ -489,12 +499,18 @@ class CodeGenerator (varList: List[Int]) {
         case _ =>
           printPFlag = true
           branchLink(PRINT_P_LABEL)
+        
       }
   
+      
      
       if (newline) {
         printLineFlag = true
         branchLink( PRINT_LN_LABEL)
+      }
+      
+      if(inFunc){
+        instructions.append(I_LoadPair(x0, xzr, Content(sp), ImmVal(16)))
       }
       
 
@@ -914,39 +930,79 @@ class CodeGenerator (varList: List[Int]) {
     fstReg
   }
 
-
-  def pushToStack(value : Int ) : Unit = {
-  // if (varList.last < unused_ResultRegs.length) {
-    val number_of_remaining_variable = varList.last - unused_ResultRegs.length
-    val initial_offset = number_of_remaining_variable * STACK_ELEM_SIZE
-
-
-    var temp_number_of_remaining_variable = number_of_remaining_variable
-    while(number_of_remaining_variable > 0){
-      var offset = temp_number_of_remaining_variable * STACK_ELEM_SIZE
-      instructions.append(I_Move(x8, ImmVal(value)))
-      instructions.append(I_Move(x17, ImmVal(-offset)))
-      instructions.append(I_Store(x8.toW(), fp, x17))
-      temp_number_of_remaining_variable = number_of_remaining_variable - 1
+  def checkIfneedStack() : Boolean = {
+    var result = false 
+    if (varList.last > unused_ResultRegs.length) {
+      result = true
     }
-    instructions.append(I_Add(sp, sp, ImmVal(initial_offset)))
-    instructions.append(I_Move(x0, ImmVal(0)))
+    result
   }
 
+
+  def pushToStack() : Unit = {
+    // if (varList.last < unused_ResultRegs.length) {
+      val number_of_remaining_variable = varList.last - unused_ResultRegs.length
+      val initial_offset = number_of_remaining_variable * STACK_ELEM_SIZE
+
+
+      var temp_number_of_remaining_variable = number_of_remaining_variable
+      while(number_of_remaining_variable > 0){
+        var offset = temp_number_of_remaining_variable * STACK_ELEM_SIZE
+        instructions.append(I_Move(x17, ImmVal(-offset)))
+        instructions.append(I_Store(x8.toW(), fp, x17))
+        temp_number_of_remaining_variable -= number_of_remaining_variable
+      }
+      instructions.append(I_Add(sp, sp, ImmVal(initial_offset)))
+      instructions.append(I_Move(x0, ImmVal(0)))
+      // for(int )
+      // instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
+    // }
+     val number_of_load = unused_ResultRegs.length / 2 
+    //  instructions.append(Ix21, x22)
+      instructions.append(I_LoadPair(x21, x22, Content(sp, ImmVal(0)), ImmVal(16)))
+      instructions.append(I_LoadPair(x23, x24, Content(sp, ImmVal(0)), ImmVal(16)))
+      instructions.append(I_LoadPair(x25, x26, Content(sp, ImmVal(0)), ImmVal(16)))
+      instructions.append(I_LoadPair(x26, x28, Content(sp, ImmVal(0)), ImmVal(16)))
+      instructions.append(I_LoadPair(x19, x20, Content(sp, ImmVal(0)), ImmVal(16)))
+      instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
+      // instructions.append(I_Ret())
+  }
   
+  def temp_checkRegisterAvability(exp : Expr) : Unit = {
+    if (!checkIfneedStack()){
+      val fstReg = allocateTempReg()
+      generateInstructions(exp)
+      instructions.append(I_Cmp(fstReg, x8))
+      } else {
+        pushToStack()
+      }
+  }
+
+  // def result_checkRegisterAvability(exp : Expr) : Unit = {
+  //   if (!checkIfneedStack()){
+  //     val fstReg = allocateTempReg()
+  //     generateInstructions(exp)
+  //     instructions.append(I_Cmp(fstReg, x8))
+  //     } else {
+  //       pushToStack()
+  //     }
+  // }
   
 
+
+
   private def loadImmediate(value: Int) : Unit = {
-    val fstReg = allocateTempReg() 
-    val sndReg = allocateResultReg()
     if (value > MOV_MAX || value < MOV_MIN) {
-      instructions.append(I_Movk(fstReg, ImmVal(value >> 16), LSL(16)))
-      instructions.append(I_Movz(fstReg, ImmVal(value & 0xFFFF), LSL(0)))
+      if (!checkIfneedStack()){
+      val fstReg = allocateTempReg()
+      instructions.append(I_Move(fstReg, ImmVal(value >> 16)))
+      instructions.append(I_Movk(fstReg, ImmVal(value & 0xFFFF), LSL(16)))
+      instructions.append(I_Move(x8, fstReg))
+      } 
+      pushToStack()
     } else {
-      instructions.append(I_Move(fstReg, ImmVal(value)))
+      instructions.append(I_Move(x8, ImmVal(value)))
     }
-    instructions.append(I_Move(sndReg, fstReg))
-    instructions.append(I_Move(x8, sndReg))
   }
 
 }

@@ -83,9 +83,17 @@ object Instruction {
         override def printInstr(): String = s"      add ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
     }
 
+    case class I_Adds(dest: Register, src: Register, op: Operand) extends Instruction {
+        override def printInstr(): String = s"      adds ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+    }
+
 
     case class I_Sub(dest: Register, src: Register, op: Operand, signed: Boolean=false) extends Instruction {
         override def printInstr(): String = s"      sub ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+    }
+
+    case class I_Subs(dest: Register, src: Register, op: Operand) extends Instruction {
+        override def printInstr(): String = s"      subs ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
     }
 
     case class I_ReverseSub(dest: Register, src: Register, op: Operand) extends Instruction {
@@ -95,6 +103,11 @@ object Instruction {
     case class I_Mul(dest1: Register, dest2: Register, src1: Register) extends Instruction {
         override def printInstr(): String = s"      mul ${dest1.getValue()}, ${dest2.getValue()}, ${src1.getValue()} \n"
     }
+
+    case class I_SMul(dest: Register, src: Register, op: Operand) extends Instruction {
+        override def printInstr(): String = s"      smull ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+    }
+
 
     case class I_SDiv(dest: Register, src: Register, op: Operand) extends Instruction {
         override def printInstr(): String = s"      sdiv ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"

@@ -19,6 +19,8 @@ object Labels {
     // counter for naming while labels
     var whileCounter = 0
 
+    var labelCounter =0
+
     // print counter 
     var printbCounter = 0
     var printcCounter = 0
@@ -119,6 +121,12 @@ object Labels {
     def addWhileLabel(): (String, String) ={
         val instr = (s".w_condition_$whileCounter", s".w_body_$whileCounter")
         whileCounter += 1
+        instr
+    }
+
+    def addLabel(): String = {
+        val instr = s".L$labelCounter"
+        labelCounter += 1
         instr
     }
 

@@ -288,33 +288,31 @@ class CodeGenerator (varList: List[Int]) {
       // x8 : expr1 
       // x8 
       generateInstructions(expr1)
-      
-      expr2 match {
-        case IntLiter(value) => 
-          instructions.append(I_And(x8, x8, ImmVal(value)))
-        case _=> 
-          instructions.append(I_Move(unused_TempRegs.head, x8))
-          used_TempRegs = unused_TempRegs.head +: used_TempRegs
-          val fstReg = used_TempRegs.head
-          unused_TempRegs.remove(0)
-          generateInstructions(expr2)
-          instructions.append(I_And(x8, fstReg, x8))
-      }
+      val label = I_Label(addLabel())
+      instructions.append(I_Cmp(x8, ImmVal(1)))
+      instructions.append(I_Branch(label, NE))
+
+      generateInstructions(expr2)
+      instructions.append(I_Cmp(x8, ImmVal(1)))
+
+      instructions.append(label)
+      instructions.append(I_CSet(x8, EQ))
+      pushAndPopx8(16)
+
+
 
     case Or(expr1, expr2) =>
       generateInstructions(expr1)
-      
-      expr2 match {
-        case IntLiter(value) => 
-          instructions.append(I_Orr(x8, x8, ImmVal(value)))
-        case _=> 
-          instructions.append(I_Move(unused_TempRegs.head, x8))
-          used_TempRegs = unused_TempRegs.head +: used_TempRegs
-          val fstReg = used_TempRegs.head
-          unused_TempRegs.remove(0)
-          generateInstructions(expr2)
-          instructions.append(I_Orr(x8, fstReg, x8))
-      }
+      val label = I_Label(addLabel())
+      instructions.append(I_Cmp(x8, ImmVal(1)))
+      instructions.append(I_Branch(label, EQ))
+
+      generateInstructions(expr2)
+      instructions.append(I_Cmp(x8, ImmVal(1)))
+
+      instructions.append(label)
+      instructions.append(I_CSet(x8, EQ))
+      pushAndPopx8(16)
 
     case Invert(expr) =>
       generateInstructions(expr)
@@ -397,8 +395,14 @@ class CodeGenerator (varList: List[Int]) {
       
 
     case Assignment(name, value) => 
+      var reg: Register = xzr
+      if (inFunc) {
+        reg = getFuncRegFromMap(getIdent(name))
+        if (reg == xzr) {
+          reg = getRegFromMap(getIdent(name))
+        }
+      }
       
-      val reg = getRegFromMap(getIdent(name))
       name match {
         case n@ArrElem(name, v)=>
           var counter = v.length * 4
@@ -455,12 +459,18 @@ class CodeGenerator (varList: List[Int]) {
       
     
     case Free(expr) => 
+
+      val t = expr.getType
+      val isArray = t.contains("[]")
+
+      if (isArray) {
+        instructions.append(I_Sub(x8, x9, ImmVal(4)))
+        instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16))))
+        instructions.append(I_LoadPair(x8, xzr, Content(sp), ImmVal(16)))
+      } 
       generateInstructions(expr)
       instructions.append(I_Move(x0, x8))
-      val t = expr.getType
-      print (t)
-      if (t.contains("[]")) {
-
+      if (isArray) {
         branchLink(FREE_LABEL)
       } else {
         branchLink(FREE_PAIR_LABEL)
@@ -737,8 +747,6 @@ class CodeGenerator (varList: List[Int]) {
       nullPointerFlag = true
 
     case Ident(value) => 
-
-
       if (inFunc) {
         var reg: Register = getFuncRegFromMap(Ident(value))
         if (reg == xzr) {

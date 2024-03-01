@@ -104,14 +104,14 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append((I_Adds(x8.toW(), x19.toW(), ImmVal(value))))
+          instructions.append((I_Adds(x8, x8, ImmVal(value))))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
           val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Adds(x8.toW(), fstReg.toW(), x8.toW()))
+          instructions.append(I_Adds(x8, fstReg, x8))
 
       }
       checkOverflowHandler() 
@@ -124,7 +124,7 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append(I_Subs(x8.toW(), x8.toW(), ImmVal(value)))
+          instructions.append(I_Subs(x8, x8, ImmVal(value)))
         
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
@@ -132,7 +132,7 @@ class CodeGenerator (varList: List[Int]) {
           val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Subs(x8.toW(), fstReg.toW(), x8.toW()))
+          instructions.append(I_Subs(x8, fstReg, x8))
       }
       checkOverflowHandler()
 
@@ -150,7 +150,7 @@ class CodeGenerator (varList: List[Int]) {
 
       generateInstructions(expr2)  //mov x8 epr2 
       
-      instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
+      instructions.append(I_SMul(x8, fstReg, x8))  // x8 = w9 * w8
       // take the 31st bit, sign extend it to 64 bits
       instructions.append(I_Sbfx(fstReg, x8, ImmVal(31), ImmVal(1)))
       // now take the top 32 bits of the result, shift and sign extend to 64 bits
@@ -334,7 +334,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
           instructions.append(I_Move(x8, ImmVal(0)))
-          instructions.append(I_Subs(x8.toW(), x8.toW(), x9.toW()))
+          instructions.append(I_Subs(x8, x8, x9))
           checkOverflowHandler()
       }
 

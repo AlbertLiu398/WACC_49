@@ -329,8 +329,8 @@ class CodeGenerator (varList: List[Int]) {
    // -------------------------- Generate instructions for statements
     case Read(lValue) =>
         val n = getIdent(lValue)
-        instructions.append(I_Cbz(x19, I_Label(ERR_NULL_LABEL)))
-        instructions.append(I_Load(x8, Content(x19, ImmVal(0))))
+        // instructions.append(I_Cbz(x19, I_Label(ERR_NULL_LABEL)))
+        // instructions.append(I_Load(x8, Content(x19, ImmVal(0))))
       
         
         instructions.append(I_Move(x8, getRegFromMap(n)))

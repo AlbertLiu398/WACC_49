@@ -13,7 +13,7 @@ import Shift._
 object Utility {
 
     private val sT = new SymbolTable
-    val codeGenerator = new CodeGenerator(sT.getVarList())
+    // val codeGenerator = new CodeGenerator(sT.getVarList())
 
     // Flags for print functions
     var printCharFlag: Boolean = false
@@ -74,11 +74,6 @@ object Utility {
     final val ERR_DIV_ZERO_LABEL = "_errDivZero"
     final val ERR_BAD_CHAR_LABEL = "_errBadChar"
 
-
-
-    
-    // val OVERFLOW_LABEL = "_throw_overflow_error"
-    // val RUNTIME_LABEL = "_throw_runtime_error"
 
     // Local list of instructions, to be appended to final instructions list in CodeGenerator
     var instrus: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty

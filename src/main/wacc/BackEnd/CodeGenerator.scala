@@ -101,15 +101,14 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append(I_Add(x8, x8, ImmVal(value)))
-
+          instructions.append((I_Add(x8.toW(), x19.toW(), ImmVal(value))))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
           val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Add(x8, fstReg, x8))
+          instructions.append(I_Add(x8.toW(), fstReg.toW(), x8))
 
       }
       checkOverflowHandler() 

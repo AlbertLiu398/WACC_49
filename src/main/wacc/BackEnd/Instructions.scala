@@ -48,14 +48,24 @@ object Instruction {
         override def getValue(): String = s"sp"
     }
 
-    case class Reg(n: Int) extends Register {
+    case class Reg(n: Int, size: Int) extends Register {
         override def getValue(): String = {
             n match {
                 case 29 => "fp"
                 case 30 => "lr"
                 case 31 => "sp"
-                case _ => s"x$n"
+                case _ => {
+                    size match {
+                        case 32 => s"w$n"
+                        case 64 => s"x$n"
+                    }
+                }
             }
+        }
+
+        // Convert to 32 bit register for printing
+        def toW(): Register = {
+            Reg(n, W_REGISTER_SIZE)
         }
     }
 

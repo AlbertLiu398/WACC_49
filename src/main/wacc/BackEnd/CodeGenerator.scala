@@ -104,14 +104,14 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append((I_Adds(x8, x8, ImmVal(value))))
+          instructions.append((I_Adds(x8.toW(), x8.toW(), ImmVal(value))))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           used_TempRegs = unused_TempRegs.head +: used_TempRegs
           val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Adds(x8, fstReg, x8))
+          instructions.append(I_Adds(x8.toW(), fstReg, x8.toW()))
 
       }
       checkOverflowHandler() 
@@ -124,7 +124,7 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append(I_Subs(x8, x8, ImmVal(value)))
+          instructions.append(I_Subs(x8.toW(), x8.toW(), ImmVal(value)))
         
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
@@ -132,7 +132,7 @@ class CodeGenerator (varList: List[Int]) {
           val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Subs(x8, fstReg, x8))
+          instructions.append(I_Subs(x8.toW(), fstReg, x8.toW()))
       }
       checkOverflowHandler()
 
@@ -334,7 +334,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
           instructions.append(I_Move(x8, ImmVal(0)))
-          instructions.append(I_Subs(x8, x8, x9))
+          instructions.append(I_Subs(x8.toW(), x8.toW(), x9))
           checkOverflowHandler()
       }
 
@@ -899,5 +899,7 @@ class CodeGenerator (varList: List[Int]) {
   // Helper function:  Jump to overflow handler if overflow occurs
   def checkOverflowHandler(): Unit = { 
     instructions.append(I_Branch(I_Label(ERR_OVERFLOW_LABEL), VS))
+    instructions.append(I_Sxtw(x8,x8.toW()))
+
   }
 }

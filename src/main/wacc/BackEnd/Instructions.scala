@@ -263,4 +263,8 @@ object Instruction {
     case class I_Sbfx(reg1: Register, reg2: Register, start_bit: Operand, len: Operand) extends Instruction {
         override def printInstr(): String = s"      sbfx ${reg1.getValue()}, ${reg2.getValue()}, ${start_bit.getValue()}, ${len.getValue()} \n"
     }
+
+    case class I_Sxtw(reg1: Register, reg2: Register) extends Instruction {
+        override def printInstr(): String = s"      sxtw ${reg1.getValue()}, ${reg2.getValue()}\n"
+    }
 }

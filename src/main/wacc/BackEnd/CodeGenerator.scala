@@ -107,7 +107,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append((I_Adds(x8.toW(), x8.toW(), ImmVal(value))))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
-          val fstReg = allocateReg()
+          val fstReg = allocateTempReg()
           generateInstructions(expr2)
           instructions.append(I_Adds(x8.toW(), fstReg.toW(), x8.toW()))
 
@@ -126,7 +126,7 @@ class CodeGenerator (varList: List[Int]) {
         
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
-          val fstReg = allocateReg()
+          val fstReg = allocateTempReg()
           generateInstructions(expr2)
           instructions.append(I_Subs(x8.toW(), fstReg.toW(), x8.toW()))
       }
@@ -139,7 +139,7 @@ class CodeGenerator (varList: List[Int]) {
       
       generateInstructions(expr1)  // mov x8 expr1
       instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x9 x8 
-      val fstReg = allocateReg()
+      val fstReg = allocateTempReg()
       generateInstructions(expr2)  //mov x8 epr2 
       
       instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
@@ -170,7 +170,7 @@ class CodeGenerator (varList: List[Int]) {
           // x8 contains divdent, Move x8 to another register 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           // add the new register to used_TempRegs
-          val fstReg = allocateReg()
+          val fstReg = allocateTempReg()
 
           // Store the quotient in x8
           generateInstructions(expr2)
@@ -189,10 +189,10 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr1)
       // Move 
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateReg()
+      val fstReg = allocateTempReg()
       generateInstructions(expr2)
 
-      instructions.append(I_Cbz(fstReg, I_Label(ERR_DIV_ZERO_LABEL)))
+      instructions.append(I_Cbz(x8, I_Label(ERR_DIV_ZERO_LABEL)))
       instructions.append(I_SDiv(unused_TempRegs.head, fstReg, x8))
       instructions.append(I_Mul(unused_TempRegs.head, unused_TempRegs.head, x8))
       instructions.append(I_Sub(x8, fstReg, unused_TempRegs.head))
@@ -203,7 +203,7 @@ class CodeGenerator (varList: List[Int]) {
     case LessThan(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateReg()
+      val fstReg = allocateTempReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -213,7 +213,7 @@ class CodeGenerator (varList: List[Int]) {
     case LessThanEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateReg()
+      val fstReg = allocateTempReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -222,7 +222,7 @@ class CodeGenerator (varList: List[Int]) {
     case GreaterThan(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateReg()
+      val fstReg = allocateTempReg()
       generateInstructions(expr2)
 
   
@@ -233,7 +233,7 @@ class CodeGenerator (varList: List[Int]) {
     case GreaterThanEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateReg()
+      val fstReg = allocateTempReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -242,7 +242,7 @@ class CodeGenerator (varList: List[Int]) {
     case Eq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateReg()
+      val fstReg = allocateTempReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -251,7 +251,7 @@ class CodeGenerator (varList: List[Int]) {
     case NotEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      val fstReg = allocateReg()
+      val fstReg = allocateTempReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -369,22 +369,23 @@ class CodeGenerator (varList: List[Int]) {
         if (reg == xzr) {
           reg = getRegFromMap(getIdent(name), identMap)
         }
+      } else {
+        reg = getRegFromMap(getIdent(name), identMap)
       }
-      reg = getRegFromMap(getIdent(name), identMap)
       
       name match {
         case n@ArrElem(name, v)=>
           var counter = v.length * 4
           for (expr <- v) {
-            arrloadFlag += counter
+            arrstoreFlag += counter
             generateInstructions(expr)
             if (counter != 4) {
-              instructions.append(I_Move(x17, x8))
+              instructions.append(I_Move(x17.toW(), x8.toW()))
               if (counter !=  v.length * 4) {
                 instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
               }
               instructions.append(I_Move(x7, getRegFromMap(name, identMap)))
-              branchLink(s"_arrLoad$counter")
+              branchLink(s"_arrStore$counter")
               counter -= 4
             
               instructions.append(I_Move(x8, x7))
@@ -395,13 +396,14 @@ class CodeGenerator (varList: List[Int]) {
               var fstReg = getRegFromMap(name, identMap)
               if (v.length != 1) {
                 instructions.append(I_LoadPair(unused_TempRegs.head, xzr, Content(sp), ImmVal(16)))
-                val fstReg = allocateReg()
+                val fstReg = allocateTempReg()
               }
               instructions.append(I_Move(x17, x8))
               generateInstructions(value)
               instructions.append(I_Move(x7, fstReg))
+              branchLink(s"_arrStore$counter")
               
-              branchLink(s"_arrLoad$counter")
+              generateInstructions(n)
             }
           errOutOfBoundFlag = true
         }
@@ -601,14 +603,7 @@ class CodeGenerator (varList: List[Int]) {
     
 
     case IntLiter(value)=> 
-      print("HERE")
-      if (value > MOV_MAX || value < MOV_MIN) {
-
-        instructions.append(I_Movz(x8, ImmVal(value & 0xFFFF), LSL(0)))
-        instructions.append(I_Movk(x8, ImmVal(value >> 16), LSL(16)))
-      } else {
-        instructions.append(I_Move(x8, ImmVal(value)))
-      }
+       loadImmediate(value)
          
     case BoolLiter(value) => 
       value match {
@@ -632,10 +627,10 @@ class CodeGenerator (varList: List[Int]) {
       for (expr <- value) {
         arrloadFlag += counter
         generateInstructions(expr)
-        instructions.append(I_Move(x17, x8))
+        instructions.append(I_Move(x17.toW(), x8.toW()))
         instructions.append(I_Move(x7, getRegFromMap(name, identMap)))
         branchLink(s"_arrLoad$counter")
-        instructions.append(I_Move(x8, x7))
+        instructions.append(I_Move(x8.toW(), x7.toW()))
         instructions.append(I_Move(x8, x8))
         counter -= 4
         if (counter != 0) {
@@ -679,8 +674,7 @@ class CodeGenerator (varList: List[Int]) {
           arrPointer += getSize(expr)
         }
       }
-      
-
+    
       instructions.append(I_Move(x8, x16))
 
       mallocFlag = true
@@ -693,7 +687,7 @@ class CodeGenerator (varList: List[Int]) {
         funcIdentMap(p.paramName) = identMapEntry(getSize(p.paramType), unused_ParamRegs(i))
       }
       branchLink( "wacc_" + func.value)
-      instructions.append(I_Move(x16, x1))
+      instructions.append(I_Move(x16, x0))
       instructions.append(I_Move(x8, x16))
 
     
@@ -713,6 +707,9 @@ class CodeGenerator (varList: List[Int]) {
       nullPointerFlag = true
 
     case Ident(value) => 
+      println(funcIdentMap)
+      println(identMap)
+      println("\n")
       if (inFunc) {
         var reg: Register = getRegFromMap(Ident(value), funcIdentMap)
         if (reg == xzr) {
@@ -902,10 +899,54 @@ class CodeGenerator (varList: List[Int]) {
 
   }
 
-  def allocateReg() : Reg = {
+
+  def allocateTempReg() : Reg = {
     used_TempRegs = unused_TempRegs.head +: used_TempRegs
     val fstReg = used_TempRegs.head
     unused_TempRegs.remove(0)
     fstReg
   }
+
+  def allocateResultReg() : Reg = {
+    used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs
+    val fstReg = used_ResultRegs.head
+    unused_ResultRegs.remove(0)
+    fstReg
+  }
+
+
+  def pushToStack(value : Int ) : Unit = {
+  // if (varList.last < unused_ResultRegs.length) {
+    val number_of_remaining_variable = varList.last - unused_ResultRegs.length
+    val initial_offset = number_of_remaining_variable * STACK_ELEM_SIZE
+
+
+    var temp_number_of_remaining_variable = number_of_remaining_variable
+    while(number_of_remaining_variable > 0){
+      var offset = temp_number_of_remaining_variable * STACK_ELEM_SIZE
+      instructions.append(I_Move(x8, ImmVal(value)))
+      instructions.append(I_Move(x17, ImmVal(-offset)))
+      instructions.append(I_Store(x8.toW(), fp, x17))
+      temp_number_of_remaining_variable = number_of_remaining_variable - 1
+    }
+    instructions.append(I_Add(sp, sp, ImmVal(initial_offset)))
+    instructions.append(I_Move(x0, ImmVal(0)))
+  }
+
+  
+  
+
+  private def loadImmediate(value: Int) : Unit = {
+    val fstReg = allocateTempReg() 
+    val sndReg = allocateResultReg()
+    if (value > MOV_MAX || value < MOV_MIN) {
+      instructions.append(I_Movk(fstReg, ImmVal(value >> 16), LSL(16)))
+      instructions.append(I_Movz(fstReg, ImmVal(value & 0xFFFF), LSL(0)))
+    } else {
+      instructions.append(I_Move(fstReg, ImmVal(value)))
+    }
+    instructions.append(I_Move(sndReg, fstReg))
+    instructions.append(I_Move(x8, sndReg))
+  }
+
 }

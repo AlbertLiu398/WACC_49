@@ -34,7 +34,7 @@ object Constant {
     final val x5 = Reg(5, X_REGISTER_SIZE)
     final val x6 = Reg(6, X_REGISTER_SIZE)
     final val x7 = Reg(7, X_REGISTER_SIZE)
-    var unused_ParamRegs: mutable.ListBuffer[Register] = mutable.ListBuffer(x0, x1, x2, x3, x4, x5, x6, x7)
+    var unused_ParamRegs: mutable.ListBuffer[Register] = mutable.ListBuffer(x1, x2, x3, x4, x5, x6, x7, x0)
     var used_ParamRegs: mutable.ListBuffer[Register] = mutable.ListBuffer()   
    // ------------- Register (x8/xr) indirect result register -------------
     final val x8 = Reg(8, X_REGISTER_SIZE)    

@@ -50,7 +50,7 @@ class CodeGenerator (varList: List[Int]) {
       for(func <- functions) {
         funcMap(func.functionName) = func.params
         identMap(func.functionName) = identMapEntry(getSize(func.returnType), xzr)
-      }
+      } 
       
       // Generate code for main body
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
@@ -94,9 +94,6 @@ class CodeGenerator (varList: List[Int]) {
       pushUsedRegs(unused_GeneralRegs_copy, varList(funcProcessed))
       instructions.append(I_Move(fp, sp))
       generateInstructions(body)
-      popUsedRegs(used_ResultRegs.toList.reverse, varList(funcProcessed))
-      instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
-      instructions.append(I_Ret)
       funcProcessed += 1
 
     /* --------------------------- generate expressions */
@@ -146,11 +143,8 @@ class CodeGenerator (varList: List[Int]) {
       
       generateInstructions(expr1)  // mov x8 expr1
       instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x9 x8 
+      val fstReg = allocateReg()
       
-      used_TempRegs = unused_TempRegs.head +: used_TempRegs
-      val fstReg = used_TempRegs.head
-      unused_TempRegs.remove(0)
-
       generateInstructions(expr2)  //mov x8 epr2 
       
       instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
@@ -203,9 +197,7 @@ class CodeGenerator (varList: List[Int]) {
        
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      used_TempRegs = unused_TempRegs.head +: used_TempRegs
-      val fstReg = used_TempRegs.head
-      unused_TempRegs.remove(0)
+      val fstReg = allocateReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cbz(fstReg, I_Label(ERR_DIV_ZERO_LABEL)))
@@ -219,21 +211,17 @@ class CodeGenerator (varList: List[Int]) {
     case LessThan(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      used_TempRegs = unused_TempRegs.head +: used_TempRegs
-      val fstReg = used_TempRegs.head
-      unused_TempRegs.remove(0)
+      val fstReg = allocateReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
       instructions.append(I_CSet(x8, LT))
       //push and pop x8
-        
+
     case LessThanEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      used_TempRegs = unused_TempRegs.head +: used_TempRegs
-      val fstReg = used_TempRegs.head
-      unused_TempRegs.remove(0)
+      val fstReg = allocateReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -242,9 +230,7 @@ class CodeGenerator (varList: List[Int]) {
     case GreaterThan(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      used_TempRegs = unused_TempRegs.head +: used_TempRegs
-      val fstReg = used_TempRegs.head
-      unused_TempRegs.remove(0)
+      val fstReg = allocateReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -253,9 +239,7 @@ class CodeGenerator (varList: List[Int]) {
     case GreaterThanEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      used_TempRegs = unused_TempRegs.head +: used_TempRegs
-      val fstReg = used_TempRegs.head
-      unused_TempRegs.remove(0)
+      val fstReg = allocateReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -264,9 +248,7 @@ class CodeGenerator (varList: List[Int]) {
     case Eq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      used_TempRegs = unused_TempRegs.head +: used_TempRegs
-      val fstReg = used_TempRegs.head
-      unused_TempRegs.remove(0)
+      val fstReg = allocateReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -275,9 +257,7 @@ class CodeGenerator (varList: List[Int]) {
     case NotEq(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
-      used_TempRegs = unused_TempRegs.head +: used_TempRegs
-      val fstReg = used_TempRegs.head
-      unused_TempRegs.remove(0)
+      val fstReg = allocateReg()
       generateInstructions(expr2)
 
       instructions.append(I_Cmp(fstReg, x8))
@@ -377,7 +357,7 @@ class CodeGenerator (varList: List[Int]) {
         }
         instructions.append(I_Move(x16, x0))
         instructions.append(I_Move(x8, x16))
-        instructions.append(I_Move(getRegFromMap(n), x8))
+        instructions.append(I_Move(getRegFromMap(n, identMap), x8))
 
       
         
@@ -397,11 +377,12 @@ class CodeGenerator (varList: List[Int]) {
     case Assignment(name, value) => 
       var reg: Register = xzr
       if (inFunc) {
-        reg = getFuncRegFromMap(getIdent(name))
+        reg = getRegFromMap(getIdent(name), funcIdentMap)
         if (reg == xzr) {
-          reg = getRegFromMap(getIdent(name))
+          reg = getRegFromMap(getIdent(name), identMap)
         }
       }
+      reg = getRegFromMap(getIdent(name), identMap)
       
       name match {
         case n@ArrElem(name, v)=>
@@ -414,7 +395,7 @@ class CodeGenerator (varList: List[Int]) {
               if (counter !=  v.length * 4) {
                 instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
               }
-              instructions.append(I_Move(x7, getRegFromMap(name)))
+              instructions.append(I_Move(x7, getRegFromMap(name, identMap)))
               branchLink(s"_arrLoad$counter")
               counter -= 4
             
@@ -423,7 +404,7 @@ class CodeGenerator (varList: List[Int]) {
               instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
             }
             else {
-              var fstReg = getRegFromMap(name)
+              var fstReg = getRegFromMap(name, identMap)
               if (v.length != 1) {
                 instructions.append(I_LoadPair(unused_TempRegs.head, xzr, Content(sp), ImmVal(16)))
                 used_TempRegs = unused_TempRegs.head +: used_TempRegs
@@ -459,16 +440,15 @@ class CodeGenerator (varList: List[Int]) {
       
     
     case Free(expr) => 
+      generateInstructions(expr)
 
       val t = expr.getType
       val isArray = t.contains("[]")
 
       if (isArray) {
-        instructions.append(I_Sub(x8, x9, ImmVal(4)))
+        instructions.append(I_Sub(x8, x19, ImmVal(4)))
         pushAndPopx8(16)
-        
       } 
-      generateInstructions(expr)
       instructions.append(I_Move(x0, x8))
       if (isArray) {
         branchLink(FREE_LABEL)
@@ -484,12 +464,15 @@ class CodeGenerator (varList: List[Int]) {
         generateInstructions(expr)
         instructions.append(I_Move(x0, x8))
         funcReturned = true
+        popUsedRegs(used_ResultRegs.toList.reverse, varList(funcProcessed))
+        instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
+        instructions.append(I_Ret)
       }
       
       
     case Exit(expr) =>
       generateInstructions(expr)
-      instructions.append(I_Move(unused_ParamRegs.head, x8))
+      instructions.append(I_Move(x0, x8))
       branchLink(EXIT_LABEL)
 
     
@@ -563,6 +546,12 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append(I_Branch(I_Label(if_then), EQ))
         case Or(expr1, expr2) => 
           instructions.append(I_Branch(I_Label(if_then), EQ))
+        case BoolLiter(value) => 
+          if (value) {
+            instructions.append(I_Branch(I_Label(if_then), NE))
+          } else {
+            instructions.append(I_Branch(I_Label(if_then), EQ))
+          }
         case _=> 
           instructions.append(I_Branch(I_Label(if_then), EQ)) 
       }
@@ -598,6 +587,7 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Label(while_condition))
       // Generate condition of while
       generateInstructions(condition)
+      instructions.append(I_Cmp(x8, ImmVal(0)))
       
       // Jump back to body of while if condition holds
       instructions.append(I_Branch(I_Label(while_body), NE))
@@ -667,7 +657,7 @@ class CodeGenerator (varList: List[Int]) {
         arrloadFlag += counter
         generateInstructions(expr)
         instructions.append(I_Move(x17, x8))
-        instructions.append(I_Move(x7, getRegFromMap(name))) 
+        instructions.append(I_Move(x7, getRegFromMap(name, identMap)))
         branchLink(s"_arrLoad$counter")
 
         counter -= 4
@@ -732,7 +722,7 @@ class CodeGenerator (varList: List[Int]) {
 
     
     case FstPairElem(values) =>
-      val reg = getRegFromMap(getIdent(values))
+      val reg = getRegFromMap(getIdent(values), identMap)
       instructions.append(I_Cbz(reg, I_Label("_errNull")))
       instructions.append(I_Load(x8, Content(reg, ImmVal(0))))
 
@@ -740,7 +730,7 @@ class CodeGenerator (varList: List[Int]) {
       
 
     case SndPairElem(values) => 
-      val reg = getRegFromMap(getIdent(values))
+      val reg = getRegFromMap(getIdent(values), identMap)
       instructions.append(I_Cbz(reg, I_Label("_errNull")))
       instructions.append(I_Load(x8, Content(reg, ImmVal(8))))
 
@@ -748,14 +738,14 @@ class CodeGenerator (varList: List[Int]) {
 
     case Ident(value) => 
       if (inFunc) {
-        var reg: Register = getFuncRegFromMap(Ident(value))
+        var reg: Register = getRegFromMap(Ident(value), funcIdentMap)
         if (reg == xzr) {
-          reg = getRegFromMap(Ident(value))
+          reg = getRegFromMap(Ident(value),identMap)
         }
         instructions.append(I_Move(x8, reg))
 
       } else {
-        instructions.append(I_Move(x8, getRegFromMap(Ident(value))))
+        instructions.append(I_Move(x8, getRegFromMap(Ident(value), identMap)))
       }
       
 
@@ -904,21 +894,12 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_BranchLink(I_Label(s)))
   }
 
-  def getRegFromMap(name: Ident): Register = {
-      identMap.get(name) match {
+  def getRegFromMap(name : Ident, map: mutable.Map[Ident,identMapEntry]) : Register = {
+      map.get(name) match {
         case Some(value) => return value.reg
         case None => "no such Ident in map"
       }
-      return xzr
-  }
-
-
-  def getFuncRegFromMap(name: Ident): Register = {
-      funcIdentMap.get(name) match {
-        case Some(value) => return value.reg
-        case None => "no such Ident in map"
-      }
-      return xzr
+      xzr
   }
 
   def getFuncFromMap(name: Ident): ParamList = {
@@ -926,7 +907,7 @@ class CodeGenerator (varList: List[Int]) {
         case Some(value) => return value
         case None => "no such Func in map"
       }
-      return ParamList(List())
+      ParamList(List())
   }
 
   def getIdent(lvalue: LValue): Ident = {
@@ -943,5 +924,12 @@ class CodeGenerator (varList: List[Int]) {
     instructions.append(I_Branch(I_Label(ERR_OVERFLOW_LABEL), VS))
     instructions.append(I_Sxtw(x8,x8.toW()))
 
+  }
+
+  def allocateReg() : Reg = {
+    used_TempRegs = unused_TempRegs.head +: used_TempRegs
+    val fstReg = used_TempRegs.head
+    unused_TempRegs.remove(0)
+    fstReg
   }
 }

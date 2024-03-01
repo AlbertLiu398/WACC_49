@@ -194,6 +194,10 @@ object Instruction {
         override def printInstr(): String = s"      cmp ${src.getValue()}, ${op.getValue()} \n"
     }
 
+    case class I_Cmp_Shift(src: Register, op: Operand, shift: Shifts) extends Instruction {
+        override def printInstr(): String = s"      cmp ${src.getValue()}, ${op.getValue()}, ${shift.getValue()} \n"
+    }
+
     case class I_Push(src: Register ) extends Instruction {
         override def printInstr(): String = s"      push ${src.getValue()} \n"
     }
@@ -246,5 +250,9 @@ object Instruction {
 
     case class I_Tst(reg1: Register, op: Operand) extends Instruction {
         override def printInstr(): String = s"      tst ${reg1.getValue()}, ${op.getValue()} \n"
+    }
+
+    case class I_Sbfx(reg1: Register, reg2: Register, start_bit: Operand, len: Operand) extends Instruction {
+        override def printInstr(): String = s"      sbfx ${reg1.getValue()}, ${reg2.getValue()}, ${start_bit.getValue()}, ${len.getValue()} \n"
     }
 }

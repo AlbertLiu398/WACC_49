@@ -8,6 +8,7 @@ import Constant._
 import Conditions._
 import Labels._
 import Utility._
+import Shift._
 
 class CodeGenerator (varList: List[Int]) {
 
@@ -139,15 +140,21 @@ class CodeGenerator (varList: List[Int]) {
       arithmeticFlag = true
       
       generateInstructions(expr1)  // mov x8 expr1
-      instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x8 x9 
+      instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x9 x8 
+      
       used_TempRegs = unused_TempRegs.head +: used_TempRegs
       val fstReg = used_TempRegs.head
       unused_TempRegs.remove(0)
+
       generateInstructions(expr2)  //mov x8 epr2 
       
-      instructions.append(I_SMul(x8.toW(), fstReg.toW(), x8.toW()))  // mul x8 x9 x8
-      checkOverflowHandler()
-
+      instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
+      // take the 31st bit, sign extend it to 64 bits
+      instructions.append(I_Sbfx(fstReg, x8, ImmVal(31), ImmVal(1)))
+      // now take the top 32 bits of the result, shift and sign extend to 64 bits
+      instructions.append(I_Cmp_Shift(fstReg, x8, ASR(32)))
+      // if they are not equal then overflow occured
+      instructions.append(I_Branch(I_Label(ERR_OVERFLOW_LABEL), NE))
 
     case Div(expr1, expr2) =>
       arithmeticFlag = true

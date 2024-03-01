@@ -13,8 +13,8 @@ build:
 test:
   stage: test
   script:
-  - echo "Testing the project"
-  #  - scala-cli test .
+  # - echo "Testing the project"
+   - scala-cli test .
   tags:
     - shell
 

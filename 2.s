@@ -1,16 +1,13 @@
 .data 
-      .word 4 
-.L._printb_str1: 
-      .asciz "true" 
       .word 2 
 .L._printi_str0: 
       .asciz "%d" 
       .word 4 
-.L._printb_str2: 
+.L._prints_str0: 
       .asciz "%.*s" 
-      .word 5 
-.L._printb_str0: 
-      .asciz "false" 
+      .word 80 
+.L._errOverflow_str0: 
+      .asciz "OverflowError: the result is too small/large to store in a 4-byte signed-integer" 
       .word 0 
 .L._println_str0: 
       .asciz "" 
@@ -19,25 +16,30 @@
 .global main 
 main: 
       stp fp, lr, [sp, #-16]!
-      stp x19, x20, [sp, #-16]!
+      stp x19, xzr, [sp, #-16]!
       mov fp, sp 
-      mov x8, #1 
+      mov x8, #-2000000000 
       mov x19, x8 
       mov x8, x19 
-      mov x8, #2 
-      mov x19, x8 
-      mov x8, #1 
-      mov x20, x8 
-      mov x8, x20 
       mov x0, x8 
-      bl _printb 
+      bl _printi 
       bl _println 
-      mov x8, x20 
+      mov x8, x19 
+      mov x8, x19 
+      mov w9, w8 
+      mov x10, #30517 
+      movk x10, #37888, lsl #16 
+      mov x8, x10 
+      subs w8, w9, w8 
+      b.VS _errOverflow 
+      sxtw x8, w8
+      mov x19, x8 
+      mov x8, x19 
       mov x0, x8 
       bl _printi 
       bl _println 
       mov x0, #0 
-      ldp x19, x20, [sp], #16
+      ldp x19, xzr, [sp], #16
       ldp fp, lr, [sp], #16
       ret 
 .align 4 
@@ -51,27 +53,27 @@ _printi:
       ldp lr, xzr, [sp], #16
       ret 
 .align 4 
-_printb: 
+_println: 
       stp lr, xzr, [sp, #-16]!
-      cmp x0, #0 
-      b.NE .L_printb0 
-      adr x2, .L._printb_str0 
-      b .L_printb1 
-.L_printb0: 
-      adr x2, .L._printb_str1 
-.L_printb1: 
-      ldrsw x1, [x2, #-4] 
-      adr x0, .L._printb_str2 
-      bl printf 
+      adr x0, .L._println_str0 
+      bl puts 
       mov x0, #0 
       bl fflush 
       ldp lr, xzr, [sp], #16
       ret 
 .align 4 
-_println: 
+_errOverflow: 
+      adr x0, .L._errOverflow_str0 
+      bl _prints 
+      mov x0, #-1 
+      bl _exit 
+.align 4 
+_prints: 
       stp lr, xzr, [sp, #-16]!
-      adr x0, .L._println_str0 
-      bl puts 
+      mov x2, x0 
+      ldrsw x1, [x0, #-4] 
+      adr x0, .L._prints_str0 
+      bl printf 
       mov x0, #0 
       bl fflush 
       ldp lr, xzr, [sp], #16

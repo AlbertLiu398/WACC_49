@@ -13,7 +13,6 @@ import Shift._
 object Utility {
 
     private val sT = new SymbolTable
-    // val codeGenerator = new CodeGenerator(sT.getVarList())
 
     // Flags for print functions
     var printCharFlag: Boolean = false
@@ -181,6 +180,8 @@ object Utility {
         instrus.append(I_Move(x2, x0))
         instrus.append(I_Ldrsw(x1, Content(x0, ImmVal(-4))))
         instrus.append(I_ADR(x0, I_Label(label)))
+
+        // Call printf
         instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
         printEnd()
@@ -209,14 +210,14 @@ object Utility {
         instrus.append(I_Cmp(x0, ImmVal(0)))
         
         instrus.append(I_Branch(I_Label(".L_printb0"), NE))
-
         
-        
+        // Label for false branch
         val labelFalse = addPrintbLabel()
         addCustomisedDataMsg("pfalse", labelFalse)
         instrus.append(I_ADR(x2, I_Label(labelFalse)))  
         instrus.append(I_Branch(I_Label(".L_printb1"))) 
         
+        // Label for true branch
         instrus.append(I_Label(".L_printb0"))    
         val labelTrue = addPrintbLabel()
         addCustomisedDataMsg("ptrue", labelTrue)
@@ -304,7 +305,6 @@ object Utility {
         instrus.append(I_Label(READC_LABEL))
         
         read(labelRead)
-
     }
 
     // helper function to extract shared instructions of readint and readchar
@@ -399,7 +399,7 @@ object Utility {
         instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
     }
 
-
+    
     def arrLoad(size: Int): Unit = {
         instrus.append(I_Label(ARRLOAD_LABEL + size))
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
@@ -434,7 +434,7 @@ object Utility {
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }
-
+    
     def freePair(): Unit = {
         instrus.append(I_Label(FREE_PAIR_LABEL))
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))

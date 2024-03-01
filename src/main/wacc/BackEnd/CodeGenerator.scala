@@ -18,35 +18,33 @@ class CodeGenerator (varList: List[Int]) {
   case class identMapEntry(size: Int, reg: Register)
   case class identMapStackEntry(size: Int, pointer: Int)
   
+  // Utility Maps
   private val identMap = mutable.Map[Ident, identMapEntry]()
   private val instructions: mutable.ListBuffer[Instruction] = mutable.ListBuffer()
   private val identStackMap= mutable.Map[Ident, identMapStackEntry]()
-  
-  private var funcProcessed = 0
-
   private var assemblyFcuntions = mutable.Map[String, List[Instruction]]()
-
-  private var inFunc = false
   private val funcIdentMap = mutable.Map[Ident, identMapEntry]()
   private val funcMap = mutable.Map[Ident, ParamList]()
   
+  // Utility booleans
+  private var inFunc = false
   private var funcReturned = false
   private var inLoopBranch = false
+  private var funcProcessed = 0
   
+  // Constants
   final val MOV_MAX: Int = 65536
   final val MOV_MIN: Int = -65537
-  
   final val number_of_remaining_variable = varList.last - unused_ResultRegs.length
   final val initial_offset = number_of_remaining_variable * STACK_ELEM_SIZE
   var temp_number_of_remaining_variable = number_of_remaining_variable
-  /* 
-    generateInstructions (recursive function)
-  */
-  def generateInstructions(ast: ASTNode): Unit = ast match {
-    /* --------------------------- generate program */
-    case Program(functions, statements) =>
-      
 
+  /* Generates Instructions (recursive function) */
+
+  def generateInstructions(ast: ASTNode): Unit = ast match {
+    
+    /* ----------------------------------Program-------------------------------------- */
+    case Program(functions, statements) =>
       // Start with the data section
       instructions ++= List(
         I_Directive(".align 4"),
@@ -58,7 +56,6 @@ class CodeGenerator (varList: List[Int]) {
       for(func <- functions) {
         funcMap(func.functionName) = func.params
         identMap(func.functionName) = identMapEntry(getSize(func.returnType), xzr)
-        
       } 
       
       // Generate code for main body
@@ -68,7 +65,6 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(statements)
       instructions.append(I_Move(x0, ImmVal(0)))
       popUsedRegs(used_ResultRegs.toList.reverse, varList.last)
-
       instructions.append(I_LoadPair(fp, lr, Content(sp, ImmVal(0)), ImmVal(16)))
       instructions.append(I_Ret)
       revertResultRegs()
@@ -95,9 +91,8 @@ class CodeGenerator (varList: List[Int]) {
         I_Directive(".data") +=: instructions
       }
 
-
+    // Generate functions
     case Func(returnType, functionName, params, body) =>
-
       instructions.append(I_Label("wacc_"+functionName.value))
       instructions.append(I_StorePair(fp, lr, Content(sp, ImmVal(-16)), ImmVal(0), true))
       pushUsedRegs(unused_GeneralRegs_copy, varList(funcProcessed))
@@ -105,16 +100,17 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(body)
       funcProcessed += 1
 
-    /* --------------------------- generate expressions */
+    /* ----------------------------------Expressions-------------------------------------- */
     case Add(expr1, expr2) =>
       arithmeticFlag = true
-
       generateInstructions(expr1)
-      
+
       expr2 match {
+        // Need to check for immediate value range
         case IntLiter(value) => 
           val fstReg = allocateTempReg()
           instructions.append(I_Move(fstReg.toW(), x8.toW()))
+          // Check and load immediate value
           loadImmediate(value) 
           // Now expr2 is in x8
           instructions.append((I_Adds(x8.toW(), fstReg.toW(), x8.toW())))
@@ -135,16 +131,17 @@ class CodeGenerator (varList: List[Int]) {
     case Sub(expr1, expr2) => 
       arithmeticFlag = true
       generateInstructions(expr1)
-      
+
       expr2 match {
+        // Need to check for immediate value range
         case IntLiter(value) => 
           val fstReg = allocateTempReg()
           instructions.append(I_Move(fstReg.toW(), x8.toW()))
+          // Check and load immediate value
           loadImmediate(value) 
           // Now expr2 is in x8
           instructions.append((I_Subs(x8.toW(), fstReg.toW(), x8.toW())))
-          
-        
+
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           if (true){
@@ -155,21 +152,19 @@ class CodeGenerator (varList: List[Int]) {
             pushToStack()
       }
       }
+      // Branch to overflow handler if condition is set
       checkOverflowHandler()
 
 
-      
-
     case Mul(expr1, expr2) =>
       arithmeticFlag = true
-      generateInstructions(expr1)  // mov x8 expr1
-      
-      instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x9 x8 
+      generateInstructions(expr1)
+      instructions.append(I_Move(unused_TempRegs.head, x8))
+
       if (true){
         val fstReg = allocateTempReg()
-        generateInstructions(expr2)  //mov x8 epr2 
-        
-        instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
+        generateInstructions(expr2)
+        instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))
         // take the 31st bit, sign extend it to 64 bits
         instructions.append(I_Sbfx(fstReg, x8, ImmVal(31), ImmVal(1)))
         // now take the top 32 bits of the result, shift and sign extend to 64 bits
@@ -221,7 +216,6 @@ class CodeGenerator (varList: List[Int]) {
        
 
       generateInstructions(expr1)
-      // Move 
       instructions.append(I_Move(unused_TempRegs.head, x8))
       if (true){
       val fstReg = allocateTempReg()
@@ -236,7 +230,6 @@ class CodeGenerator (varList: List[Int]) {
       checkOverflowHandler()
       
 
-
     case LessThan(expr1, expr2) =>
       generateInstructions(expr1)
       instructions.append(I_Move(unused_TempRegs.head, x8))
@@ -248,7 +241,7 @@ class CodeGenerator (varList: List[Int]) {
         pushToStack()
       }
       instructions.append(I_CSet(x8, LT))
-      //push and pop x8
+     
 
     case LessThanEq(expr1, expr2) =>
       generateInstructions(expr1)
@@ -313,7 +306,7 @@ class CodeGenerator (varList: List[Int]) {
     case And(expr1, expr2) =>
       // bool x = expr1 && (1 && 0)
       // x8 : expr1 
-      // x8 
+      
       generateInstructions(expr1)
       val label = I_Label(addLabel())
       instructions.append(I_Cmp(x8, ImmVal(1)))
@@ -325,8 +318,6 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(label)
       instructions.append(I_CSet(x8, EQ))
       pushAndPopx8(16)
-
-
 
     case Or(expr1, expr2) =>
       generateInstructions(expr1)
@@ -347,8 +338,6 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_CSet(x8, NE))
       //push and pop x8
       pushAndPopx8(16)
-      
-
 
     case Negate(expr) =>
       // Need to check for overflow if the max negative number is negated to be positive, 
@@ -400,7 +389,7 @@ class CodeGenerator (varList: List[Int]) {
         case _ => 
       }
 
-   // -------------------------- Generate instructions for statements
+   /* ----------------------------------Statements-------------------------------------- */
     case Read(lValue) =>
 
         generateInstructions(lValue)
@@ -425,20 +414,19 @@ class CodeGenerator (varList: List[Int]) {
         
     case NewAssignment(identType, name, value) =>
       generateInstructions(value)
+      // Check if variable numbers exceeds the register limit
       if (!checkIfneedStack()) {
         val fstReg = allocateResultReg()
         instructions.append(I_Move(fstReg, x8))
         identMap(name) = identMapEntry(getSize(value), used_ResultRegs.head)
-      } else {
-        // pushToStack()
-        // identStackMap(name) = identMapStackEntry(getSize(value), initial_offset)
       }
       revertTempRegs()
           
-      
 
     case Assignment(name, value) => 
       var reg: Register = xzr
+      
+      // Get functions from identMap (or funcIdentMap if currently in function)
       if (inFunc) {
         reg = getRegFromMap(getIdent(name), funcIdentMap)
         if (reg == xzr) {
@@ -449,10 +437,11 @@ class CodeGenerator (varList: List[Int]) {
       }
       
       name match {
+
+        // Special case for arrays
         case n@ArrElem(name, v)=>
           var counter = v.length * 4
           for (expr <- v) {
-
             generateInstructions(expr)
             if (counter != 4) {
               instructions.append(I_Move(x17.toW(), x8.toW()))
@@ -488,6 +477,7 @@ class CodeGenerator (varList: List[Int]) {
           errOutOfBoundFlag = true
         }
 
+        // Special case for pairs
         case n@FstPairElem(v) =>
           nullPointerFlag = true
           instructions.append(I_Cbz(reg, I_Label(ERR_NULL_LABEL)))
@@ -517,12 +507,15 @@ class CodeGenerator (varList: List[Int]) {
       val t = expr.getType
       val isArray = t.contains("[]")
 
+      // Need to adjust pointer to free the referenc address of array    
+
       if (isArray) {
         instructions.append(I_Sub(x8, x19, ImmVal(4)))
         pushAndPopx8(16)
       } 
       instructions.append(I_Move(x0, x8))
       if (isArray) {
+
         branchLink(FREE_LABEL)
       } else {
         branchLink(FREE_PAIR_LABEL)
@@ -532,6 +525,8 @@ class CodeGenerator (varList: List[Int]) {
 
     case Return(expr) => 
 
+
+      // Check if return keyword is in loop or already returned in function
       if (!funcReturned || inLoopBranch){
         generateInstructions(expr)
         instructions.append(I_Move(x0, x8)) 
@@ -543,7 +538,7 @@ class CodeGenerator (varList: List[Int]) {
         }
       }
       
-      
+    
     case Exit(expr) =>
       generateInstructions(expr)
       instructions.append(I_Move(x0, x8))
@@ -599,6 +594,7 @@ class CodeGenerator (varList: List[Int]) {
       inLoopBranch = true
       generateInstructions(condition)
       val (if_then, if_end) = addIfLabel()
+
       // Branch instruction, Jump to then clause if condition is EQ, otherwise continue to else clause
       condition match {
         case NotEq(expr1, expr2) => 
@@ -704,7 +700,8 @@ class CodeGenerator (varList: List[Int]) {
     
 
     case IntLiter(value)=> 
-       loadImmediate(value)
+      // Call helper function to check and load immediate value
+      loadImmediate(value)
          
     case BoolLiter(value) => 
       value match {
@@ -742,11 +739,6 @@ class CodeGenerator (varList: List[Int]) {
         }
         errOutOfBoundFlag = true
       }
-
-      
-       // instructions.append(I_Move(x8, x8))
-
-    
     
     case PairLiter => 
       instructions.append(I_Move(x8, ImmVal(0)))
@@ -780,8 +772,9 @@ class CodeGenerator (varList: List[Int]) {
 
       mallocFlag = true
       
+      
     case CallRValue(func, args) =>
-      // PUSH HERE
+      // Pushes the 
       if (inFunc) {
         instructions.append(I_StorePair(x0, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instructions.append(I_Move(x16, sp))
@@ -1020,7 +1013,6 @@ class CodeGenerator (varList: List[Int]) {
   }
 
   def allocateResultReg() : Reg = {
-    println("here")
     used_ResultRegs = unused_ResultRegs.head +: used_ResultRegs
     val fstReg = used_ResultRegs.head
     unused_ResultRegs.remove(0)
@@ -1054,7 +1046,7 @@ class CodeGenerator (varList: List[Int]) {
         instructions.append(I_Move(fstReg, ImmVal(value >> 16)))
         instructions.append(I_Movk(fstReg, ImmVal(value & 0xFFFF), LSL(16)))
 
-        instructions.append(I_Move(x8, fstReg))
+        instructions.append(I_Move(x8, fstReg)) 
       } else {
         pushToStack()
       }

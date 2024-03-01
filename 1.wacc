@@ -1,18 +1,9 @@
-# Simple conditional statement with int comparison test
-
-# Output:
-# correct
-#
-
-# Program:
 
 begin
-  int a = 13;
-  if a != 13
-  then
-    println "incorrect"
-  else
-    println "correct"
-  fi
+  pair(int, char) p = newpair(10, 'a') ;
+  snd p = 'b';
+  int b = fst p;
+  char a = snd p;
+  println a;
+  println b
 end
-

@@ -1,13 +1,19 @@
 .data 
+      .word 2 
+.L._printc_str0: 
+      .asciz "%c" 
+      .word 2 
+.L._printi_str0: 
+      .asciz "%d" 
+      .word 44 
+.L._errNull_str0: 
+      .asciz "fatal error: null pair dereferenced or freed" 
+      .word 26 
+.L._errOutOfMemory_str0: 
+      .asciz "fatal error: out of memory" 
       .word 4 
 .L._prints_str0: 
       .asciz "%.*s" 
-      .word 7 
-.L.str0: 
-      .asciz "correct" 
-      .word 9 
-.L.str1: 
-      .asciz "incorrect" 
       .word 0 
 .L._println_str0: 
       .asciz "" 
@@ -16,38 +22,59 @@
 .global main 
 main: 
       stp fp, lr, [sp, #-16]!
-      stp x19, xzr, [sp, #-16]!
+      stp x19, x20, [sp, #-32]!
+      stp x21, xzr, [sp, #16]
       mov fp, sp 
-      mov x8, #13 
+      mov x0, #5 
+      bl _malloc 
+      mov x16, x0 
+      mov x8, #10 
+      str x8, [x16]
+      mov x8, #97 
+      str x8, [x16, #8]
+      mov x8, x16 
       mov x19, x8 
-      mov x8, x19 
-      mov x9, x8 
-      mov x8, #13 
-      cmp x9, x8 
-      cset x8, NE 
-      b.NE .if_then_0 
-      adrp x8, .L.str0 
-      add x8, x8, :lo12:.L.str0 
-      stp x8, xzr, [sp, #-16]!
-      ldp x8, xzr, [sp], #16
-      mov x8, x8 
+      cbz x19, _errNull 
+      mov x8, #98 
+      str x8, [x19, #8]
+      cbz x19, _errNull 
+      ldr x8, [x19]
+      mov x20, x8 
+      cbz x19, _errNull 
+      ldr x8, [x19, #8]
+      mov x21, x8 
+      mov x8, x21 
       mov x0, x8 
-      bl _prints 
+      bl _printc 
       bl _println 
-      b .if_end_0 
-.if_then_0: 
-      adrp x8, .L.str1 
-      add x8, x8, :lo12:.L.str1 
-      stp x8, xzr, [sp, #-16]!
-      ldp x8, xzr, [sp], #16
-      mov x8, x8 
+      mov x8, x20 
       mov x0, x8 
-      bl _prints 
+      bl _printi 
       bl _println 
-.if_end_0: 
       mov x0, #0 
-      ldp x19, xzr, [sp], #16
+      ldp x21, xzr, [sp, #16]
+      ldp x19, x20, [sp], #32
       ldp fp, lr, [sp], #16
+      ret 
+.align 4 
+_printc: 
+      stp lr, xzr, [sp, #-16]!
+      mov x1, x0 
+      adr x0, .L._printc_str0 
+      bl printf 
+      mov x0, #0 
+      bl fflush 
+      ldp lr, xzr, [sp], #16
+      ret 
+.align 4 
+_printi: 
+      stp lr, xzr, [sp, #-16]!
+      mov x1, x0 
+      adr x0, .L._printi_str0 
+      bl printf 
+      mov x0, #0 
+      bl fflush 
+      ldp lr, xzr, [sp], #16
       ret 
 .align 4 
 _println: 
@@ -58,6 +85,24 @@ _println:
       bl fflush 
       ldp lr, xzr, [sp], #16
       ret 
+_malloc: 
+      stp lr, xzr, [sp, #-16]!
+      bl malloc 
+      cbz x0, _errOutOfMemory 
+      ldp lr, xzr, [sp], #16
+      ret 
+.align 4 
+_errOutOfMemory: 
+      adr x0, .L._errOutOfMemory_str0 
+      bl _prints 
+      mov x0, #-1 
+      bl _exit 
+.align 4 
+_errNull: 
+      adr x0, .L._errNull_str0 
+      bl _prints 
+      mov x0, #-1 
+      bl _exit 
 .align 4 
 _prints: 
       stp lr, xzr, [sp, #-16]!

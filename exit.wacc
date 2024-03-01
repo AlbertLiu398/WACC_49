@@ -1,8 +1,9 @@
 begin
-    int f() is
-        return 3;
-        return 5
-    end
-    int ret = call f();
-    println ret
+  int x = 1 ;
+  begin
+    x = 2 ;
+    bool x = true ;
+    println x
+  end ;
+  println x
 end

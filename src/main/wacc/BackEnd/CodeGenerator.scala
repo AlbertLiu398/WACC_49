@@ -465,8 +465,8 @@ class CodeGenerator (varList: List[Int]) {
 
       if (isArray) {
         instructions.append(I_Sub(x8, x9, ImmVal(4)))
-        instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16))))
-        instructions.append(I_LoadPair(x8, xzr, Content(sp), ImmVal(16)))
+        pushAndPopx8(16)
+        
       } 
       generateInstructions(expr)
       instructions.append(I_Move(x0, x8))
@@ -560,9 +560,9 @@ class CodeGenerator (varList: List[Int]) {
         case Eq(expr1, expr2) => 
           instructions.append(I_Branch(I_Label(if_then), EQ))
         case And(expr1, expr2) => 
-          instructions.append(I_Branch(I_Label(if_then), NE))
+          instructions.append(I_Branch(I_Label(if_then), EQ))
         case Or(expr1, expr2) => 
-          instructions.append(I_Branch(I_Label(if_then), NE))
+          instructions.append(I_Branch(I_Label(if_then), EQ))
         case _=> 
           instructions.append(I_Branch(I_Label(if_then), EQ)) 
       }

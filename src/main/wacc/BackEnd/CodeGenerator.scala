@@ -150,7 +150,7 @@ class CodeGenerator (varList: List[Int]) {
 
       generateInstructions(expr2)  //mov x8 epr2 
       
-      instructions.append(I_SMul(x8, fstReg, x8))  // x8 = w9 * w8
+      instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
       // take the 31st bit, sign extend it to 64 bits
       instructions.append(I_Sbfx(fstReg, x8, ImmVal(31), ImmVal(1)))
       // now take the top 32 bits of the result, shift and sign extend to 64 bits

@@ -457,9 +457,16 @@ class CodeGenerator (varList: List[Int]) {
     case Free(expr) => 
       generateInstructions(expr)
       instructions.append(I_Move(x0, x8))
-      branchLink(FREE_PAIR_LABEL)
+      val t = expr.getType
+      print (t)
+      if (t.contains("[]")) {
+
+        branchLink(FREE_LABEL)
+      } else {
+        branchLink(FREE_PAIR_LABEL)
+        freePairFlag = true
+      }
       nullPointerFlag = true
-      freePairFlag = true
 
     case Return(expr) => 
 
@@ -531,7 +538,21 @@ class CodeGenerator (varList: List[Int]) {
       // Branch instruction, Jump to then clause if condition is EQ, otherwise continue to else clause
       condition match {
         case NotEq(expr1, expr2) => 
-          instructions.append(I_Branch(I_Label(if_then), NE)) 
+          instructions.append(I_Branch(I_Label(if_then), NE))
+        case LessThan(expr1, expr2) => 
+          instructions.append(I_Branch(I_Label(if_then), LT))
+        case LessThanEq(expr1, expr2) => 
+          instructions.append(I_Branch(I_Label(if_then), LE))
+        case GreaterThan(expr1, expr2) => 
+          instructions.append(I_Branch(I_Label(if_then), GT))
+        case GreaterThanEq(expr1, expr2) => 
+          instructions.append(I_Branch(I_Label(if_then), GE))
+        case Eq(expr1, expr2) => 
+          instructions.append(I_Branch(I_Label(if_then), EQ))
+        case And(expr1, expr2) => 
+          instructions.append(I_Branch(I_Label(if_then), NE))
+        case Or(expr1, expr2) => 
+          instructions.append(I_Branch(I_Label(if_then), NE))
         case _=> 
           instructions.append(I_Branch(I_Label(if_then), EQ)) 
       }

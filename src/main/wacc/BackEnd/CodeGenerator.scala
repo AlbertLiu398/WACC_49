@@ -114,7 +114,7 @@ class CodeGenerator (varList: List[Int]) {
           val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Adds(x8.toW(), fstReg, x8.toW()))
+          instructions.append(I_Adds(x8.toW(), fstReg.toW(), x8.toW()))
 
       }
       checkOverflowHandler() 
@@ -135,7 +135,7 @@ class CodeGenerator (varList: List[Int]) {
           val fstReg = used_TempRegs.head
           unused_TempRegs.remove(0)
           generateInstructions(expr2)
-          instructions.append(I_Subs(x8.toW(), fstReg, x8.toW()))
+          instructions.append(I_Subs(x8.toW(), fstReg.toW(), x8.toW()))
       }
       checkOverflowHandler()
 
@@ -337,7 +337,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
           instructions.append(I_Move(x8, ImmVal(0)))
-          instructions.append(I_Subs(x8.toW(), x8.toW(), x9))
+          instructions.append(I_Subs(x8.toW(), x8.toW(), x9.toW()))
           checkOverflowHandler()
       }
 

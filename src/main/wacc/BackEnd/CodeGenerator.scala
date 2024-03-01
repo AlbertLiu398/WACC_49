@@ -9,6 +9,7 @@ import Conditions._
 import Labels._
 import Utility._
 import Shift._
+import javax.swing.UIDefaults.LazyValue
 
 class CodeGenerator (varList: List[Int]) {
 
@@ -37,6 +38,7 @@ class CodeGenerator (varList: List[Int]) {
   
   final val number_of_remaining_variable = varList.last - unused_ResultRegs.length
   final val initial_offset = number_of_remaining_variable * STACK_ELEM_SIZE
+  var temp_number_of_remaining_variable = number_of_remaining_variable
   /* 
     generateInstructions (recursive function)
   */
@@ -111,7 +113,12 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append((I_Adds(x8.toW(), x8.toW(), ImmVal(value))))
+          val fstReg = allocateTempReg()
+          instructions.append(I_Move(fstReg.toW(), x8.toW()))
+          loadImmediate(value) 
+          // Now expr2 is in x8
+          instructions.append((I_Adds(x8.toW(), fstReg.toW(), x8.toW())))
+
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           if (true){
@@ -131,7 +138,12 @@ class CodeGenerator (varList: List[Int]) {
       
       expr2 match {
         case IntLiter(value) => 
-          instructions.append(I_Subs(x8.toW(), x8.toW(), ImmVal(value)))
+          val fstReg = allocateTempReg()
+          instructions.append(I_Move(fstReg.toW(), x8.toW()))
+          loadImmediate(value) 
+          // Now expr2 is in x8
+          instructions.append((I_Subs(x8.toW(), fstReg.toW(), x8.toW())))
+          
         
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
@@ -144,23 +156,24 @@ class CodeGenerator (varList: List[Int]) {
       }
       }
       checkOverflowHandler()
+      // pushAndPopx8(16)
 
       
 
     case Mul(expr1, expr2) =>
       arithmeticFlag = true
-      
       generateInstructions(expr1)  // mov x8 expr1
+      
       instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x9 x8 
       if (true){
-      val fstReg = allocateTempReg()
-      generateInstructions(expr2)  //mov x8 epr2 
-      
-      instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
-      // take the 31st bit, sign extend it to 64 bits
-      instructions.append(I_Sbfx(fstReg, x8, ImmVal(31), ImmVal(1)))
-      // now take the top 32 bits of the result, shift and sign extend to 64 bits
-      instructions.append(I_Cmp_Shift(fstReg, x8, ASR(32)))
+        val fstReg = allocateTempReg()
+        generateInstructions(expr2)  //mov x8 epr2 
+        
+        instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
+        // take the 31st bit, sign extend it to 64 bits
+        instructions.append(I_Sbfx(fstReg, x8, ImmVal(31), ImmVal(1)))
+        // now take the top 32 bits of the result, shift and sign extend to 64 bits
+        instructions.append(I_Cmp_Shift(fstReg, x8, ASR(32)))
       } else {
         pushToStack()
       }
@@ -368,6 +381,24 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Branch(I_Label(ERR_BAD_CHAR_LABEL), NE))
 
       pushAndPopx8(16)
+      
+    case Len (expr) => 
+      expr match {
+        case ArrElem(name, value) => 
+          identMap.get(name) match {
+            case Some(i) => 
+              instructions.append(I_Move(x8, ImmVal(i.size / (4 ^ value.length))))
+            case None => 
+          }
+        case n@Ident(value) => 
+          identMap.get(n) match {
+            case Some(i) => 
+              instructions.append(I_Move(x8, ImmVal(i.size / 4)))
+            case None => 
+          }
+        
+        case _ => 
+      }
 
    // -------------------------- Generate instructions for statements
     case Read(lValue) =>
@@ -549,8 +580,6 @@ class CodeGenerator (varList: List[Int]) {
         
       }
   
-      
-     
       if (newline) {
         printLineFlag = true
         branchLink( PRINT_LN_LABEL)
@@ -663,7 +692,7 @@ class CodeGenerator (varList: List[Int]) {
       
       generateInstructions(expr2)
 
-      instructions.append(I_Store(x8, Content(x16, ImmVal(getSize(expr1)))))
+      instructions.append(I_Store(x8, Content(x16, ImmVal(8))))
 
       instructions.append(I_Move(x8, x16))
 
@@ -878,7 +907,7 @@ class CodeGenerator (varList: List[Int]) {
 
   def pushUsedRegs(regs: List[Register], n: Int):Unit = {
     var noOfVar = n
-    if (noOfVar > regs.length) noOfVar = regs.length
+    if (noOfVar > regs.length) noOfVar = 0
     var first = true
     if (noOfVar != 0 && noOfVar != 1){
       for (i <- 0 to noOfVar - 2 by 2) {
@@ -908,7 +937,7 @@ class CodeGenerator (varList: List[Int]) {
 
   def popUsedRegs(registers: List[Register], n: Int):Unit = {
     var noOfVar = n
-    if (noOfVar > registers.length) noOfVar = registers.length
+    if (noOfVar > registers.length) noOfVar = 0
     var regs = mutable.ListBuffer().appendAll(registers)
     if (regs.length >= 2) {
       regs.remove(0)
@@ -1003,15 +1032,10 @@ class CodeGenerator (varList: List[Int]) {
   }
 
   def pushToStack() : Unit = {
-    var temp_number_of_remaining_variable = number_of_remaining_variable
-    while(temp_number_of_remaining_variable > 0){
-      var offset = temp_number_of_remaining_variable * STACK_ELEM_SIZE
-      instructions.append(I_Move(x17, ImmVal(-offset)))
-      instructions.append(I_Store(x8.toW(), Content(fp, x17)))
-      temp_number_of_remaining_variable = temp_number_of_remaining_variable - 1 
-    }
-    instructions.append(I_Add(sp, sp, ImmVal(initial_offset)))
-    instructions.append(I_Move(x0, ImmVal(0)))
+    var offset = temp_number_of_remaining_variable * STACK_ELEM_SIZE
+    instructions.append(I_Move(x17, ImmVal(-offset)))
+    instructions.append(I_Store(x8.toW(), Content(fp, x17)))
+    temp_number_of_remaining_variable = temp_number_of_remaining_variable - 1 
   }
   
 
@@ -1021,8 +1045,8 @@ class CodeGenerator (varList: List[Int]) {
       // Cannot load in one single instruction
       if (true){
         val fstReg = allocateTempReg()
-        instructions.append(I_Move(fstReg, ImmVal(value & 0xFFFF)))
-        instructions.append(I_Movk(fstReg, ImmVal(value >> 16), LSL(16)))
+        instructions.append(I_Movz(fstReg, ImmVal(value >> 16), LSL(16)))
+        instructions.append(I_Movk(fstReg, ImmVal(value & 0xffff)))
         instructions.append(I_Move(x8, fstReg))
       } else {
         pushToStack()

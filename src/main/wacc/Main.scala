@@ -39,7 +39,7 @@ object Main {
                         FileConverter.convertToAssembly(filePath, prog, sT.getVarList())
                         println(s"Assembly file path: $filePath")
                         println("Generated Assembly Code:")
-                        println(FileConverter.generateAssemblyCode(prog, sT.getVarList()))
+                        // println(FileConverter.generateAssemblyCode(prog, sT.getVarList()))
                         
              
                     case Failure(msg) => 

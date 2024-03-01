@@ -169,8 +169,8 @@ object Instruction {
         override def printInstr(): String = s"      movz ${dest.getValue()}, ${op.getValue()}, ${shift.getValue()} \n"
     }
 
-    case class I_Movk(dest: Register, op: Operand, shift: Shifts) extends Instruction {
-        override def printInstr(): String = s"      movk ${dest.getValue()}, ${op.getValue()}, ${shift.getValue()} \n"
+    case class I_Movk(dest: Register, op: Operand) extends Instruction {
+        override def printInstr(): String = s"      movk ${dest.getValue()}, ${op.getValue()} \n"
     }
 
     case class I_Branch(label: I_Label, condition: Conditions = null) extends Instruction {

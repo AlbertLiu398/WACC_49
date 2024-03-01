@@ -107,9 +107,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append((I_Adds(x8.toW(), x8.toW(), ImmVal(value))))
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
-          used_TempRegs = unused_TempRegs.head +: used_TempRegs
-          val fstReg = used_TempRegs.head
-          unused_TempRegs.remove(0)
+          val fstReg = allocateReg()
           generateInstructions(expr2)
           instructions.append(I_Adds(x8.toW(), fstReg.toW(), x8.toW()))
 
@@ -128,9 +126,7 @@ class CodeGenerator (varList: List[Int]) {
         
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
-          used_TempRegs = unused_TempRegs.head +: used_TempRegs
-          val fstReg = used_TempRegs.head
-          unused_TempRegs.remove(0)
+          val fstReg = allocateReg()
           generateInstructions(expr2)
           instructions.append(I_Subs(x8.toW(), fstReg.toW(), x8.toW()))
       }
@@ -144,7 +140,6 @@ class CodeGenerator (varList: List[Int]) {
       generateInstructions(expr1)  // mov x8 expr1
       instructions.append(I_Move(unused_TempRegs.head, x8))  // mov x9 x8 
       val fstReg = allocateReg()
-      
       generateInstructions(expr2)  //mov x8 epr2 
       
       instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))  // x8 = w9 * w8
@@ -175,12 +170,7 @@ class CodeGenerator (varList: List[Int]) {
           // x8 contains divdent, Move x8 to another register 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           // add the new register to used_TempRegs
-          used_TempRegs = unused_TempRegs.head +: used_TempRegs
-        
-          // fstReg is the new register, containing the divident
-          val fstReg = used_TempRegs.head
-          // remove the new register from unused_TempRegs
-          unused_TempRegs.remove(0)
+          val fstReg = allocateReg()
 
           // Store the quotient in x8
           generateInstructions(expr2)
@@ -195,7 +185,9 @@ class CodeGenerator (varList: List[Int]) {
       arithmeticFlag = true
       divByZeroFlag = true
        
+
       generateInstructions(expr1)
+      // Move 
       instructions.append(I_Move(unused_TempRegs.head, x8))
       val fstReg = allocateReg()
       generateInstructions(expr2)
@@ -232,6 +224,8 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Move(unused_TempRegs.head, x8))
       val fstReg = allocateReg()
       generateInstructions(expr2)
+
+  
 
       instructions.append(I_Cmp(fstReg, x8))
       instructions.append(I_CSet(x8, GT))
@@ -340,11 +334,7 @@ class CodeGenerator (varList: List[Int]) {
         generateInstructions(lValue)
     
         val n = getIdent(lValue)
-        // instructions.append(I_Cbz(x19, I_Label(ERR_NULL_LABEL)))
-        // instructions.append(I_Load(x8, Content(x19, ImmVal(0))))
-      
         
-        // instructions.append(I_Move(x8, getRegFromMap(n)))
         instructions.append(I_Move(x0, x8))
 
         val readBranch = lValue.getType match {
@@ -362,8 +352,6 @@ class CodeGenerator (varList: List[Int]) {
       
         
     case NewAssignment(identType, name, value) =>
-
-      // nullPointerFlag = true
        
       generateInstructions(value)
       instructions.append(I_Move(unused_ResultRegs.head, x8))
@@ -407,9 +395,7 @@ class CodeGenerator (varList: List[Int]) {
               var fstReg = getRegFromMap(name, identMap)
               if (v.length != 1) {
                 instructions.append(I_LoadPair(unused_TempRegs.head, xzr, Content(sp), ImmVal(16)))
-                used_TempRegs = unused_TempRegs.head +: used_TempRegs
-                var fstReg = used_TempRegs.head
-                unused_TempRegs.remove(0)
+                val fstReg = allocateReg()
               }
               instructions.append(I_Move(x17, x8))
               generateInstructions(value)
@@ -477,26 +463,12 @@ class CodeGenerator (varList: List[Int]) {
 
     
 
-// 13		adrp x8, .L.str0
-// 14		add x8, x8, :lo12:.L.str0
-// 15		// push {x8}
-// 16		stp x8, xzr, [sp, #-16]!
-// 17		// pop {x8}
-// 18		ldp x8, xzr, [sp], #16
-// 19		mov x8, x8
-// 20		mov x0, x8
-// 21		// statement primitives do not return results (but will clobber r0/rax)
-// 22		bl _prints
-// 23		mov x0, #0
-// 24		// pop {fp, lr}
-// 25		ldp fp, lr, [sp], #16
-// 26		ret
     case Print(expr, newline) =>
       generateInstructions(expr)
       instructions.append(I_Move(x0, x8))
 
       val printBranch = expr.getType match {
-        case "string" | "char[]" =>
+         case "string" | "char[]" =>
           printStringFlag = true
           branchLink(PRINT_STRING_LABEL)
 
@@ -552,6 +524,10 @@ class CodeGenerator (varList: List[Int]) {
           } else {
             instructions.append(I_Branch(I_Label(if_then), EQ))
           }
+        case n@Ident(value) =>
+          generateInstructions(n)
+          instructions.append(I_Cmp(x8, ImmVal(1)))
+          instructions.append(I_Branch(I_Label(if_then), EQ))
         case _=> 
           instructions.append(I_Branch(I_Label(if_then), EQ)) 
       }
@@ -659,11 +635,11 @@ class CodeGenerator (varList: List[Int]) {
         instructions.append(I_Move(x17, x8))
         instructions.append(I_Move(x7, getRegFromMap(name, identMap)))
         branchLink(s"_arrLoad$counter")
-
+        instructions.append(I_Move(x8, x7))
+        instructions.append(I_Move(x8, x8))
         counter -= 4
         if (counter != 0) {
-          instructions.append(I_Move(x8, x7))
-          instructions.append(I_Move(x8, x8))
+
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_Move(x7, ImmVal(1)))
           instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
@@ -717,7 +693,7 @@ class CodeGenerator (varList: List[Int]) {
         funcIdentMap(p.paramName) = identMapEntry(getSize(p.paramType), unused_ParamRegs(i))
       }
       branchLink( "wacc_" + func.value)
-      instructions.append(I_Move(x16, x0))
+      instructions.append(I_Move(x16, x1))
       instructions.append(I_Move(x8, x16))
 
     

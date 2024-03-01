@@ -27,6 +27,8 @@ class CodeGenerator (varList: List[Int]) {
   private val funcIdentMap = mutable.Map[Ident, identMapEntry]()
   private val funcMap = mutable.Map[Ident, ParamList]()
   
+  private var funcReturned = false
+  
   final val MOV_MAX: Int = 65536
   final val MOV_MIN: Int = -65537
   /* 
@@ -522,7 +524,7 @@ class CodeGenerator (varList: List[Int]) {
       val (if_then, if_end) = addIfLabel()
 
       // Branch instruction, Jump to then clause if condition is EQ, otherwise continue to else clause
-      instructions.append(I_Branch(I_Label(if_then), EQ)) 
+      instructions.append(I_Branch(I_Label(if_then), NE)) 
 
       // Generate else clause
       generateInstructions(elseStat)

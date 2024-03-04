@@ -434,6 +434,9 @@ class CodeGenerator (varList: List[Int]) {
     // Get functions from identMap (or funcIdentMap if currently in function)
       if (inFunc) {
         reg = getRegFromMap(getIdent(name), funcIdentMap)
+        if (reg == xzr) {
+          reg = getRegFromMap(getIdent(name), identMap)
+        }
       } else {
         reg = getRegFromMap(getIdent(name), identMap)
       }

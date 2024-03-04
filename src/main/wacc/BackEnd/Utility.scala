@@ -77,53 +77,158 @@ object Utility {
     // Local list of instructions, to be appended to final instructions list in CodeGenerator
     var instrus: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
  
-    // called when generating entire program, to concat local instrs list to global instructions list
+
+     /* helper function to for addUtility  */
+    private def executeActionIfFlag(flag: Boolean, action: () => Unit): Unit = {
+        if (flag) {
+            action()
+        }
+    }
+
+    private def executeActionsForFlags(flags: List[(Boolean, () => Unit)]): Unit = {
+        flags.foreach { case (flag, action) => executeActionIfFlag(flag, action) }
+    }
+
     def addUtility():  mutable.ListBuffer[Instruction]  = {
 
         // ----print-----
 
-      val printFlags = List(
-        (printCharFlag, () => printchar()),
-        (printIntFlag, () => printint()),
-        (printBoolFlag, () => printbool()),
-        (printLineFlag, () => printline()),
-        (printPFlag, () => printp())
-      )
+        if (printCharFlag) {
+            printchar()
+        }
+        if (printIntFlag) {
+            printint()
+        }
+        if (printBoolFlag) {
+            printbool()
+        }
+        if (printLineFlag) {
+            printline()
+        }
+        if (printPFlag) {
+            printp()
+        }
 
-      executeActionsForFlags(printFlags)
-    
         // ----read----
 
-      val readFlags = List(
-        (readCharFlag, () => readchar()),
-        (readIntFlag, () => readint())
-      )
-
-      executeActionsForFlags(readFlags)
+        if (readCharFlag) {
+            readchar()
+        }
+        if (readIntFlag) {
+            readint()
+        }
 
         // ----other utilities----
 
-      executeActionsForFlags(List(
-        (mallocFlag, malloc),
-        (divByZeroFlag, errDivByzero),
-        (nullPointerFlag, errNull),
-        (arrayBoundsFlag, errOutOfBounds),
-        (arithmeticFlag, errOverFlow),
-        (errOutOfBoundFlag, errOutOfBounds),
-        (badCharFlag, errBadChar)
-      ))
+        if (mallocFlag) {
+            printStringFlag = true
+            malloc()
+        }
 
-    // Unique flags with loop execution
-      arrloadFlag.distinct.foreach(size => executeActionIfFlag(true, () => arrLoad(size)))
-      arrstoreFlag.distinct.foreach(size => executeActionIfFlag(true, () => arrStore(size)))
+        if (divByZeroFlag) {
+            printStringFlag = true
+            errDivByzero()
+        }
 
-      executeActionIfFlag(freePairFlag, freePair)
+        if (nullPointerFlag) {
+            printStringFlag = true
+            errNull()
+        }
 
-      // Finally check if need to add prints
-      executeActionIfFlag(printStringFlag, printstr)
+        if (arrayBoundsFlag) {
+            printStringFlag = true
+            errOutOfBounds()
+        }
 
-      instrus
-   }
+        if (arithmeticFlag) {
+            printStringFlag = true
+            errOverFlow()
+        }
+
+         if (errOutOfBoundFlag) {
+            printStringFlag = true
+            errOutOfBounds()
+        }
+
+        if (badCharFlag) {
+            printStringFlag = true
+            errBadChar()
+        }
+        arrloadFlag = arrloadFlag.distinct
+        if (!arrloadFlag.isEmpty) {
+            for (size <- arrloadFlag) {
+                arrLoad(size)
+            }
+        }
+
+        arrstoreFlag = arrstoreFlag.distinct
+        if (!arrstoreFlag.isEmpty) {
+            for (size <- arrstoreFlag) {
+                arrStore(size)
+            }
+        }
+
+        if (freePairFlag) {
+            freePair()
+        }
+
+        // Finally check if need to add prints
+        if (printStringFlag) {
+            printstr()
+        }
+
+        instrus
+    }
+
+
+
+//     // called when generating entire program, to concat local instrs list to global instructions list
+//     def addUtility():  mutable.ListBuffer[Instruction]  = {
+
+//             // ----print-----
+
+//         val printFlags = List(
+//             (printCharFlag, () => printchar),
+//             (printIntFlag, () => printint),
+//             (printBoolFlag, () => printbool),
+//             (printLineFlag, () => printline),
+//             (printPFlag, () => printp)
+//       )
+
+//       executeActionsForFlags(printFlags)
+    
+//         // ----read----
+
+//       val readFlags = List(
+//         (readCharFlag, () => readchar),
+//         (readIntFlag, () => readint)
+//       )
+
+//       executeActionsForFlags(readFlags)
+
+//         // ----other utilities----
+
+//       executeActionsForFlags(List(
+//         (mallocFlag, malloc),
+//         (divByZeroFlag, errDivByzero),
+//         (nullPointerFlag, errNull),
+//         (arrayBoundsFlag, errOutOfBounds),
+//         (arithmeticFlag, errOverFlow),
+//         (errOutOfBoundFlag, errOutOfBounds),
+//         (badCharFlag, errBadChar)
+//       ))
+
+//     // Unique flags with loop execution
+//       arrloadFlag.distinct.foreach(size => executeActionIfFlag(true, () => arrLoad(size)))
+//       arrstoreFlag.distinct.foreach(size => executeActionIfFlag(true, () => arrStore(size)))
+
+//       executeActionIfFlag(freePairFlag, freePair)
+
+//       // Finally check if need to add prints
+//       executeActionIfFlag(printStringFlag, printstr)
+
+//       instrus
+//    }
 
     // -----------------print functions-------------------- 
 
@@ -332,17 +437,7 @@ object Utility {
         instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
     }
 
-    /* helper function to for addUtility  */
-    private def executeActionIfFlag(flag: Boolean, action: () => Unit): Unit = {
-        if (flag) {
-            action()
-            // printStringFlag = true
-        }
-    }
 
-    private def executeActionsForFlags(flags: List[(Boolean, () => Unit)]): Unit = {
-        flags.foreach { case (flag, action) => executeActionIfFlag(flag, action) }
-    }
 
     
    // helper function to extract common parts of error handlers

@@ -76,6 +76,7 @@ class CodeGenerator (varList: List[Int]) {
         generateInstructions(func)
         revertResultRegs()
       }
+      
       inFunc = false
 
       // Add utility function definitions
@@ -430,12 +431,9 @@ class CodeGenerator (varList: List[Int]) {
     case Assignment(name, value) => 
       var reg: Register = xzr
       
-      // Get functions from identMap (or funcIdentMap if currently in function)
+    // Get functions from identMap (or funcIdentMap if currently in function)
       if (inFunc) {
         reg = getRegFromMap(getIdent(name), funcIdentMap)
-        if (reg == xzr) {
-          reg = getRegFromMap(getIdent(name), identMap)
-        }
       } else {
         reg = getRegFromMap(getIdent(name), identMap)
       }
@@ -444,17 +442,17 @@ class CodeGenerator (varList: List[Int]) {
 
         // Special case for arrays
         case n@ArrElem(name, v)=>
-          var counter = v.length * 4
+          var counter = v.length * ARRAY_ELEM_SIZE
           for (expr <- v) {
             generateInstructions(expr)
-            if (counter != 4) {
+            if (counter != ARRAY_ELEM_SIZE) {
               instructions.append(I_Move(x17.toW(), x8.toW()))
-              if (counter !=  v.length * 4) {
+              if (counter !=  v.length * ARRAY_ELEM_SIZE) {
                 instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
               }
               instructions.append(I_Move(x7, getRegFromMap(name, identMap)))
               branchLink(s"_arrLoad$counter")
-              counter -= 4
+              counter -= ARRAY_ELEM_SIZE
             
               instructions.append(I_Move(x8, x7))
               instructions.append(I_Move(x8, x8))
@@ -483,16 +481,10 @@ class CodeGenerator (varList: List[Int]) {
 
         // Special case for pairs
         case n@FstPairElem(v) =>
-          nullPointerFlag = true
-          instructions.append(I_Cbz(reg, I_Label(ERR_NULL_LABEL)))
-          generateInstructions(value)
-          instructions.append(I_Store(x8, Content(reg)))
+          handlePairElementCase(reg, value, FSTPAIROFFSET)
         
         case n@SndPairElem(v) => 
-          nullPointerFlag = true
-          instructions.append(I_Cbz(reg, I_Label(ERR_NULL_LABEL)))
-          generateInstructions(value)
-          instructions.append(I_Store(x8, Content(reg, ImmVal(8))))
+          handlePairElementCase(reg, value, SNDPAIROFFSET)
 
         case _=>
           generateInstructions(name)
@@ -500,8 +492,7 @@ class CodeGenerator (varList: List[Int]) {
           
          
         instructions.append(I_Move(reg, x8))
-        revertTempRegs()
-        
+        revertTempRegs() 
       }
       
     
@@ -1034,7 +1025,14 @@ class CodeGenerator (varList: List[Int]) {
       instructions.append(I_Move(x8, ImmVal(value)))
     }
   }
-  
+
+  def handlePairElementCase(reg: Register, value : RValue, offset: Int): Unit = {
+    nullPointerFlag = true
+    instructions.append(I_Cbz(reg, I_Label(ERR_NULL_LABEL)))
+    generateInstructions(value)
+    instructions.append(I_Store(x8, Content(reg, ImmVal(offset))))
+  }
+
     /* ---------------- choose STACK  or Reg  -------------------------------------- */
    /*  handle the case when run out of register then we need to push to stack */
     def allocateTempReg() : Reg = {
@@ -1064,7 +1062,6 @@ class CodeGenerator (varList: List[Int]) {
     instructions.append(I_Move(x17, ImmVal(-offset)))
     instructions.append(I_Store(x8.toW(), Content(fp, x17)))
     temp_number_of_remaining_variable = temp_number_of_remaining_variable - 1 
-  }
-  
+  }  
 
 }

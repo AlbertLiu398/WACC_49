@@ -9,12 +9,12 @@ import java.nio.file.{Files, Paths, StandardCopyOption}
 object FileConverter {
   // genearte assembly code use the codeGenerator 
 
-  def generateAssemblyCode(prog : ast.ASTNode, list : List[Int]): String = {
+  def generateAssemblyCode(prog : ast.ASTNode, list : List[Int]): StringBuilder = {
     val codeGenerator = new CodeGenerator(list)
     val instrus = codeGenerator.generateInstructions(prog)
-    var result = ""
+    var result = new StringBuilder()
     for (instr <- codeGenerator.getInstructions()) {
-      result += instr.printInstr() 
+      result.append(instr.printInstr())
     }
     result
   }
@@ -31,7 +31,7 @@ object FileConverter {
         val writer = new BufferedWriter(new OutputStreamWriter(fos))
 
         // generate assembly code and write to asm file
-        writer.write(generateAssemblyCode(prog, list))
+        writer.write(generateAssemblyCode(prog, list).toString())
 
         writer.close()
 

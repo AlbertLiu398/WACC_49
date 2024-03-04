@@ -4,6 +4,9 @@ import Instruction._
 import scala.collection._
 object Constant { 
 
+    final val FSTPAIROFFSET: Int = 0
+    final val SNDPAIROFFSET: Int = 8
+
     // Store size
 
     final val BYTE_SIZE: Int = 1

@@ -76,98 +76,54 @@ object Utility {
 
     // Local list of instructions, to be appended to final instructions list in CodeGenerator
     var instrus: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
-    
+ 
     // called when generating entire program, to concat local instrs list to global instructions list
     def addUtility():  mutable.ListBuffer[Instruction]  = {
 
         // ----print-----
 
-        if (printCharFlag) {
-            printchar()
-        }
-        if (printIntFlag) {
-            printint()
-        }
-        if (printBoolFlag) {
-            printbool()
-        }
-        if (printLineFlag) {
-            printline()
-        }
-        if (printPFlag) {
-            printp()
-        }
+      val printFlags = List(
+        (printCharFlag, () => printchar()),
+        (printIntFlag, () => printint()),
+        (printBoolFlag, () => printbool()),
+        (printLineFlag, () => printline()),
+        (printPFlag, () => printp())
+      )
 
+      executeActionsForFlags(printFlags)
+    
         // ----read----
 
-        if (readCharFlag) {
-            readchar()
-        }
-        if (readIntFlag) {
-            readint()
-        }
+      val readFlags = List(
+        (readCharFlag, () => readchar()),
+        (readIntFlag, () => readint())
+      )
+
+      executeActionsForFlags(readFlags)
 
         // ----other utilities----
 
-        if (mallocFlag) {
-            printStringFlag = true
-            malloc()
-        }
+      executeActionsForFlags(List(
+        (mallocFlag, malloc),
+        (divByZeroFlag, errDivByzero),
+        (nullPointerFlag, errNull),
+        (arrayBoundsFlag, errOutOfBounds),
+        (arithmeticFlag, errOverFlow),
+        (errOutOfBoundFlag, errOutOfBounds),
+        (badCharFlag, errBadChar)
+      ))
 
-        if (divByZeroFlag) {
-            printStringFlag = true
-            errDivByzero()
-        }
+    // Unique flags with loop execution
+      arrloadFlag.distinct.foreach(size => executeActionIfFlag(true, () => arrLoad(size)))
+      arrstoreFlag.distinct.foreach(size => executeActionIfFlag(true, () => arrStore(size)))
 
-        if (nullPointerFlag) {
-            printStringFlag = true
-            errNull()
-        }
+      executeActionIfFlag(freePairFlag, freePair)
 
-        if (arrayBoundsFlag) {
-            printStringFlag = true
-            errOutOfBounds()
-        }
+      // Finally check if need to add prints
+      executeActionIfFlag(printStringFlag, printstr)
 
-        if (arithmeticFlag) {
-            printStringFlag = true
-            errOverFlow()
-        }
-
-         if (errOutOfBoundFlag) {
-            printStringFlag = true
-            errOutOfBounds()
-        }
-
-        if (badCharFlag) {
-            printStringFlag = true
-            errBadChar()
-        }
-        arrloadFlag = arrloadFlag.distinct
-        if (!arrloadFlag.isEmpty) {
-            for (size <- arrloadFlag) {
-                arrLoad(size)
-            }
-        }
-
-        arrstoreFlag = arrstoreFlag.distinct
-        if (!arrstoreFlag.isEmpty) {
-            for (size <- arrstoreFlag) {
-                arrStore(size)
-            }
-        }
-
-        if (freePairFlag) {
-            freePair()
-        }
-
-        // Finally check if need to add prints
-        if (printStringFlag) {
-            printstr()
-        }
-
-        instrus
-    }
+      instrus
+   }
 
     // -----------------print functions-------------------- 
 
@@ -180,12 +136,8 @@ object Utility {
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x2, x0))
         instrus.append(I_Ldrsw(x1, Content(x0, ImmVal(-4))))
-        instrus.append(I_ADR(x0, I_Label(label)))
-
-        // Call printf
-        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
-        printEnd()
+        printEnd(label)
     }
 
     def printint(): Unit = {
@@ -196,10 +148,8 @@ object Utility {
 
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, x0))
-        instrus.append(I_ADR(x0, I_Label(label)))
-        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
 
-        printEnd()
+        printEnd(label)
     }
 
     def printbool(): Unit = {
@@ -229,10 +179,8 @@ object Utility {
 
         val labelString = addPrintbLabel()
         addCustomisedDataMsg("a%.*s", labelString)
-        instrus.append(I_ADR(x0, I_Label(labelString)))
-        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
         
-        printEnd() 
+        printEnd(labelString)
     }
 
     def printchar(): Unit = {
@@ -244,10 +192,7 @@ object Utility {
 
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, x0))
-        instrus.append(I_ADR(x0, I_Label(label)))
-        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
-
-        printEnd()
+        printEnd(label)
     }
 
     def printline(): Unit = {
@@ -258,10 +203,7 @@ object Utility {
         instrus.append(I_Label(PRINT_LN_LABEL))
 
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
-        instrus.append(I_ADR(x0, I_Label(label)))
-        instrus.append(I_BranchLink(I_Label(PUTS_LABEL)))
-        
-        printEnd()
+        printEnd(label, PUTS_LABEL)
     }
 
 
@@ -274,16 +216,15 @@ object Utility {
 
         instrus.append(I_StorePair(lr, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
         instrus.append(I_Move(x1, x0))
-        instrus.append(I_ADR(x0, I_Label(label)))
-        instrus.append(I_BranchLink(I_Label(PRINT_F_LABEL)))
-
-        printEnd()
+        printEnd(label)
     }
 
     // helper function to extract common parts of print functions
-    private def printEnd(): Unit = {
+    private def printEnd(labelname : String, labelConstant : String = PRINT_F_LABEL): Unit = {
+        instrus.append(I_ADR(x0, I_Label(labelname)))
+        instrus.append(I_BranchLink(I_Label(labelConstant)))
         instrus.append(I_Move(x0, ImmVal(0)))
-        instrus.append(I_BranchLink(I_Label( FLUSH_LABEL)))
+        instrus.append(I_BranchLink(I_Label(FLUSH_LABEL)))
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }
@@ -391,6 +332,18 @@ object Utility {
         instrus.append(I_BranchLink(I_Label(EXIT_LABEL)))
     }
 
+    /* helper function to for addUtility  */
+    private def executeActionIfFlag(flag: Boolean, action: () => Unit): Unit = {
+        if (flag) {
+            action()
+            // printStringFlag = true
+        }
+    }
+
+    private def executeActionsForFlags(flags: List[(Boolean, () => Unit)]): Unit = {
+        flags.foreach { case (flag, action) => executeActionIfFlag(flag, action) }
+    }
+
     
    // helper function to extract common parts of error handlers
     private def throwError(label: String): Unit = {
@@ -411,10 +364,10 @@ object Utility {
         instrus.append(I_Cmp(x17, lr))
         instrus.append(I_Csel(x1, x17, x1, GE))
         instrus.append(I_Branch(I_Label(ERR_OUT_OF_BOUND_LABEL), GE))
-        if (size == 4) {
-            instrus.append(I_Ldrsw(x7, Content(x7, x17, LSL(size/4 + 1))))
+        if (size == ARRAY_ELEM_SIZE) {
+            instrus.append(I_Ldrsw(x7, Content(x7, x17, LSL(size/ARRAY_ELEM_SIZE + 1))))
         } else {
-            instrus.append(I_Load(x7, Content(x7, x17, LSL(size/4 + 1))))
+            instrus.append(I_Load(x7, Content(x7, x17, LSL(size/ARRAY_ELEM_SIZE + 1))))
         }
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)

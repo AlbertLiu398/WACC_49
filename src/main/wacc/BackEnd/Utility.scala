@@ -138,8 +138,14 @@ object Utility {
                 errBadChar()
             })
         )
-
         executeActionsForFlags(otherFlags)
+        // if (!nullPointerFlag) {
+        //     val label = addErrNullLabel()
+        //     addCustomisedDataMsg("e" + ERR_NULL_MSG, label)
+        //     instrus.append(I_Directive(".align 4"))
+        //     instrus.append(I_Label(ERR_NULL_LABEL))
+        //     throwError(label)
+        // }
 
         arrloadFlag.distinct.foreach(size => executeActionIfFlag(true, () => arrLoad(size)))
         arrstoreFlag.distinct.foreach(size => executeActionIfFlag(true, () => arrStore(size)))
@@ -255,8 +261,6 @@ object Utility {
         instrus.append(I_LoadPair(lr, xzr, Content(sp, ImmVal(0)), ImmVal(16), false))
         instrus.append(I_Ret)
     }
-
-
 
     // -----------------read functions-------------------- 
 

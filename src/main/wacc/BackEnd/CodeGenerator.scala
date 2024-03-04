@@ -799,20 +799,40 @@ class CodeGenerator (varList: List[Int]) {
 
     //add _errNull, get fst by pop from the resiter with offset 0
     case FstPairElem(values) =>
-      val reg = getRegFromMap(getIdent(values), identMap)
-      instructions.append(I_Cbz(reg, I_Label("_errNull")))
-      instructions.append(I_Load(x8, Content(reg, ImmVal(0))))
+      val fstPairelem : Option[FstPairElem] = Some(FstPairElem(values))
 
-      nullPointerFlag = true
+      // val reg = getRegFromMap(getIdent(values), identMap)
+      // instructions.append(I_Cbz(reg, I_Label("_errNull")))
+      // instructions.append(I_Load(x8, Content(sp, ImmVal(0))))
+
+      // nullPointerFlag = true
+      fstPairelem match {
+        case Some(FstPairElem(values)) => 
+          val reg = getRegFromMap(getIdent(values), identMap)
+          instructions.append(I_Cbz(reg, I_Label("_errNull")))
+          instructions.append(I_Load(x8, Content(sp, ImmVal(0))))
+          // ToDO : handle null pointer is false, do not need to throw error
+          nullPointerFlag = true // should be false
+        case None =>   nullPointerFlag = true
+      }
       
     //add _errNull, get fst by pop from the resiter with offset 8
     case SndPairElem(values) => 
-      val reg = getRegFromMap(getIdent(values), identMap)
-      instructions.append(I_Cbz(reg, I_Label("_errNull")))
-      instructions.append(I_Load(x8, Content(reg, ImmVal(8))))
+      val sndPairelem : Option[SndPairElem] = Some(SndPairElem(values))
 
-      nullPointerFlag = true
+      sndPairelem match {
+        case Some(SndPairElem(values)) => 
+          val reg = getRegFromMap(getIdent(values), identMap)
+          instructions.append(I_Cbz(reg, I_Label("_errNull")))
+          instructions.append(I_Load(x8, Content(sp, ImmVal(8))))
+          nullPointerFlag = true
+        case None =>   nullPointerFlag = true
+      }
+      // val reg = getRegFromMap(getIdent(values), identMap)
+      // instructions.append(I_Cbz(reg, I_Label("_errNull")))
+      // instructions.append(I_Load(x8, Content(sp, ImmVal(8))))
 
+      // nullPointerFlag = true
 
     case Ident(value) => 
       // Get functions from identMap (or funcIdentMap if currently in function)

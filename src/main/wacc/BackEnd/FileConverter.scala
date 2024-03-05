@@ -14,12 +14,6 @@ object FileConverter {
     val codeGenerator = new CodeGenerator(list)
     val instrus = codeGenerator.generateInstructions(prog)
     val resultInstrus = codeGenerator.getInstructions()
-    // var result = new StringBuilder()
-    // for (instr <- codeGenerator.getInstructions()) {
-    //   // result.append(instr.printInstr())
-    //   result.append
-    // }
-    // result
 
     ArmAssemblyWriter.translateProgram(resultInstrus)
 }

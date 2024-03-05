@@ -1032,13 +1032,13 @@ class CodeGenerator (varList: List[Int]) {
 
   def loadImmediate(value: Int) : Unit = {
     if (value > MOV_MAX) {
-      
       // Cannot load in one single instruction
       if (true){
         val fstReg = allocateTempReg()
         // Use two separate instructions to load
-        instructions.append(I_Move(fstReg, ImmVal(value >> 16)))
-        instructions.append(I_Movk(fstReg, ImmVal(value & 0xFFFF), LSL(16)))
+        instructions.append(I_Move(fstReg, ImmVal(value & 0xFFFF)))
+        instructions.append(I_Movk(fstReg, ImmVal(value >> 16), LSL(16)))
+        ImmVal(value & 0xFFFF)
 
         instructions.append(I_Move(x8, fstReg)) 
       } else {

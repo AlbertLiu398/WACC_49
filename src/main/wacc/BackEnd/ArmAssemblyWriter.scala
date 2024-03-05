@@ -2,19 +2,17 @@ package wacc
 import Instruction._
 
 object ArmAssemblyWriter extends AssemblyWriter {
-//   def printInstr(instru : Instruction, name: String): String = {
-//     instr match {
-//         case  _(dest, src, op) => s"     $name ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
-//     }
 
-//   }
   override def translateInstruction(instr: Instruction): String = {
     instr match {
-        case I_Add(dest, src, op) => s"      add ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
-        // case I_Add(dest, src, op) => printInstr(instr, "add")
-        case I_Adds(dest, src, op) => s"      adds ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
-        case I_Sub(dest, src, op, signed) => s"      sub ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
-        case I_Subs(dest, src, op) => s"      subs ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+        case I_Add(dest, src, op, updateFlag) => updateFlag match {
+                        case false => s"      add ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} !\n"
+                        case true => s"      adds ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+                    }
+        case I_Sub(dest, src, op, updateFlag) => updateFlag match {
+                        case false => s"      sub ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+                        case true => s"      subs ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+                    }
         case I_ReverseSub(dest, src, op) => s"      rsb ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
         case I_Mul(dest, src, op) => s"      mul ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
         case I_SMul(dest, src, op) => s"     smull ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"

@@ -77,13 +77,11 @@ object Instruction {
     sealed trait Instruction {
     }
 
-    case class I_Add(dest: Register, src: Register, op: Operand) extends Instruction 
+    case class I_Add(dest: Register, src: Register, op: Operand, updateFlag: Boolean = false) extends Instruction 
 
-    case class I_Adds(dest: Register, src: Register, op: Operand) extends Instruction 
+    // case class I_Adds(dest: Register, src: Register, op: Operand) extends Instruction 
 
-    case class I_Sub(dest: Register, src: Register, op: Operand, signed: Boolean=false) extends Instruction 
-
-    case class I_Subs(dest: Register, src: Register, op: Operand) extends Instruction 
+    case class I_Sub(dest: Register, src: Register, op: Operand, updateFlag: Boolean=false) extends Instruction 
 
     case class I_ReverseSub(dest: Register, src: Register, op: Operand) extends Instruction 
 
@@ -122,7 +120,7 @@ object Instruction {
     case class I_Xor(dest: Register, src: Register, op: Operand) extends Instruction 
 
     case class I_Orr(dest: Register, src: Register, op: Operand) extends Instruction 
-    \
+    
     case class I_Cmp(src: Register, op: Operand) extends Instruction 
 
     case class I_Cmp_Shift(src: Register, op: Operand, shift: Shifts) extends Instruction 
@@ -156,6 +154,6 @@ object Instruction {
     case class I_Tst(reg1: Register, op: Operand) extends Instruction 
 
     case class I_Sbfx(reg1: Register, reg2: Register, start_bit: Operand, len: Operand) extends Instruction 
-    
+
     case class I_Sxtw(reg1: Register, reg2: Register) extends Instruction 
 }

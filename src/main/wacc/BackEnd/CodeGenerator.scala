@@ -114,14 +114,14 @@ class CodeGenerator (varList: List[Int]) {
           // Check and load immediate value
           loadImmediate(value) 
           // Now expr2 is in x8
-          instructions.append((I_Adds(x8.toW(), fstReg.toW(), x8.toW())))
+          instructions.append((I_Add(x8.toW(), fstReg.toW(), x8.toW(), true)))
 
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           if (true){
             val fstReg = allocateTempReg()
             generateInstructions(expr2)
-            instructions.append((I_Adds(x8.toW(), fstReg.toW(), x8.toW())))
+            instructions.append((I_Add(x8.toW(), fstReg.toW(), x8.toW(), true)))
           } else {
             pushToStack()
           }
@@ -141,14 +141,14 @@ class CodeGenerator (varList: List[Int]) {
           // Check and load immediate value
           loadImmediate(value) 
           // Now expr2 is in x8
-          instructions.append((I_Subs(x8.toW(), fstReg.toW(), x8.toW())))
+          instructions.append((I_Sub(x8.toW(), fstReg.toW(), x8.toW(), true)))
 
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           if (true){
             val fstReg = allocateTempReg()
             generateInstructions(expr2)
-            instructions.append((I_Subs(x8.toW(), fstReg.toW(), x8.toW())))
+            instructions.append((I_Sub(x8.toW(), fstReg.toW(), x8.toW(), true)))
           } else {
             pushToStack()
       }
@@ -357,7 +357,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
           instructions.append(I_Move(x8, ImmVal(0)))
-          instructions.append(I_Subs(x8.toW(), x8.toW(), x9.toW()))
+          instructions.append(I_Sub(x8.toW(), x8.toW(), x9.toW(), true))
           checkOverflowHandler()
       }
 

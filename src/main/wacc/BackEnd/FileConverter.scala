@@ -2,7 +2,6 @@ package wacc
 
 import java.io._
 import java.nio.file.{Files, Paths, StandardCopyOption}
-import ArmAssemblyWriter._
 
   /* 1. create assembly file 
      2. generate assembly code and write to asm file */
@@ -13,16 +12,12 @@ object FileConverter {
   def generateAssemblyCode(prog : ast.ASTNode, list : List[Int]): StringBuilder = {
     val codeGenerator = new CodeGenerator(list)
     val instrus = codeGenerator.generateInstructions(prog)
-    val resultInstrus = codeGenerator.getInstructions()
-    // var result = new StringBuilder()
-    // for (instr <- codeGenerator.getInstructions()) {
-    //   // result.append(instr.printInstr())
-    //   result.append
-    // }
-    // result
-
-    ArmAssemblyWriter.translateProgram(resultInstrus)
-}
+    var result = new StringBuilder()
+    for (instr <- codeGenerator.getInstructions()) {
+      result.append(instr.printInstr())
+    }
+    result
+  }
 
   def convertToAssembly(filePath: String, prog: ast.ASTNode, list: List[Int]): Unit = {
     val waccFile = new File(filePath)
@@ -51,3 +46,4 @@ object FileConverter {
   }
 
 }
+

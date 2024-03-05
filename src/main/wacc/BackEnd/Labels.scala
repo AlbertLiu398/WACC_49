@@ -46,28 +46,29 @@ object Labels {
     
 
     // Stores non-utility strings encountered in program
-    case class DataMsg(s: String, labelIndex: Int, actualSize: Int, name: String){
+    case class DataMsg(s: String, labelIndex: Int, actualSize: Int, name: String) {
         val label: String = s".L.str$labelIndex"
         var instruction: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
+
         def sanitizeString(str: String): String = {
             str.replace("\n", "\\n")  // Replace newline characters with '\n'
         }
 
-            if (labelIndex == -1) {
-                // Use customised label name
-                instruction = mutable.ListBuffer(
-                    I_Directive(s"      .word ${actualSize - 1}"),
-                    I_Label(s"$name"),
-                    I_Directive(s"      .asciz " + "\"" + s.substring(1) + "\"")
-                )
-            } else {
-                // Use counter to generate label name
-                instruction = mutable.ListBuffer(
-                    I_Directive(s"      .word $actualSize"),
-                    I_Label(label),
-                    I_Directive(s"      .asciz " + "\"" + sanitizeString(s) + "\"")
-                ) 
-            }
+        if (labelIndex == -1) {
+            // Use customized label name
+            instruction = mutable.ListBuffer(
+                I_Directive(s"      .word ${actualSize - 1}"),
+                I_Label(s"$name"),
+                I_Directive(s"    .asciz " + "\"" + s.substring(1) + "\"")
+            )
+        } else {
+            // Use counter to generate label name
+            instruction = mutable.ListBuffer(
+                I_Directive(s"      .word $actualSize"),
+                I_Label(label),
+                I_Directive(s"      .asciz "+ "\"" + sanitizeString(s) + "\"")
+            )
+        }
     }
 
     // Generate a data message from a string and add to allDataMsgs, Called when generating StringLiter

@@ -114,14 +114,14 @@ class CodeGenerator (varList: List[Int]) {
           // Check and load immediate value
           loadImmediate(value) 
           // Now expr2 is in x8
-          instructions.append((I_Add(x8.toW(), fstReg.toW(), x8.toW(), true)))
+          instructions.append((I_Adds(x8.toW(), fstReg.toW(), x8.toW())))
 
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           if (true){
             val fstReg = allocateTempReg()
             generateInstructions(expr2)
-            instructions.append((I_Add(x8.toW(), fstReg.toW(), x8.toW(), true)))
+            instructions.append((I_Adds(x8.toW(), fstReg.toW(), x8.toW())))
           } else {
             pushToStack()
           }
@@ -141,14 +141,14 @@ class CodeGenerator (varList: List[Int]) {
           // Check and load immediate value
           loadImmediate(value) 
           // Now expr2 is in x8
-          instructions.append((I_Sub(x8.toW(), fstReg.toW(), x8.toW(), true)))
+          instructions.append((I_Subs(x8.toW(), fstReg.toW(), x8.toW())))
 
         case _=> 
           instructions.append(I_Move(unused_TempRegs.head, x8))
           if (true){
             val fstReg = allocateTempReg()
             generateInstructions(expr2)
-            instructions.append((I_Sub(x8.toW(), fstReg.toW(), x8.toW(), true)))
+            instructions.append((I_Subs(x8.toW(), fstReg.toW(), x8.toW())))
           } else {
             pushToStack()
       }
@@ -357,7 +357,7 @@ class CodeGenerator (varList: List[Int]) {
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
           instructions.append(I_Move(x8, ImmVal(0)))
-          instructions.append(I_Sub(x8.toW(), x8.toW(), x9.toW(), true))
+          instructions.append(I_Subs(x8.toW(), x8.toW(), x9.toW()))
           checkOverflowHandler()
       }
 
@@ -799,40 +799,20 @@ class CodeGenerator (varList: List[Int]) {
 
     //add _errNull, get fst by pop from the resiter with offset 0
     case FstPairElem(values) =>
-      val fstPairelem : Option[FstPairElem] = Some(FstPairElem(values))
+      val reg = getRegFromMap(getIdent(values), identMap)
+      instructions.append(I_Cbz(reg, I_Label("_errNull")))
+      instructions.append(I_Load(x8, Content(reg, ImmVal(0))))
 
-      // val reg = getRegFromMap(getIdent(values), identMap)
-      // instructions.append(I_Cbz(reg, I_Label("_errNull")))
-      // instructions.append(I_Load(x8, Content(sp, ImmVal(0))))
-
-      // nullPointerFlag = true
-      fstPairelem match {
-        case Some(FstPairElem(values)) => 
-          val reg = getRegFromMap(getIdent(values), identMap)
-          instructions.append(I_Cbz(reg, I_Label("_errNull")))
-          instructions.append(I_Load(x8, Content(reg, ImmVal(0))))
-          // ToDO : handle null pointer is false, do not need to throw error
-          nullPointerFlag = true // should be false
-        case None =>   nullPointerFlag = true
-      }
+      nullPointerFlag = true
       
     //add _errNull, get fst by pop from the resiter with offset 8
     case SndPairElem(values) => 
-      val sndPairelem : Option[SndPairElem] = Some(SndPairElem(values))
+      val reg = getRegFromMap(getIdent(values), identMap)
+      instructions.append(I_Cbz(reg, I_Label("_errNull")))
+      instructions.append(I_Load(x8, Content(reg, ImmVal(8))))
 
-      sndPairelem match {
-        case Some(SndPairElem(values)) => 
-          val reg = getRegFromMap(getIdent(values), identMap)
-          instructions.append(I_Cbz(reg, I_Label("_errNull")))
-          instructions.append(I_Load(x8, Content(reg, ImmVal(8))))
-          nullPointerFlag = true
-        case None =>   nullPointerFlag = true
-      }
-      // val reg = getRegFromMap(getIdent(values), identMap)
-      // instructions.append(I_Cbz(reg, I_Label("_errNull")))
-      // instructions.append(I_Load(x8, Content(sp, ImmVal(8))))
+      nullPointerFlag = true
 
-      // nullPointerFlag = true
 
     case Ident(value) => 
       // Get functions from identMap (or funcIdentMap if currently in function)
@@ -1032,13 +1012,13 @@ class CodeGenerator (varList: List[Int]) {
 
   def loadImmediate(value: Int) : Unit = {
     if (value > MOV_MAX) {
+      
       // Cannot load in one single instruction
       if (true){
         val fstReg = allocateTempReg()
         // Use two separate instructions to load
-        instructions.append(I_Move(fstReg, ImmVal(value & 0xFFFF)))
-        instructions.append(I_Movk(fstReg, ImmVal(value >> 16), LSL(16)))
-        ImmVal(value & 0xFFFF)
+        instructions.append(I_Move(fstReg, ImmVal(value >> 16)))
+        instructions.append(I_Movk(fstReg, ImmVal(value & 0xFFFF), LSL(16)))
 
         instructions.append(I_Move(x8, fstReg)) 
       } else {

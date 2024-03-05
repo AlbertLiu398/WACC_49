@@ -49,6 +49,10 @@ object Labels {
     case class DataMsg(s: String, labelIndex: Int, actualSize: Int, name: String){
         val label: String = s".L.str$labelIndex"
         var instruction: mutable.ListBuffer[Instruction] = mutable.ListBuffer.empty
+        def sanitizeString(str: String): String = {
+            str.replace("\n", "\\n")  // Replace newline characters with '\n'
+        }
+
             if (labelIndex == -1) {
                 // Use customised label name
                 instruction = mutable.ListBuffer(
@@ -61,7 +65,7 @@ object Labels {
                 instruction = mutable.ListBuffer(
                     I_Directive(s"      .word $actualSize"),
                     I_Label(label),
-                    I_Directive(s"      .asciz " + "\"" + s + "\"")
+                    I_Directive(s"      .asciz " + "\"" + sanitizeString(s) + "\"")
                 ) 
             }
     }

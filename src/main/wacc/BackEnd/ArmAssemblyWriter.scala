@@ -69,7 +69,7 @@ object ArmAssemblyWriter extends AssemblyWriter {
         case I_Ldrsw(reg1, content) => s"      ldrsw ${reg1.getValue()}, ${content.getValue()} \n"
         case I_Csel(reg1, reg2, reg3, condition) => s"      csel ${reg1.getValue()}, ${reg2.getValue()}, ${reg3.getValue()}, $condition \n"
         case I_Tst(reg1, op) => s"      tst ${reg1.getValue()}, ${op.getValue()} \n"
-        case I_Sbfx(reg1, reg2, start_bit, len) => s"      sbfx ${reg1.getValue()}, ${reg2.getValue()}, $start_bit, $len \n"
+        case I_Sbfx(reg1, reg2, start_bit, len) => s"      sbfx ${reg1.getValue()}, ${reg2.getValue()}, ${start_bit.getValue()}, ${len.getValue()} \n"
         case I_Sxtw(reg1, reg2) => s"      sxtw ${reg1.getValue()}, ${reg2.getValue()} \n"
         case _ => ""
     } 

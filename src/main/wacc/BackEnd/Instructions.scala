@@ -78,13 +78,7 @@ object Instruction {
         def printInstr() : String
     }
 
-    case class I_Add(dest: Register, src: Register, op: Operand) extends Instruction {
-        override def printInstr(): String = s"      add ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
-    }
-
-    case class I_Adds(dest: Register, src: Register, op: Operand) extends Instruction {
-        override def printInstr(): String = s"      adds ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
-    }
+    case class I_Add(dest: Register, src: Register, op: Operand, updateFlag: Boolean = false) extends Instruction 
 
     case class I_Sub(dest: Register, src: Register, op: Operand, signed: Boolean=false) extends Instruction {
         override def printInstr(): String = s"      sub ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"

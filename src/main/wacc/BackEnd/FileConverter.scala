@@ -12,11 +12,9 @@ object FileConverter {
   def generateAssemblyCode(prog : ast.ASTNode, list : List[Int]): StringBuilder = {
     val codeGenerator = new CodeGenerator(list)
     val instrus = codeGenerator.generateInstructions(prog)
-    var result = new StringBuilder()
-    for (instr <- codeGenerator.getInstructions()) {
-      result.append(instr.printInstr())
-    }
-    result
+    val resultInstrus = codeGenerator.getInstructions()
+
+    ArmAssemblyWriter.translateProgram(resultInstrus)
   }
 
   def convertToAssembly(filePath: String, prog: ast.ASTNode, list: List[Int]): Unit = {

@@ -10,13 +10,21 @@ class ParserCombinatorTest extends ParserTest {
 
 // ----------- statement parser test -----------
 
-  it should "parse program" in {
+it should "parse program" in {
     parse("begin skip end") shouldBe Success(Program(List(), Skip))
 }
 
-// it should "parse function" in {
-//     funcParse("int f(int x) is skip end") shouldBe Success(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Skip))
-// }
+it should "parse program with function" in {
+    parse("begin int f(int x) is return x + 1 end skip end") shouldBe Success(Program(List(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))), Skip))
+}
+it should "parse program with function2" in {
+    parse ("begin int f(int x) is return x + 2 end skip end") shouldBe Success(Program(List(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(2))))), Skip))
+}
+
+it should "parse function" in {
+    funcParse("int f(int x) is return x + 1 end") shouldBe  Success(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1)))))
+}
+
 
 it should "parse paramList" in {
   paramListParse("(int x, bool y)") shouldBe Success(ParamList(List(Param(BaseType("int"), Ident("x")), Param(BaseType("bool"), Ident("y")))))
@@ -101,6 +109,8 @@ it should "parse rValue" in {
     rValueParse("fst x") shouldBe Success(FstPairElem(Ident("x")))
     // Call rValue
     rValueParse("call f(1, 2)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(IntLiter(1), IntLiter(2)))))
+    rValueParse("call f(true)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(BoolLiter(true)))))
+    rValueParse("call f(1, true, 3)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(IntLiter(1), BoolLiter(true), IntLiter(3)))))
 }
 
 it should "parse argsList" in {

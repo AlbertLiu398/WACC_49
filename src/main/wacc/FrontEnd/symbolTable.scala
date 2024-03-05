@@ -4,9 +4,17 @@ import scala.collection.mutable._
 import ast._
 import parsley.expr.infix
 
+
+
+/* symbol table stores 
+   variables, 
+   functions, 
+   or other symbols declared in your program*/
+
+
 // Symbol table entry that keeps track of ident name and its type
 // 'value' is used when creating pair and array type entries
-case class SymbolEntry(name: Ident, varType: String, value: List[String])
+case class SymbolEntry(name: Ident, varType: String, value: List[String], paramType : List[String] = Nil)
 
 class SymbolTable {
 
@@ -46,42 +54,54 @@ class SymbolTable {
   }
   
   // Insert a symbol table entry with value
-  def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
+  def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String], paramType: List[String] = Nil): Boolean = {
     varCounter += 1
-    var name = getIdent(value_name)
+    var name = Ident(getIdent(value_name).value + paramType.mkString)
     if (varType == "func") {
       name = Ident('f' +: name.value)
     }
-    val symbolEntry = SymbolEntry(name, varType, value)
+    val symbolEntry = SymbolEntry(name, varType, value, paramType)
     val currentScopeMap = scopeStack.top
     if (currentScopeMap.contains(name)) {
       return false
     }
     currentScopeMap(name) = ListBuffer(symbolEntry)
+    // print("------------- inserted symbol with value")
     return true
   }
 
-  def lookupSymbol(value_name: LValue): Option[SymbolEntry] = {
-    val name = getIdent(value_name)
+  def lookupSymbol(value_name: LValue, paramListType: List[String] = Nil): Option[SymbolEntry] = {
+    val name = Ident(getIdent(value_name).value + paramListType.mkString)
+    print(name)
     scopeStack.find(_.contains(name)) match {
-      case Some(scopeMap) => scopeMap.get(name).flatMap(_.headOption)
-      case None => None
+
+      case Some(scopeMap) => 
+        // print ("found \n")
+        scopeMap.get(name).flatMap(_.headOption)
+      
+      case None => 
+        // print ("not found \n")
+        None
     }
   }
 
+  // Enter a new scope by pushing an empty map onto the scope stack
   def enterScope(): Unit = {
     scopeStack.push(Map())
   }
 
+  // Exit the current scope by popping the top map from the scope stack
   def exitScope(): Unit = {
     scopeStack.pop()
   }
 
+  // Enter a new function scope by pushing an empty map onto the scope stack
   def enterFunc(returnType: Type): Unit = {
     inFunc = true
     funcType = returnType.getType
   }
 
+  // Exit the current function scope by popping the top map from the scope stack
   def exitFunc(): Unit = {
     inFunc = false
     funcType = "notInFunc"
@@ -120,4 +140,5 @@ class SymbolTable {
       }
     }
   }
+
 }

@@ -93,7 +93,7 @@ object ast{
     case class NewPairRValue(exprL: Expr, exprR: Expr) extends RValue { //
         var getType: String = ""
     }
-    case class CallRValue(func: Ident, args: ArgList) extends RValue { //
+    case class CallRValue(funcName: Ident, args: ArgList) extends RValue { //
         var getType: String = ""
     }
     

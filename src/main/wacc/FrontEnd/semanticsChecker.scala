@@ -15,19 +15,27 @@ class semanticsChecker(symbolTable: SymbolTable) {
     ast match {
       case Program(funcList, stmts) =>
         symbolTable.enterScope()
+        print("enter program \n")
         for (func <- funcList) {
-          symbolTable.lookupSymbol(Ident('f' +: func.functionName.value)) match {
-            case Some(_) =>
-              errors.append(SemanticError("Multiple declears on matching function names"))
+          symbolTable.lookupSymbol(Ident('f' +: func.functionName.value), func.params.getType) match {
+            case Some(existEntry) =>
+              print("existEntry \n")
+              if (!isFunctionOverloaded(existEntry.paramType, func.params.getType, existEntry.value(existEntry.value.length - 1), func.returnType.getType)) {
+                print("not overloaded \n")
+                 errors.append(SemanticError("ambiguous function with same name, parameters and return type"))
+              } 
+              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType, func.params.getType) 
             case None =>
-              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
+              print("not existEntry \n")
+              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType, func.params.getType)
             }
         }
         for (func <- funcList) {
           semanticCheck(func)
         }
         semanticCheck(stmts)
-        symbolTable.exitMain(funcList)
+        // TODO : @richaed check exitMain correctness ? 
+        // symbolTable.exitMain(funcList) 
         symbolTable.exitScope()
 
       case n@Func(returnType, functionName, params, body) =>
@@ -220,10 +228,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
         n.getFst = exprL.getType
         n.getSnd= exprR.getType
 
-      case n@CallRValue(func, args) =>
+      case n@CallRValue(funcName, args) =>
         semanticCheck(args)
         //need to check each args's type is correct
-        symbolTable.lookupSymbol(Ident('f' +: func.value)) match {
+        symbolTable.lookupSymbol(Ident('f' +: funcName.value)) match {
           case Some(symbolEntry) =>
             if (symbolEntry.varType == "func") {
               if (symbolEntry.value.length - 1 == args.exprl.length) {
@@ -490,4 +498,24 @@ class semanticsChecker(symbolTable: SymbolTable) {
     if (number == 1) return typesArray(0)
     else return typesArray(1)
   }
+
+  // helper function to check if function overloaded
+  private def isFunctionOverloaded(existParamsType: List[String], newParamsType: List[String], existParamsRetrunType: String, newParamsReturnType: String): Boolean = {
+    if (existParamsType.length != newParamsType.length) {
+      return true
+    }
+
+    for (i <- 0 until existParamsType.length) {
+      if (!compareType(existParamsType(i), newParamsType(i))){
+        return true
+      }
+    }
+    if (!compareType(existParamsRetrunType, newParamsReturnType)) {
+      return true
+    }
+    return false 
+  }
+
+  // private def getCandidateFunctions(funcName: Ident) : List[SymbolEntry] = {
+  // }
 }

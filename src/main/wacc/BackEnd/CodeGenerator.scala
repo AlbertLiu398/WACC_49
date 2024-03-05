@@ -810,7 +810,7 @@ class CodeGenerator (varList: List[Int]) {
         case Some(FstPairElem(values)) => 
           val reg = getRegFromMap(getIdent(values), identMap)
           instructions.append(I_Cbz(reg, I_Label("_errNull")))
-          instructions.append(I_Load(x8, Content(sp, ImmVal(0))))
+          instructions.append(I_Load(x8, Content(reg, ImmVal(0))))
           // ToDO : handle null pointer is false, do not need to throw error
           nullPointerFlag = true // should be false
         case None =>   nullPointerFlag = true
@@ -824,7 +824,7 @@ class CodeGenerator (varList: List[Int]) {
         case Some(SndPairElem(values)) => 
           val reg = getRegFromMap(getIdent(values), identMap)
           instructions.append(I_Cbz(reg, I_Label("_errNull")))
-          instructions.append(I_Load(x8, Content(sp, ImmVal(8))))
+          instructions.append(I_Load(x8, Content(reg, ImmVal(8))))
           nullPointerFlag = true
         case None =>   nullPointerFlag = true
       }

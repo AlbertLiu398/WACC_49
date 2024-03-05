@@ -161,7 +161,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
               n.getSnd = symbolEntry.value(1)
             }
           case None => 
-            symbolTable.displaySymbolTable()
             errors.append(SemanticError("Non-existent array identifier reference"))
         }
         value.foreach(semanticCheck)
@@ -169,11 +168,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           errors.append(SemanticError("Array index should be an Int"))
         }
         if (value.length > countOccurrences(arryType, "[]")) {
-          println(value.length)
-          println(n.getType)
-          println(countOccurrences(n.getType, "[]"))
           errors.append(SemanticError("Array index is larger than its dimension"))
         }
+
 
       case n@If(condition, thenBranch, elseBranch) =>
         semanticCheck(condition)

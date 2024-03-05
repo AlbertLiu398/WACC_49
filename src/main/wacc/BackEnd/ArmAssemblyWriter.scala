@@ -5,15 +5,15 @@ object ArmAssemblyWriter extends AssemblyWriter {
 
   override def translateInstruction(instr: Instruction): String = {
     instr match {
-        case I_Add(dest, src, op, updateFlag) => updateFlag match {
+        case I_Add(dest, src, op, update_flag) => update_flag match {
                         case false => s"      add ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} !\n"
                         case true => s"      adds ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
                     }
-        case I_Sub(dest, src, op, updateFlag) => updateFlag match {
+        case I_Sub(dest, src, op, update_flag) => update_flag match {
                         case false => s"      sub ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
                         case true => s"      subs ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
                     }
-        case I_ReverseSub(dest, src, op) => s"      rsb ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
+        case I_ReverseSub(dest, src, op) => s"      subr ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
         case I_Mul(dest, src, op) => s"      mul ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
         case I_SMul(dest, src, op) => s"     smull ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
         case I_SDiv(dest, src, op) => s"      sdiv ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
@@ -34,9 +34,9 @@ object ArmAssemblyWriter extends AssemblyWriter {
                         case ImmVal(0) => s"      str ${src.getValue()}, ${op.getValue()}" + (if (update_sp) " !\n" else "\n")
                         case _ => s"      str ${src.getValue()},, ${op.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
                     }
-        case I_StoreByte(src, op, op2, update_sp) =>  op2 match {
-                        case ImmVal(0) => s"      strb ${src.getValue()}, ${op.getValue()}" + (if (update_sp) " !\n" else "\n")
-                        case _ => s"      strb ${src.getValue()},, ${op.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
+        case I_StoreByte(src, dest, op2, update_sp) =>  op2 match {
+                        case ImmVal(0) => s"      strb ${src.getValue()}, ${dest.getValue()}" + (if (update_sp) " !\n" else "\n")
+                        case _ => s"      strb ${src.getValue()},, ${dest.getValue()}, ${op2.getValue()}" + (if (update_sp) "!\n" else "\n")
                     }
         case I_StorePair(src1, src2, dst, op2, update_sp) => op2 match {
                         case ImmVal(0) => s"      stp ${src1.getValue()}, ${src2.getValue()}, ${dst.getValue()}" + (if (update_sp) " !\n" else "\n")
@@ -54,8 +54,10 @@ object ArmAssemblyWriter extends AssemblyWriter {
         case I_Orr(dest, src, op) => s"      orr ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
         case I_Cmp(src, op) => s"      cmp ${src.getValue()}, ${op.getValue()} \n"
         case I_Cmp_Shift(src, op, shift) => s"      cmp ${src.getValue()}, ${op.getValue()}, ${shift.getValue()} \n"
+        
         case I_Push(src) => s"      push {${src.getValue()}} \n"
-        case I_Pop(src) => s"      pop {${src.getValue()}} \n"
+        case I_Pop(dest) => s"      pop {${dest.getValue()}} \n"
+        
         case I_Label(labelName) => s"$labelName: \n"
         case I_Directive(name) => s"$name \n"
         case I_CSet(dest, condition) => s"      cset ${dest.getValue()}, $condition \n"

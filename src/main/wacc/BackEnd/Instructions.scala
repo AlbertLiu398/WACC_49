@@ -79,8 +79,6 @@ object Instruction {
 
     case class I_Add(dest: Register, src: Register, op: Operand, updateFlag: Boolean = false) extends Instruction 
 
-    // case class I_Adds(dest: Register, src: Register, op: Operand) extends Instruction 
-
     case class I_Sub(dest: Register, src: Register, op: Operand, updateFlag: Boolean=false) extends Instruction 
 
     case class I_ReverseSub(dest: Register, src: Register, op: Operand) extends Instruction 

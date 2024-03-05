@@ -6,7 +6,7 @@ object ArmAssemblyWriter extends AssemblyWriter {
   override def translateInstruction(instr: Instruction): String = {
     instr match {
         case I_Add(dest, src, op, update_flag) => update_flag match {
-                        case false => s"      add ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} !\n"
+                        case false => s"      add ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
                         case true => s"      adds ${dest.getValue()}, ${src.getValue()}, ${op.getValue()} \n"
                     }
         case I_Sub(dest, src, op, update_flag) => update_flag match {
@@ -57,7 +57,7 @@ object ArmAssemblyWriter extends AssemblyWriter {
         
         case I_Push(src) => s"      push {${src.getValue()}} \n"
         case I_Pop(dest) => s"      pop {${dest.getValue()}} \n"
-        
+
         case I_Label(labelName) => s"$labelName: \n"
         case I_Directive(name) => s"$name \n"
         case I_CSet(dest, condition) => s"      cset ${dest.getValue()}, $condition \n"

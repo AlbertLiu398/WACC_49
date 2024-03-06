@@ -487,4 +487,40 @@ class semanticsChecker(symbolTable: SymbolTable) {
     if (number == 1) return typesArray(0)
     else return typesArray(1)
   }
+
+  private def constantFold(expr: Expr): Option[Int] = {
+    expr match {
+
+      case IntLiter(value) => Some(value)
+
+      case Negate(expr) =>
+        for {
+          e <- constantFold(expr)
+        } yield -e
+
+      case Add(expr1, expr2) => foldBinOp(expr1, expr2, _ + _)
+
+      case Sub(expr1, expr2) => foldBinOp(expr1, expr2, _ - _)
+
+      case Mul(expr1, expr2) => foldBinOp(expr1, expr2, _ * _)
+
+      case Mod(expr1, expr2) => foldBinOp(expr1, expr2, _ % _)
+
+      case Div(expr1, expr2) => foldBinOp(expr1, expr2, _ / _)
+
+      case Ord(CharLiter(value)) => Some(value.toInt)
+      
+      //case Len(expr) =>
+
+      case _ => None
+    }
+  }
+
+  private def foldBinOp(expr1: Expr, expr2: Expr, op: (Int, Int) => Int): Option[Int] = {
+    for {
+      left <- constantFold(expr1)
+      right <- constantFold(expr2)
+    } yield op(left, right)
+  }
+
 }

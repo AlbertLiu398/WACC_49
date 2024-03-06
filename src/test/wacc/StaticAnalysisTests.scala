@@ -9,7 +9,7 @@ class StaticAnalysisTests extends ParserTest {
 
     val sC = new semanticsChecker(new SymbolTable)
 
-    /*------------------- Array tests -------------------*/
+    /*------------------- Array indexing tests -------------------*/
 
     it should "Static analysis: Array index negative" in {
         sC.semanticCheck(stmtParse("int[] a = [1, 2, 3]; print a[-2]").get)
@@ -30,7 +30,7 @@ class StaticAnalysisTests extends ParserTest {
     }
 
     it should "Static analysis: Out of bounds array expression access" in {
-        sC.semanticCheck(stmtParse("int[] a = [1, 2, 3]; print a[a[1] + 5]").get)
+        sC.semanticCheck(stmtParse("int[] a = [1, 2, 3]; print a[2*1]").get)
         sC.getSemanticErrors shouldBe List(SemanticError("Static analysis error: Out of bounds array access"))
         sC.refreshSymbolTable()
     }
@@ -55,7 +55,19 @@ class StaticAnalysisTests extends ParserTest {
         sC.refreshSymbolTable()
     }
 
+    it should "Static analysis: Divide by zero expression" in {
+        sC.semanticCheck(null)
+        sC.getSemanticErrors shouldBe List(SemanticError("<TODO>"))
+        sC.refreshSymbolTable()
+    }
+
     it should "Static analysis: Mod by zero" in {
+        sC.semanticCheck(null)
+        sC.getSemanticErrors shouldBe List(SemanticError("<TODO>"))
+        sC.refreshSymbolTable()
+    }
+
+    it should "Static analysis: Mod by zero expression" in {
         sC.semanticCheck(null)
         sC.getSemanticErrors shouldBe List(SemanticError("<TODO>"))
         sC.refreshSymbolTable()

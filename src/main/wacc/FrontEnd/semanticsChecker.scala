@@ -414,6 +414,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.lookupSymbol(values) match {
           case Some(symbolEntry) =>
             n.getType = symbolEntry.value(0)
+            if (n.getType.startsWith("pair")) {
+              n.getFst = getTypeForPair(n.getType, 1)
+              n.getSnd = getTypeForPair(n.getType, 2)
+            }
           case None => 
             errors.append(SemanticError("Value not exist"))
         }
@@ -422,6 +426,10 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.lookupSymbol(values) match {
           case Some(symbolEntry) =>
             n.getType = symbolEntry.value(1)
+            if (n.getType.startsWith("pair")) {
+              n.getFst = getTypeForPair(n.getType, 1)
+              n.getSnd = getTypeForPair(n.getType, 2)
+            }
           case None => 
             errors.append(SemanticError("Value not exist"))
         }

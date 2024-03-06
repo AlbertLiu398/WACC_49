@@ -43,22 +43,23 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
   it should "detect function overloading (function aspect)" ignore {
     // Create two functions with the same name but different parameter types
+    // func1 : int add(int a) is skip end 
+    // func2 : int add(bool b) is skip end
     val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
-    val func2 = Func(BaseType("bool"), Ident("add"), ParamList(List(Param(BaseType("bool"), Ident("b")))), Skip)
+    val func2 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("bool"), Ident("b")))), Skip)
 
     // Semantic check each function
     semanticsChecker.semanticCheck(func1)
     semanticsChecker.semanticCheck(func2)
 
-    val symbolEntry1 = symbolTable.lookupSymbol(Ident("add")).getOrElse(fail("Function not found"))
-    val symbolEntry2 = symbolTable.lookupSymbol(Ident("add")).getOrElse(fail("Function not found"))
+    val symbolEntry1 = symbolTable.lookupSymbol(Ident("fadd"), List("int", "int")).getOrElse(fail("Function not found"))
+    val symbolEntry2 = symbolTable.lookupSymbol(Ident("fadd"), List("bool", "int")).getOrElse(fail("Function not found"))
 
     val error = semanticsChecker.getSemanticErrors
     print(error)
 
     assert(symbolEntry1.varType == "func" && symbolEntry2.varType == "func")
-    assert(symbolEntry1.value.length == 2)
-    assert(symbolEntry2.value.length == 2)
+    assert(symbolEntry1.name.value == "faddintint" && symbolEntry2.name.value == "faddboolint")
   }
 
   it should "detect function overloading (function call aspect)" ignore{

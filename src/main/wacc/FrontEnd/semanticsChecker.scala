@@ -17,20 +17,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.enterScope()
         print("enter program \n")
         for (func <- funcList) {
-          symbolTable.lookupSymbol(Ident('f' +: func.functionName.value), func.params.getType :+ func.returnType.getType) match {
-            case Some(existEntry) =>
-              print("existEntry \n")
-              if (!isFunctionOverloaded(existEntry.value.init, func.params.getType, existEntry.value.last, func.returnType.getType)) {
-                print("not overloaded \n")
-                 errors.append(SemanticError("ambiguous function with same name, parameters and return type"))
-              } 
-              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType) 
-            case None =>
-              print("not existEntry \n")
-              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
-            }
-        }
-        for (func <- funcList) {
           semanticCheck(func)
         }
         semanticCheck(stmts)
@@ -39,8 +25,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.exitScope()
 
       case n@Func(returnType, functionName, params, body) =>
+        // to check if the function is overloaded
+        symbolTable.lookupSymbol(Ident('f' +: functionName.value), params.getType :+ returnType.getType) match {
+          case Some(existEntry) =>
+            if (!isFunctionOverloaded(existEntry.value.init, params.getType, existEntry.value.last, returnType.getType)) {
+              errors.append(SemanticError(functionName.value + ": ambiguous function with same name, parameters and return type"))
+            } else {
+            symbolTable.insertSymbolwithValue(functionName, "func", params.getType :+ returnType.getType) 
+            }
+          case None =>
+            symbolTable.insertSymbolwithValue(functionName, "func", params.getType :+ returnType.getType)
+        }
         semanticCheck(returnType)
-        
         symbolTable.enterScope()
         symbolTable.enterFunc(returnType)
         semanticCheck(params)
@@ -501,7 +497,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
 
   // helper function to check if function overloaded
   private def isFunctionOverloaded(existParamsType: List[String], newParamsType: List[String], existParamsRetrunType: String, newParamsReturnType: String): Boolean = {
-    if (existParamsType.length != newParamsType.length) {
+    if (existParamsType.length != newParamsType.length || !compareType(existParamsRetrunType, newParamsReturnType) ) {
       return true
     }
 
@@ -509,9 +505,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
       if (!compareType(existParamsType(i), newParamsType(i))){
         return true
       }
-    }
-    if (!compareType(existParamsRetrunType, newParamsReturnType)) {
-      return true
     }
     return false 
   }

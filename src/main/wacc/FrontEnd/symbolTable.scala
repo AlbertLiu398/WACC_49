@@ -56,6 +56,7 @@ class SymbolTable {
   // Insert a symbol table entry with value
   def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
     varCounter += 1
+    print("before inserting the scope is: " + scopeStack + "\n")
     var name = Ident(getIdent(value_name).value + value.mkString)
     if (varType == "func") {
       name = Ident('f' +: name.value)
@@ -66,21 +67,19 @@ class SymbolTable {
       return false
     }
     currentScopeMap(name) = ListBuffer(symbolEntry)
-    // print("------------- inserted symbol with value")
+    print("after insert now the scope is: " + scopeStack + "\n")
     return true
   }
 
   def lookupSymbol(value_name: LValue, value : List[String] = Nil): Option[SymbolEntry] = {
     val name = Ident(getIdent(value_name).value + value.mkString)
-    print(name)
+    print("looking for: " + name + "\n" + value_name + "\n" + value + "\n")
     scopeStack.find(_.contains(name)) match {
 
       case Some(scopeMap) => 
-        // print ("found \n")
         scopeMap.get(name).flatMap(_.headOption)
       
       case None => 
-        // print ("not found \n")
         None
     }
   }

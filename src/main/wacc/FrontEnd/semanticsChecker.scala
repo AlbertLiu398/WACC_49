@@ -17,17 +17,17 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.enterScope()
         print("enter program \n")
         for (func <- funcList) {
-          symbolTable.lookupSymbol(Ident('f' +: func.functionName.value), func.params.getType) match {
+          symbolTable.lookupSymbol(Ident('f' +: func.functionName.value), func.params.getType :+ func.returnType.getType) match {
             case Some(existEntry) =>
               print("existEntry \n")
-              if (!isFunctionOverloaded(existEntry.paramType, func.params.getType, existEntry.varType, func.returnType.getType)) {
+              if (!isFunctionOverloaded(existEntry.value.init, func.params.getType, existEntry.value.last, func.returnType.getType)) {
                 print("not overloaded \n")
                  errors.append(SemanticError("ambiguous function with same name, parameters and return type"))
               } 
-              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType, func.params.getType) 
+              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType) 
             case None =>
               print("not existEntry \n")
-              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType, func.params.getType)
+              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
             }
         }
         for (func <- funcList) {

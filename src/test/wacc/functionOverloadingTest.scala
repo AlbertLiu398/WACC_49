@@ -9,21 +9,37 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
   val symbolTable = new SymbolTable
   val semanticsChecker = new semanticsChecker(new SymbolTable)
 
-  it should "detect function overloading (program aspect)" ignore {
+  it should "function overloading (program aspect)" ignore {
     // Create two functions with the same name but different parameter types
-    val prog1 = Program(List(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))), Skip)
-    val prog2 = Program(List(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(2))))), Skip)
+    val prog1 = Program(List(Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))), Skip)
+    val prog2 = Program(List(Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(2))))), Skip)
     // Semantic check each function
     semanticsChecker.semanticCheck(prog1)
     semanticsChecker.semanticCheck(prog2)
 
-    val symbolEntry1 = symbolTable.lookupSymbol(Ident("f")).getOrElse(fail("Function not found"))
-    val symbolEntry2 = symbolTable.lookupSymbol(Ident("f")).getOrElse(fail("Function not found"))
+    val symbolEntry1 = symbolTable.lookupSymbol(Ident("y")).getOrElse(fail("Function not found"))
+    val symbolEntry2 = symbolTable.lookupSymbol(Ident("y")).getOrElse(fail("Function not found"))
 
     assert(symbolEntry1.varType == "func" && symbolEntry2.varType == "func")
+    assert(symbolEntry1.name.value == "y" && symbolEntry2.name.value == "y")
+    semanticsChecker.refreshSymbolTable()
   }
 
-  
+  it should "function not overloading (program aspect)" ignore {
+    // Create two functions with the same name but different parameter types
+    val prog1 = Program(List(Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))), Skip)
+    val prog2 = Program(List(Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))), Skip)
+    // Semantic check each function
+    semanticsChecker.semanticCheck(prog1)
+    semanticsChecker.semanticCheck(prog2)
+
+    val symbolEntry1 = symbolTable.lookupSymbol(Ident("y")).getOrElse(fail("Function not found"))
+    val symbolEntry2 = symbolTable.lookupSymbol(Ident("y")).getOrElse(fail("Function not found"))
+
+    semanticsChecker.getSemanticErrors shouldBe List(SemanticError("ambiguous function with same name, parameters and return type"))
+    semanticsChecker.refreshSymbolTable()
+  }
+
 
   it should "detect function overloading (function aspect)" ignore {
     // Create two functions with the same name but different parameter types

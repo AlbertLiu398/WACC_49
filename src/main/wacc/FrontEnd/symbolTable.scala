@@ -14,7 +14,7 @@ import parsley.expr.infix
 
 // Symbol table entry that keeps track of ident name and its type
 // 'value' is used when creating pair and array type entries
-case class SymbolEntry(name: Ident, varType: String, value: List[String], paramType : List[String] = Nil)
+case class SymbolEntry(name: Ident, varType: String, value: List[String])
 
 class SymbolTable {
 
@@ -54,13 +54,13 @@ class SymbolTable {
   }
   
   // Insert a symbol table entry with value
-  def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String], paramType: List[String] = Nil): Boolean = {
+  def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
     varCounter += 1
-    var name = Ident(getIdent(value_name).value + paramType.mkString)
+    var name = Ident(getIdent(value_name).value + value.mkString)
     if (varType == "func") {
       name = Ident('f' +: name.value)
     }
-    val symbolEntry = SymbolEntry(name, varType, value, paramType)
+    val symbolEntry = SymbolEntry(name, varType, value)
     val currentScopeMap = scopeStack.top
     if (currentScopeMap.contains(name)) {
       return false
@@ -70,8 +70,8 @@ class SymbolTable {
     return true
   }
 
-  def lookupSymbol(value_name: LValue, paramListType: List[String] = Nil): Option[SymbolEntry] = {
-    val name = Ident(getIdent(value_name).value + paramListType.mkString)
+  def lookupSymbol(value_name: LValue, value : List[String] = Nil): Option[SymbolEntry] = {
+    val name = Ident(getIdent(value_name).value + value.mkString)
     print(name)
     scopeStack.find(_.contains(name)) match {
 

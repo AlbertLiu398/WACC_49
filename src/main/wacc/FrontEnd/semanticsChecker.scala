@@ -20,7 +20,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           symbolTable.lookupSymbol(Ident('f' +: func.functionName.value), func.params.getType) match {
             case Some(existEntry) =>
               print("existEntry \n")
-              if (!isFunctionOverloaded(existEntry.paramType, func.params.getType, existEntry.value(existEntry.value.length - 1), func.returnType.getType)) {
+              if (!isFunctionOverloaded(existEntry.paramType, func.params.getType, existEntry.varType, func.returnType.getType)) {
                 print("not overloaded \n")
                  errors.append(SemanticError("ambiguous function with same name, parameters and return type"))
               } 

@@ -10,8 +10,13 @@ case class SymbolEntry(name: Ident, varType: String, value: List[String])
 
 class SymbolTable {
 
+  // Stack for null pair checks and array analysis
+  // Arrays: array ident -> array length - 1
+  // Idents(for null pairs): if ident is in this map, then it holds a null pair
+  private var constantStack: Stack[Map[Ident, Int]] = Stack(Map())
+
   // Stack to keep track of symbol table states when entering/exiting scope
-  private val scopeStack: Stack[Map[Ident, ListBuffer[SymbolEntry]]] = Stack(Map())
+  private var scopeStack: Stack[Map[Ident, ListBuffer[SymbolEntry]]] = Stack(Map())
   private var inFunc: Boolean = false
   private var funcType: String = "notInFunc"
   
@@ -19,6 +24,13 @@ class SymbolTable {
   private val varList: ListBuffer[Int] = ListBuffer()
   private var varCounter = 0
 
+  def insertConstant(ident: Ident, value: Int): Unit = constantStack.top(ident) = value
+
+  def getConstant(ident: Ident): Option[Int] = {
+    constantStack.find(_.contains(ident)).flatMap(_.get(ident))
+  }
+
+  // Gets ident given an LValue
   def getIdent(lvalue: LValue): Ident = {
     lvalue match {
       case n@Ident(value) => return n
@@ -71,10 +83,12 @@ class SymbolTable {
 
   def enterScope(): Unit = {
     scopeStack.push(Map())
+    constantStack.push(Map())
   }
 
   def exitScope(): Unit = {
     scopeStack.pop()
+    constantStack.pop()
   }
 
   def enterFunc(returnType: Type): Unit = {
@@ -119,5 +133,10 @@ class SymbolTable {
         }
       }
     }
+  }
+
+  def reset(): Unit = {
+    constantStack = Stack(Map())
+    scopeStack = Stack(Map())
   }
 }

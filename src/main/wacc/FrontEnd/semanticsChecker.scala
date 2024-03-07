@@ -1,13 +1,18 @@
 package wacc
 
-import scala.collection.mutable.ListBuffer
+import scala.collection._
 import ast._
 
 case class SemanticError(message: String)
 
-class semanticsChecker(symbolTable: SymbolTable) {
+class semanticsChecker(sT: SymbolTable) {
 
-  private val errors: ListBuffer[SemanticError] = ListBuffer()
+  private val symbolTable = sT
+  private val errors: mutable.ListBuffer[SemanticError] = mutable.ListBuffer()
+
+  final val EMPTY_ARRAY: Int = 0
+  final val ARR_NOT_FOUND: Int = 99
+  final val IS_NULL_PAIR: Int = -1
 
   // Recursively semantic check all the ASTNode 
   def semanticCheck(ast: ASTNode): Unit = {
@@ -94,6 +99,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
         }
         value match {
           case PairLiter => 
+            // Map down the idents holding null pairs
+            symbolTable.insertConstant(name, IS_NULL_PAIR)
             symbolTable.insertSymbolwithValue(name, identType.getType, List(identType.getFst, identType.getSnd))
           case ArrLiter(x@Ident(nameI), es) => 
             if (x.getType.startsWith("pair")){
@@ -117,6 +124,14 @@ class semanticsChecker(symbolTable: SymbolTable) {
             } else {
               symbolTable.insertSymbol(name, identType.getType)
             }
+        }
+        // Map down idents holding arrays to their array length
+        value match {
+          case ArrLiter(StringLiter("empty"), _) =>
+            symbolTable.insertConstant(name, EMPTY_ARRAY)
+          case ArrLiter(e, es) => 
+            symbolTable.insertConstant(name, es.length)
+          case _ =>
         }
        
 
@@ -149,9 +164,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
           }
         }
         
-
       case n@ArrElem(name, value) =>
         var arryType = ""
+        // Check if array exists
         symbolTable.lookupSymbol(name) match {
           case Some(symbolEntry) =>
             n.getType = symbolEntry.varType.dropRight(value.length * 2)
@@ -164,11 +179,23 @@ class semanticsChecker(symbolTable: SymbolTable) {
             errors.append(SemanticError("Non-existent array identifier reference"))
         }
         value.foreach(semanticCheck)
+        // Check if array indexing is integer
         if (!value.forall(x=> x.getType == "int")) {
           errors.append(SemanticError("Array index should be an Int"))
         }
+        // Check if array indexing has too many dimensions
         if (value.length > countOccurrences(arryType, "[]")) {
           errors.append(SemanticError("Array index is larger than its dimension"))
+        }
+        // Catches array indexing out of bounds errors
+        constantFold(value.head) match {
+          case Some(length) =>
+            if (length < 0) {
+              errors.append(SemanticError("Static analysis error: Negative array indexing"))
+            } else if (symbolTable.getConstant(name).getOrElse(ARR_NOT_FOUND) <= length) {
+              errors.append(SemanticError("Static analysis error: Array index out of bounds"))
+            }
+          case None => 
         }
 
 
@@ -209,6 +236,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
         if (!expr.getType.contains("pair") & !expr.getType.contains("[]")) {
           errors.append(SemanticError("Free can only free array or pair"))
         }
+        // Catch free on idents holding null pairs
+        expr match {
+          case ident: Ident if (symbolTable.getConstant(ident).isDefined) =>
+            errors.append(SemanticError("Static analysis error: Cannot free null pair"))
+          case _ =>
+        }
+        
 
       case n@NewPairRValue(exprL, exprR) =>
         semanticCheck(exprL)
@@ -266,6 +300,14 @@ class semanticsChecker(symbolTable: SymbolTable) {
         else {
           n.getType = expr1.getType
         }
+        // Check for overflow
+        (constantFold(expr1), constantFold(expr2)) match {
+          case (Some(value1), Some(value2)) =>
+            if (checkBinOverflow(value1, value2, _ + _)) {
+              errors.append(SemanticError("Static analysis error: Integer overflow"))
+            }
+          case _ =>
+        }
       
       case n@Sub(expr1, expr2) =>
         semanticCheck(expr1)
@@ -276,6 +318,15 @@ class semanticsChecker(symbolTable: SymbolTable) {
         else {
           n.getType = expr1.getType
         }
+        // Check for overflow
+        (constantFold(expr1), constantFold(expr2)) match {
+          case (Some(value1), Some(value2)) =>
+            if (checkBinOverflow(value1, value2, _ - _)) {
+              errors.append(SemanticError("Static analysis error: Integer overflow"))
+            }
+          case _ =>
+        }
+
       case n@Mul(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
@@ -285,16 +336,29 @@ class semanticsChecker(symbolTable: SymbolTable) {
         else {
           n.getType = expr1.getType
         }
+        // Check for overflow
+        (constantFold(expr1), constantFold(expr2)) match {
+          case (Some(value1), Some(value2)) =>
+            if (checkBinOverflow(value1, value2, _ * _)) {
+              errors.append(SemanticError("Static analysis error: Integer overflow"))
+            }
+          case _ =>
+        }
       
       case n@Div(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
         if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
-        }
-        else {
+        } else {
           n.getType = expr1.getType
         }
+        // Check for division by zero
+        constantFold(expr2) match {
+          case Some(0) => errors.append(SemanticError("Static analysis error: Divide by zero"))
+          case _ => 
+        }
+
       case n@Mod(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
@@ -304,6 +368,12 @@ class semanticsChecker(symbolTable: SymbolTable) {
         else {
           n.getType = expr1.getType
         }
+        // Check for division by zero
+        constantFold(expr2) match {
+          case Some(0) => errors.append(SemanticError("Static analysis error: Mod by zero"))
+          case _ => 
+        }
+
       case n@LessThan(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
@@ -388,23 +458,44 @@ class semanticsChecker(symbolTable: SymbolTable) {
         else {
           n.getType = "bool"
         }
-          // ---------unary---------
+      // ---------Unary Operators---------
       case n@Invert(expr) => 
         semanticCheck(expr)
         n.getType = expr.getType
+
       case n@Negate(expr) => 
         semanticCheck(expr)
         n.getType = expr.getType
+        // Check for integer overflow
+        constantFold(expr) match {
+          case Some(value) =>
+            if (checkNegateOverflow(value)) {
+              errors.append(SemanticError("Static analysis error: Integer overflow"))
+            }
+          case _ => 
+        }
+
       case n@Len(expr) => 
         semanticCheck(expr)
         n.getType = "int"
+
       case n@Ord(expr) => 
         semanticCheck(expr)
         n.getType = "int"
+
       case n@Chr(expr) => 
         semanticCheck(expr)
         n.getType = "char"
-
+        // Check validity of chr uses
+        constantFold(expr) match {
+          case Some(value) =>
+            if (value < 0) {
+              errors.append(SemanticError("Static analysis error: Chr use negative"))
+            } else if (value > 127) {
+              errors.append(SemanticError("Static analysis error: Chr use too big"))
+            }
+          case None => 
+        }
 
       case n@FstPairElem(values) =>
         semanticCheck(values)
@@ -414,6 +505,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
           case None => 
             errors.append(SemanticError("Value not exist"))
         }
+        // Catch trying to use null pair
+        values match {
+          case ident: Ident if (symbolTable.getConstant(ident).isDefined) =>
+            errors.append(SemanticError("Static analysis error: Cannot use null pair"))
+          case _ =>
+        }
+        
       
       case n@SndPairElem(values) =>
         symbolTable.lookupSymbol(values) match {
@@ -422,6 +520,13 @@ class semanticsChecker(symbolTable: SymbolTable) {
           case None => 
             errors.append(SemanticError("Value not exist"))
         }
+        // Catch trying to use null pair
+        values match {
+          case ident: Ident if (symbolTable.getConstant(ident).isDefined) =>
+            errors.append(SemanticError("Static analysis error: Cannot use null pair"))
+          case _ =>
+        }
+
       case PairTypeElem => 
 
       case n@IntLiter(_) => // Literals don't need semantic checks
@@ -458,7 +563,9 @@ class semanticsChecker(symbolTable: SymbolTable) {
   // Clean errors
   def refreshSymbolTable(): Unit  = {
     errors.clear()
+    symbolTable.reset()
   }
+
   // Use to calculate the dimension of array
   def countOccurrences(mainString: String, subString: String): Int = {
     return mainString.sliding(subString.length).count(window => window == subString)
@@ -488,6 +595,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
     else return typesArray(1)
   }
 
+  // Evaluates constant expressions to their values, returns None if input is not constant expression
   private def constantFold(expr: Expr): Option[Int] = {
     expr match {
 
@@ -509,13 +617,12 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case Div(expr1, expr2) => foldBinOp(expr1, expr2, _ / _)
 
       case Ord(CharLiter(value)) => Some(value.toInt)
-      
-      //case Len(expr) =>
 
       case _ => None
     }
   }
 
+  // Helper function to constant folding
   private def foldBinOp(expr1: Expr, expr2: Expr, op: (Int, Int) => Int): Option[Int] = {
     for {
       left <- constantFold(expr1)
@@ -523,4 +630,18 @@ class semanticsChecker(symbolTable: SymbolTable) {
     } yield op(left, right)
   }
 
+   // Check possible arithmetic operations that could cause overflow
+  private def checkBinOverflow(num1: Int, num2: Int, op: (BigInt, BigInt) => BigInt): Boolean = {
+    val bigNum1 = BigInt(num1)
+    val bigNum2 = BigInt(num2)
+    val result = op(bigNum1, bigNum2)
+    result > Int.MaxValue || result < Int.MinValue
+  }
+
+  // Check possible negation operations that could cause overflow
+  private def checkNegateOverflow(num: Int): Boolean = {
+    val bigNum = BigInt(num)
+    val result = -bigNum
+    result > Int.MaxValue || result < Int.MinValue
+  }
 }

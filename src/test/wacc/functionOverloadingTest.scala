@@ -88,6 +88,22 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
     cleanForNextTest()
   }
 
+
+  it should "function not overloading 2 (Func aspect)" in {
+    // Create two functions with the same name but different parameter types
+    val func1 = Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Sub(Ident("x"), IntLiter(1))))
+    val func2 = Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))
+    val func3 = Func(BaseType("bool"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))
+    // Semantic check each function
+    semanticsChecker.semanticCheck(func1)
+    semanticsChecker.semanticCheck(func2)
+    semanticsChecker.semanticCheck(func3)
+
+    symbolTable.lookupFunctionOverloads(Ident("y")).getOrElse(fail("Function not found")).length shouldBe 2
+    semanticsChecker.getSemanticErrors shouldBe List(SemanticError("y: ambiguous function declare with same name, parameters and return type "), SemanticError("Function return type does not match its return type"))
+    cleanForNextTest()
+  }
+
   it should "matching overloadedFunction (function call aspect)" in {
     // Create two functions with the same name but different parameter types
     val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)

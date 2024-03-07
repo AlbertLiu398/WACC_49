@@ -27,22 +27,27 @@ class semanticsChecker(symbolTable: SymbolTable) {
       // --------------------------when function declaration : when function name is same, check if it's overloaded
       case n@Func(returnType, functionName, params, body) =>
         // to check if the function is overloaded
-        symbolTable.lookupFunctionOverloads(Ident('f' +: functionName.value)) match {
+            //  print(" ------------------ enter the function \n")
+        symbolTable.lookupFunctionOverloads(Ident(functionName.value)) match {
           case Some(existEntry) =>
-            for (i <- 0 until existEntry.length - 1) {
+            for (i <- 0 to existEntry.length -1) {
               if (!isFunctionOverloaded(existEntry(i).value.init, params.getType, existEntry(i).value.last, returnType.getType)) {
-              errors.append(SemanticError(functionName.value + ": ambiguous function declare with same name, parameters and return type"))
+                print(functionName.value + ": ambiguous function declare with same name, parameters and return type \n")
+
+                errors.append(SemanticError(functionName.value + ": ambiguous function declare with same name, parameters and return type "))
               }
              else {
                // It's an overload, insert the new function overload
+              //  print("function is overloaded \n")
             symbolTable.insertSymbolwithValue(functionName, "func", params.getType :+ returnType.getType) 
             }
           }
           case None =>
+            // print("function is new \n")
              // It's a new function, insert it
             symbolTable.insertSymbolwithValue(functionName, "func", params.getType :+ returnType.getType)
         }
-        print(" leave overloaded checking \n")
+        // print(" leave overloaded checking \n")
         semanticCheck(returnType)
         symbolTable.enterScope()
         symbolTable.enterFunc(returnType)
@@ -50,6 +55,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(body)
         symbolTable.exitFunc()
         symbolTable.exitScope()
+        // print(" ------------------ leave the function \n")
 
       case n@Return(expr) =>
         semanticCheck(expr)
@@ -231,32 +237,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         n.getFst = exprL.getType
         n.getSnd= exprR.getType
 
-      // case n@CallRValue(funcName, args) =>
-      //   semanticCheck(args)
-      //   //need to check each args's type is correct
-      //   symbolTable.lookupSymbol(Ident('f' +: funcName.value)) match {
-      //     case Some(symbolEntry) =>
-      //       if (symbolEntry.varType == "func") {
-      //         if (symbolEntry.value.length - 1 == args.exprl.length) {
-      //           for (i <- 0 to args.exprl.length - 1) {
-      //             if (!compareType(symbolEntry.value(i), args.exprl(i).getType)) {
-      //               errors.append(SemanticError("Function parameters type mismatch"))
-      //             }
-      //           }
-      //           n.getType = symbolEntry.value(symbolEntry.value.length - 1)
-      //           if (n.getType.startsWith("pair")) {
-      //             n.getFst = getTypeForPair(n.getType, 1)
-      //             n.getSnd = getTypeForPair(n.getType, 2)
-      //           }
-      //         } else {
-      //           errors.append(SemanticError("Function has too many/few parameters"))
-      //         }
-      //       } else {
-      //         errors.append(SemanticError("Calling argument is not of type function"))
-      //       }
-      //     case None => 
-      //       errors.append(SemanticError("Calling function does not exist"))
-      //   }
+
       /* ------------------- function call : determine which function is best during compile time ------------------- */
       case n@(CallRValue(funcName, args)) => 
         semanticCheck(args)
@@ -276,6 +257,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
               errors.append(SemanticError("Ambiguous function call with multiple matching overloads"))
             } else {
               // Set the type for the call based on single matching overload
+              print(" i have found the matching function and the type is " + matchingOverloads.head.value.last + "\n")
               n.getType = matchingOverloads.head.value.last
               if (n.getType.startsWith("pair")) {
                 n.getFst = getTypeForPair(n.getType, 1)
@@ -503,6 +485,8 @@ class semanticsChecker(symbolTable: SymbolTable) {
   def refreshSymbolTable(): Unit  = {
     errors.clear()
   }
+
+ 
   // Use to calculate the dimension of array
   def countOccurrences(mainString: String, subString: String): Int = {
     return mainString.sliding(subString.length).count(window => window == subString)
@@ -540,7 +524,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
       return true
     }
     // If the number of parameters and return type is the same, then check if the param types are different
-    for (i <- 0 until existParamsType.length - 1) {
+    for (i <- 0 to existParamsType.length - 1) {
       if (!compareType(existParamsType(i), newParamsType(i))){
         return true
       }

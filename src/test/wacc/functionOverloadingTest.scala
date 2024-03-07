@@ -7,7 +7,7 @@ import ast._
 
 class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
   val symbolTable = new SymbolTable
-  val semanticsChecker = new semanticsChecker(new SymbolTable)
+  val semanticsChecker = new semanticsChecker(symbolTable)
 
   it should "function overloading (program aspect)" ignore {
     // Create two functions with the same name but different parameter types
@@ -18,8 +18,7 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
     semanticsChecker.semanticCheck(prog2)
 
     symbolTable.lookupFunctionOverloads(Ident("y")).getOrElse(fail("Function not found")).length shouldBe 2
-
-    semanticsChecker.refreshSymbolTable()
+    cleanForNextTest()
   }
 
   it should "function not overloading (program aspect)" ignore {
@@ -30,18 +29,31 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
     semanticsChecker.semanticCheck(prog1)
     semanticsChecker.semanticCheck(prog2)
 
-    val symbolEntry1 = symbolTable.lookupSymbol(Ident("fy")).getOrElse(fail("Function not found"))
-    val symbolEntry2 = symbolTable.lookupSymbol(Ident("fy")).getOrElse(fail("Function not found"))
+    val symbolEntry1 = symbolTable.lookupSymbol(Ident("y")).getOrElse(fail("Function not found"))
+    val symbolEntry2 = symbolTable.lookupSymbol(Ident("y")).getOrElse(fail("Function not found"))
 
     semanticsChecker.getSemanticErrors shouldBe List(SemanticError("ambiguous function with same name, parameters and return type"))
-    semanticsChecker.refreshSymbolTable()
+    cleanForNextTest()
   }
 
-
-  it should "detect function overloading (function aspect)" ignore {
+  it should "function overloading: different return type (function declare aspect)" in {
     // Create two functions with the same name but different parameter types
-    // func1 : int add(int a) is skip end 
-    // func2 : int add(bool b) is skip end
+    val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
+    val func2 = Func(BaseType("bool"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
+
+    // Semantic check each function
+    semanticsChecker.semanticCheck(func1)
+    semanticsChecker.semanticCheck(func2)
+
+    val symbolEntry1 = symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found"))
+    val symbolEntry2 = symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found"))
+
+    symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found")).length shouldBe 2
+    cleanForNextTest()
+  }
+  // success
+    it should "function overloading: different param Type (function declare aspect)" in {
+    // Create two functions with the same name but different parameter types
     val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
     val func2 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("bool"), Ident("b")))), Skip)
 
@@ -49,17 +61,34 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
     semanticsChecker.semanticCheck(func1)
     semanticsChecker.semanticCheck(func2)
 
-    // val symbolEntry1 = symbolTable.lookupSymbol(Ident("fadd"), List("int", "int")).getOrElse(fail("Function not found"))
-    // val symbolEntry2 = symbolTable.lookupSymbol(Ident("fadd"), List("bool", "int")).getOrElse(fail("Function not found"))
+    val symbolEntry1 = symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found"))
+    val symbolEntry2 = symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found"))
 
-    val error = semanticsChecker.getSemanticErrors
-    print(error)
-
-    // assert(symbolEntry1.varType == "func" && symbolEntry2.varType == "func")
-    // assert(symbolEntry1.name.value == "faddintint" && symbolEntry2.name.value == "faddboolint")
+    symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found")).length shouldBe 2
+    cleanForNextTest()
   }
 
-  it should "detect function overloading (function call aspect)" ignore{
+
+  it should "function not overloading (function aspect)" in {
+    // Create two functions with the same name but different parameter types
+    // func1 : int add(int a) is skip end 
+    // func2 : int add(bool b) is skip end
+    val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
+    val func2 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
+
+    // Semantic check each function
+    semanticsChecker.semanticCheck(func1)
+    semanticsChecker.semanticCheck(func2)
+
+    val symbolEntry1 = symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found"))
+    val symbolEntry2 = symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found"))
+
+    val error = semanticsChecker.getSemanticErrors
+    error shouldBe List(SemanticError("add: ambiguous function declare with same name, parameters and return type "))
+    cleanForNextTest()
+  }
+
+  it should "detect function overloading (function call aspect)" ignore {
     // Create two functions with the same name but different parameter types
     val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
     val func2 = Func(BaseType("bool"), Ident("add"), ParamList(List(Param(BaseType("bool"), Ident("b")))), Skip)
@@ -73,11 +102,8 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
     // Semantic check the function call
     semanticsChecker.semanticCheck(funcCall)
-
-    val error = semanticsChecker.getSemanticErrors
-    print(error)
-
-    assert(error.length == 1)
+    funcCall.getType shouldBe BaseType("int")
+    cleanForNextTest()
   }
 
   it should "detect function overloading (function call aspect) with different parameter types" ignore {
@@ -99,5 +125,12 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
     print(error)
 
     assert(error.length == 1)
+    cleanForNextTest()
+  }
+
+
+  private def cleanForNextTest(): Unit = {
+    symbolTable.clean()
+    semanticsChecker.refreshSymbolTable()
   }
 }

@@ -22,6 +22,8 @@ class SymbolTable {
   private val scopeStack: Stack[Map[Ident, ListBuffer[SymbolEntry]]] = Stack(Map())
   private var inFunc: Boolean = false
   private var funcType: String = "notInFunc"
+
+  private val funcMap = Map[Ident, ListBuffer[SymbolEntry]]()
   
   // Shows number of variables in any functions and in main
   private val varList: ListBuffer[Int] = ListBuffer()
@@ -56,7 +58,7 @@ class SymbolTable {
   // Insert a symbol table entry with value
   def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
     varCounter += 1
-    print("before inserting the scope is: " + scopeStack + "\n")
+    // print("before inserting the scope is: " + scopeStack + "\n")
     var name = Ident(getIdent(value_name).value)
 
     /*  ------------ insertion rule :
@@ -71,8 +73,19 @@ class SymbolTable {
     }
     val symbolEntry = SymbolEntry(name, varType, value)
     val currentScopeMap = scopeStack.top
-    currentScopeMap(name) = ListBuffer(symbolEntry)
-    print("after insert now the scope is: " + scopeStack + "\n")
+    if (currentScopeMap.contains(name)) {
+      // If it's a function, add the new overload
+      if (varType == "func") {
+        currentScopeMap(name) += symbolEntry
+      } else {
+        // If it's not a function, return false (duplicate variable)
+        return false
+      }
+    } else {
+      // If the symbol doesn't exist in the current scope, add it
+      currentScopeMap(name) = ListBuffer(symbolEntry)
+    }
+    // print("after insert now the scope is: " + scopeStack + "\n")
     return true
   }
 
@@ -88,14 +101,15 @@ class SymbolTable {
 
   // Method to lookup all overloads of a function
   def lookupFunctionOverloads(funcName: Ident): Option[List[SymbolEntry]] = {
-    print("scopeStack: " + scopeStack + "\n")
-    scopeStack.find(_.contains(funcName)) match {
+    val name = Ident('f' +: funcName.value)
+    scopeStack.find(_.contains(name)) match {
       case Some(scopeMap) => {
-        val funcEntries = scopeMap(funcName).filter(_.varType == "func")
-        print("funcEntries: " + funcEntries + "\n")
+        // print(" now i find the function " + name + "\n" )
+        val funcEntries = scopeMap(name).filter(_.varType == "func")
         if (funcEntries.isEmpty) {
           None
         } else {
+          // print("funcEntries.toList: " + funcEntries.toList + "\n")
           Some(funcEntries.toList)
         }
       }
@@ -159,5 +173,13 @@ class SymbolTable {
     }
   }
 
- 
+  // clean all contents in the symbol table
+  def clean() : Unit = {
+    scopeStack.clear()
+    scopeStack.push(Map())
+    inFunc = false
+    funcType = "notInFunc"
+    varList.clear()
+    varCounter = 0
+  }
 }

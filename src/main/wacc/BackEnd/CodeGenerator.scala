@@ -8,7 +8,7 @@ import Constant._
 import Conditions._
 import Labels._
 import Utility._
-import Shift._
+// import Shift._
 import javax.swing.UIDefaults.LazyValue
 
 class CodeGenerator (varList: List[Int]) {
@@ -165,7 +165,8 @@ class CodeGenerator (varList: List[Int]) {
       if (true){
         val fstReg = allocateTempReg()
         generateInstructions(expr2)
-        instructions.append(I_SMul(x8, fstReg.toW(), x8.toW()))
+        // Use signed multiply smull 
+        instructions.append(I_Mul(x8, fstReg.toW(), x8.toW(), true))
         // take the 31st bit, sign extend it to 64 bits
         instructions.append(I_Sbfx(fstReg, x8, ImmVal(31), ImmVal(1)))
         // now take the top 32 bits of the result, shift and sign extend to 64 bits

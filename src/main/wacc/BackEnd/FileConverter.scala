@@ -2,6 +2,7 @@ package wacc
 
 import java.io._
 import java.nio.file.{Files, Paths, StandardCopyOption}
+import PeepholeOptimisation._
 
   /* 1. create assembly file 
      2. generate assembly code and write to asm file */
@@ -14,7 +15,9 @@ object FileConverter {
     val instrus = codeGenerator.generateInstructions(prog)
     val resultInstrus = codeGenerator.getInstructions()
 
-    ArmAssemblyWriter.translateProgram(resultInstrus)
+    val peepholeOptimisedInstrus = runPeeopholeOptimisation(resultInstrus)
+
+    ArmAssemblyWriter.translateProgram(peepholeOptimisedInstrus)
   }
 
   def convertToAssembly(filePath: String, prog: ast.ASTNode, list: List[Int]): Unit = {

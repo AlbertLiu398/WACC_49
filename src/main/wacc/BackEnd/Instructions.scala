@@ -2,7 +2,6 @@ package wacc
 
 import java.util.concurrent.locks.Condition
 import Conditions._
-// import Shift._
 import Constant._
 
 object Instruction {

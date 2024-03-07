@@ -9,9 +9,6 @@ import Instruction._
 import Conditions._
 import org.scalatest._
 import scala.collection._
-import Shift._
-
-
 
 
   class generateInstrTest extends AnyFlatSpec with Matchers {
@@ -47,7 +44,7 @@ import Shift._
 
     it should "generate Mul instruction" in {
       val ast = Mul(IntLiter(1), IntLiter(2))
-      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8, 64), ImmVal(1)), I_Move(Reg(9, 64), Reg(8, 64)), I_Move(Reg(8, 64), ImmVal(2)), I_SMul(Reg(8, 64), Reg(9, 32), Reg(8, 32)), I_Sbfx(Reg(9, 64), Reg(8, 64), ImmVal(31), ImmVal(1)), I_Cmp_Shift(Reg(9, 64), Reg(8, 64), ASR(32)), I_Branch(I_Label("_errOverflow"), NE))
+      refreshAndGenerate(ast) shouldBe List(I_Move(Reg(8, 64), ImmVal(1)), I_Move(Reg(9, 64), Reg(8, 64)), I_Move(Reg(8, 64), ImmVal(2)), I_Mul(Reg(8, 64), Reg(9, 32), Reg(8, 32), true), I_Sbfx(Reg(9, 64), Reg(8, 64), ImmVal(31), ImmVal(1)), I_Cmp_Shift(Reg(9, 64), Reg(8, 64), ASR(32)), I_Branch(I_Label("_errOverflow"), NE))
       codeGenerator.revertTempRegs()
     }
 
@@ -93,6 +90,7 @@ import Shift._
   }
 
 }
+
 
 
 

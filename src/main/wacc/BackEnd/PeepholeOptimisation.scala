@@ -9,7 +9,7 @@ object PeepholeOptimisation {
     def runPeeopholeOptimisation(instructions: List[Instruction]): List[Instruction] = {
         
         var instrus = instructions
-        removeRedundantLoads(instrus)
+        // TODO: run peephole optimisation
 
         instrus
     }
@@ -107,7 +107,7 @@ object PeepholeOptimisation {
 
     // ---------STACK------------
 
-
+    
 
     // ----------ARITHMETIC------------
 

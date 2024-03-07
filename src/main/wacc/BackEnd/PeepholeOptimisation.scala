@@ -15,6 +15,12 @@ object PeepholeOptimisation {
     }
 
 
+    // Load-Add
+    // Load-Store
+
+    // Store from a to b 
+    // Load from b to c  ==> Load from a to c
+    
     def removeRedundantLoads(instrus: List[Instruction]): Unit = {
         
         // TODO

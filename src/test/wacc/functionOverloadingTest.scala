@@ -17,7 +17,7 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
     semanticsChecker.semanticCheck(prog1)
     semanticsChecker.semanticCheck(prog2)
 
-    symbolTable.lookupFunctionOverloads(Ident("y")).getOrElse(fail("Function not found")).length shouldBe 2
+    symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found")).length shouldBe 2
     cleanForNextTest()
   }
 
@@ -51,7 +51,7 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
     symbolTable.lookupFunctionOverloads(Ident("add")).getOrElse(fail("Function not found")).length shouldBe 2
     cleanForNextTest()
   }
-  // success
+
     it should "function overloading: different param Type (function declare aspect)" in {
     // Create two functions with the same name but different parameter types
     val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
@@ -88,7 +88,7 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
     cleanForNextTest()
   }
 
-  it should "detect function overloading (function call aspect)" ignore {
+  it should "matching overloadedFunction (function call aspect)" in {
     // Create two functions with the same name but different parameter types
     val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
     val func2 = Func(BaseType("bool"), Ident("add"), ParamList(List(Param(BaseType("bool"), Ident("b")))), Skip)
@@ -102,14 +102,15 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
     // Semantic check the function call
     semanticsChecker.semanticCheck(funcCall)
-    funcCall.getType shouldBe BaseType("int")
+    semanticsChecker.getSemanticErrors shouldBe List()
+    funcCall.getType shouldBe "int"
     cleanForNextTest()
   }
 
-  it should "detect function overloading (function call aspect) with different parameter types" ignore {
+  it should "matching non overloadedFunction (function call aspect)" in {
     // Create two functions with the same name but different parameter types
     val func1 = Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
-    val func2 = Func(BaseType("bool"), Ident("add"), ParamList(List(Param(BaseType("bool"), Ident("b")))), Skip)
+    val func2 = Func(BaseType("bool"), Ident("add"), ParamList(List(Param(BaseType("bool"), Ident("a")))), Skip)
 
     // Semantic check each function
     semanticsChecker.semanticCheck(func1)
@@ -120,11 +121,8 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
     // Semantic check the function call
     semanticsChecker.semanticCheck(funcCall)
-
-    val error = semanticsChecker.getSemanticErrors
-    print(error)
-
-    assert(error.length == 1)
+    semanticsChecker.getSemanticErrors shouldBe List()
+    funcCall.getType shouldBe "bool"
     cleanForNextTest()
   }
 

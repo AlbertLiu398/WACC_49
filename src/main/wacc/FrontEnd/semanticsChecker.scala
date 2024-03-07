@@ -15,7 +15,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
     ast match {
       case Program(funcList, stmts) =>
         symbolTable.enterScope()
-        print("enter program \n")
         for (func <- funcList) {
           semanticCheck(func)
         }
@@ -24,15 +23,16 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.exitMain(funcList) 
         symbolTable.exitScope()
 
-      // --------------------------when function declaration : when function name is same, check if it's overloaded
+      // ------------------- when function declaration : when function name is same, check if it's overloaded
       case n@Func(returnType, functionName, params, body) =>
+      
         // to check if the function is overloaded
             //  print(" ------------------ enter the function \n")
         symbolTable.lookupFunctionOverloads(Ident(functionName.value)) match {
           case Some(existEntry) =>
             for (i <- 0 to existEntry.length -1) {
               if (!isFunctionOverloaded(existEntry(i).value.init, params.getType, existEntry(i).value.last, returnType.getType)) {
-                print(functionName.value + ": ambiguous function declare with same name, parameters and return type \n")
+                // print(functionName.value + ": ambiguous function declare with same name, parameters and return type \n")
 
                 errors.append(SemanticError(functionName.value + ": ambiguous function declare with same name, parameters and return type "))
               }
@@ -44,7 +44,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
           }
           case None =>
             // print("function is new \n")
-             // It's a new function, insert it
+            //  It's a new function, insert it
             symbolTable.insertSymbolwithValue(functionName, "func", params.getType :+ returnType.getType)
         }
         // print(" leave overloaded checking \n")
@@ -238,11 +238,11 @@ class semanticsChecker(symbolTable: SymbolTable) {
         n.getSnd= exprR.getType
 
 
-      /* ------------------- function call : determine which function is best during compile time ------------------- */
+      /* ------------------- when function call : determine which function is best during compile time ------------------- */
       case n@(CallRValue(funcName, args)) => 
         semanticCheck(args)
         // lookup this function in the symbol table
-        val potentialOverloads = symbolTable.lookupFunctionOverloads(Ident('f' +: funcName.value))
+        val potentialOverloads = symbolTable.lookupFunctionOverloads(Ident(funcName.value))
 
         potentialOverloads match {
           case Some(overloads) => 
@@ -257,7 +257,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
               errors.append(SemanticError("Ambiguous function call with multiple matching overloads"))
             } else {
               // Set the type for the call based on single matching overload
-              print(" i have found the matching function and the type is " + matchingOverloads.head.value.last + "\n")
               n.getType = matchingOverloads.head.value.last
               if (n.getType.startsWith("pair")) {
                 n.getFst = getTypeForPair(n.getType, 1)

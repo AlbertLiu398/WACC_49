@@ -57,30 +57,49 @@ class SymbolTable {
   def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
     varCounter += 1
     print("before inserting the scope is: " + scopeStack + "\n")
-    var name = Ident(getIdent(value_name).value + value.mkString)
+    var name = Ident(getIdent(value_name).value)
+
+    /*  ------------ insertion rule :
+     when varType is function, we could have multiple functions with the same name
+     but when varType is not function, we should not have multiple variables with the same name */
+
+    if (varType != "func" && scopeStack.exists(_.contains(name))) {
+      return false
+    }
     if (varType == "func") {
       name = Ident('f' +: name.value)
     }
     val symbolEntry = SymbolEntry(name, varType, value)
     val currentScopeMap = scopeStack.top
-    if (currentScopeMap.contains(name)) {
-      return false
-    }
     currentScopeMap(name) = ListBuffer(symbolEntry)
     print("after insert now the scope is: " + scopeStack + "\n")
     return true
   }
 
-  def lookupSymbol(value_name: LValue, value : List[String] = Nil): Option[SymbolEntry] = {
-    val name = Ident(getIdent(value_name).value + value.mkString)
-    print("looking for: " + name + "\n" + value_name + "\n" + value + "\n")
-    scopeStack.find(_.contains(name)) match {
 
-      case Some(scopeMap) => 
-        scopeMap.get(name).flatMap(_.headOption)
-      
-      case None => 
-        None
+
+  def lookupSymbol(value_name: LValue): Option[SymbolEntry] = {
+    val name = getIdent(value_name)
+    scopeStack.find(_.contains(name)) match {
+      case Some(scopeMap) => scopeMap.get(name).flatMap(_.headOption)
+      case None => None
+    }
+  }
+
+  // Method to lookup all overloads of a function
+  def lookupFunctionOverloads(funcName: Ident): Option[List[SymbolEntry]] = {
+    print("scopeStack: " + scopeStack + "\n")
+    scopeStack.find(_.contains(funcName)) match {
+      case Some(scopeMap) => {
+        val funcEntries = scopeMap(funcName).filter(_.varType == "func")
+        print("funcEntries: " + funcEntries + "\n")
+        if (funcEntries.isEmpty) {
+          None
+        } else {
+          Some(funcEntries.toList)
+        }
+      }
+      case None => None
     }
   }
 
@@ -140,4 +159,5 @@ class SymbolTable {
     }
   }
 
+ 
 }

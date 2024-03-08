@@ -10,14 +10,18 @@ import PeepholeOptimisation._
 object FileConverter {
   // genearte assembly code use the codeGenerator 
 
+  val peepholeOptimised: Boolean = true
+
   def generateAssemblyCode(prog : ast.ASTNode, list : List[Int]): StringBuilder = {
     val codeGenerator = new CodeGenerator(list)
     val instrus = codeGenerator.generateInstructions(prog)
-    val resultInstrus = codeGenerator.getInstructions()
+    var resultInstrus = codeGenerator.getInstructions()
 
-    val peepholeOptimisedInstrus = runPeeopholeOptimisation(resultInstrus)
+    if (peepholeOptimised) {
+      resultInstrus = PeepholeOptimisation.runPeeopholeOptimisation(resultInstrus)
+    } 
+    ArmAssemblyWriter.translateProgram(resultInstrus)
 
-    ArmAssemblyWriter.translateProgram(peepholeOptimisedInstrus)
   }
 
   def convertToAssembly(filePath: String, prog: ast.ASTNode, list: List[Int]): Unit = {

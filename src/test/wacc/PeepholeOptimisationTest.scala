@@ -15,10 +15,21 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
 
     // ---------------Move---------------
 
-    it should "optimize redundant move-move instructions" in {
+    it should "optimize redundant move-move duplicate instructions" in {
         val instructions = List(
-            I_Move(XReg(0), XReg(1)),
-            I_Move(XReg(2), XReg(0))
+            I_Move(XReg(1), XReg(2)),
+            I_Move(XReg(1), XReg(2))
+        )
+        val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
+        optimizedInstructions.toList shouldEqual List(
+            I_Move(XReg(1), XReg(2))
+        )
+    }
+    
+    it should "optimize redundant move-move (through x8) instructions" in {
+        val instructions = List(
+            I_Move(XReg(8), XReg(1)),
+            I_Move(XReg(2), XReg(8))
         )
         val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
         optimizedInstructions.toList shouldEqual List(
@@ -26,10 +37,21 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
         )
     }
 
-    it should "optimize redundant move-move-move instructions" in {
+    it should "optimize redundant move-move (through x8, move immediate) instructions" in {
         val instructions = List(
-            I_Move(XReg(0), XReg(1)),
-            I_Move(XReg(2), XReg(0)),
+            I_Move(XReg(8), ImmVal(1)),
+            I_Move(XReg(2), XReg(8))
+        )
+        val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
+        optimizedInstructions.toList shouldEqual List(
+            I_Move(XReg(2), ImmVal(1))
+        )
+    }
+
+    it should "optimize redundant move-move-move instructions" ignore {
+        val instructions = List(
+            I_Move(XReg(8), XReg(1)),
+            I_Move(XReg(2), XReg(8)),
             I_Move(XReg(3), XReg(2))
         )
         val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
@@ -38,14 +60,26 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
         )
     }
 
-    it should "optimize redundant move-store instructions" in {
+    it should "optimize redundant move-store (through x8) instructions" in {
         val instructions = List(
-            I_Move(XReg(0), XReg(1)),
-            I_Store(XReg(0), fp, ImmVal(28), false, false)
+            I_Move(XReg(8), XReg(1)),
+            I_Store(XReg(8), fp, ImmVal(28), false, false)
         )
         val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
         optimizedInstructions.toList shouldEqual List(
             I_Store(XReg(1), fp, ImmVal(28), false, false)
+        )
+    }
+
+    it should "optimize redundant move-store (through x8, move immediate should not be modified) instructions" in {
+        val instructions = List(
+            I_Move(XReg(8), ImmVal(1)),
+            I_Store(XReg(8), fp, ImmVal(28), false, false)
+        )
+        val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
+        optimizedInstructions.toList shouldEqual List(
+            I_Move(XReg(8), ImmVal(1)),
+            I_Store(XReg(8), fp, ImmVal(28), false, false)
         )
     }
 

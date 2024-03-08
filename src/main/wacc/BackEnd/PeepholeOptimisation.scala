@@ -21,7 +21,7 @@ object PeepholeOptimisation {
             var changed = false
             var stackChanged = false
             resultList(i) match {
-                case I_Move(_, Reg(_, _)) => {
+                case I_Move(_, _) => {
                     changed = optimiseMove(i, i + 1)
                 }
                 case I_Load(_, _, _, _, _) => {
@@ -56,19 +56,19 @@ object PeepholeOptimisation {
     def optimiseMove(fstIndex: Int, sndIndex: Int): Boolean = {
 
     /*
-        1. Redundant Move-Move
+        1. Redundant Move-Move (only through x8)
         e.g.
-            mov     w0, w1
-            mov     w2, w0
+            mov     x8, x1
+            mov     x2, x8
         can be replaced with
-            mov     w2, w1
+            mov     x2, x1
     
-        2. Redundant Move-Store
+        2. Redundant Move-Store (only through x8, second operand of mov must be register)
         e.g.
-            mov     w0, w1
-            str     w0, [fp,#28]
+            mov     x8, x1
+            str     x8, [fp,#28]
         can be replaced with
-            str     w1, [fp,#28]
+            str     x1, [fp,#28]
     
         3. Redundant Move-Load (Not very common)
         e.g.
@@ -81,13 +81,20 @@ object PeepholeOptimisation {
 
         val fstInstr = resultList(fstIndex)
         fstInstr match {
-            // src1 must be a register
-            case I_Move(dst1, src1@Reg(_, _)) => {
+            // src1 can be a register or immediate value
+            case I_Move(dst1@Reg(n1, size1), src1) => {
                 val sndInstr = resultList(sndIndex)
                 sndInstr match {
                     // Move-Move
-                    case I_Move(dst2, src2@Reg(_, _)) => {
-                        if (dst1.equals(src2)) {
+                    case I_Move(dst2, src2@Reg(n2, size2)) => {
+                        // If two instructions are the same, remove the second one
+                        if (dst1.equals(dst2) && src1.equals(src2)) {
+                            // remove the second instruction 
+                            resultList.remove(sndIndex)
+                            return true
+                        }
+                        // If the second instruction is a move from x8, and the first instruction is a move to x8
+                        if (n1 == 8 && n2 == 8 && size1 == size2) {
                             // remove the second instruction and rewrite the first
                             resultList.remove(sndIndex)
                             resultList(fstIndex) = I_Move(dst2, src1)
@@ -95,10 +102,12 @@ object PeepholeOptimisation {
                         }
                     }
                     // Move-Store
-                    case I_Store(src2, dst2, op2, us, false) => {
-                        if (dst1.equals(src2)) {
+                    case I_Store(src2@Reg(n2, size2), dst2, op2, us, false) => {
+                        // If the second instruction is a store from x8, and the first instruction is a move to x8
+                        // the first operand of store must be a register
+                        if (n1 == 8 & n2 == 8 && size1 == size2 && src1.isInstanceOf[Register]) {
                             // rewrite the second instruction and remove the first
-                            resultList(sndIndex) = I_Store(src1, dst2, op2, us, false)
+                            resultList(sndIndex) = I_Store(src1.asInstanceOf[Register], dst2, op2, us, false)
                             resultList.remove(fstIndex)
                             return true
                         }    

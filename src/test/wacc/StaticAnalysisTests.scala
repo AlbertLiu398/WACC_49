@@ -82,7 +82,7 @@ class StaticAnalysisTests extends ParserTest {
     }
 
     it should "Static analysis: Out of bounds array expression access" in {
-        sC.semanticCheck(stmtParse("int[] a = [1, 2, 3]; print a[2*1]").getOrElse(Skip))
+        sC.semanticCheck(stmtParse("int[] a = [1, 2, 3]; print a[2*2]").getOrElse(Skip))
         sC.getSemanticErrors shouldBe List(SemanticError("Static analysis error: Array index out of bounds"))
         sC.refreshSymbolTable()
     }

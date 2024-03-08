@@ -140,7 +140,7 @@ object parser {
     private lazy val arrayType = chain.postfix1(notArrayType)("[]".as(ArrayType))
     private lazy val pairType: Parsley[Type] = "pair" ~> "(" ~> PairType.lift(pairElemType, "," ~> pairElemType <~ ")")
 
-    private lazy val pairElemType: Parsley[PairElemType] =  pairTypeElem| atomic(baseType <~ notFollowedBy("[")) | arrayType
+    private lazy val pairElemType: Parsley[PairElemType] =  pairTypeElem | atomic(pairType <~ notFollowedBy("[")) | atomic(baseType <~ notFollowedBy("[")) | arrayType
     private lazy val pairTypeElem: Parsley[PairElemType] = atomic("pair" #> PairTypeElem <~ notFollowedBy("("))
 
     // -------------------------- Expressions --------------------------

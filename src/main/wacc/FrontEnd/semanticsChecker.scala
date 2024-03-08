@@ -16,31 +16,23 @@ class semanticsChecker(symbolTable: SymbolTable) {
       case Program(funcList, stmts) =>
         symbolTable.enterScope()
         for (func <- funcList) {
-           // to check if the function is overloaded
-             print(" ------------------ enter the function \n")
-        symbolTable.lookupFunctionOverloads(Ident(func.functionName.value)) match {
-          case Some(existEntry) =>
-            for (i <- 0 to existEntry.length -1) {
-              if (!isFunctionOverloaded(existEntry(i).value.init, func.params.getType, existEntry(i).value.last, func.returnType.getType)) {
-                print(func.functionName.value + ": ambiguous function declare with same name, parameters and return type \n")
-
-                errors.append(SemanticError(func.functionName.value + ": ambiguous function declare with same name, parameters and return type "))
+          // Check if the function is overloaded
+          symbolTable.lookupFunctionOverloads(Ident(func.functionName.value)) match {
+            case Some(existEntry) =>
+              for (i <- 0 to existEntry.length - 1) {
+                if (!isFunctionOverloaded(existEntry(i).value.init, func.params.getType, existEntry(i).value.last, func.returnType.getType)) {
+                  errors.append(SemanticError(func.functionName.value + ": ambiguous function declare with same name, parameters and return type "))
+                } else {
+                  // It's an overload, insert the new function overload
+                  symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
+                }
               }
-             else {
-               // It's an overload, insert the new function overload
-               print("function is overloaded \n")
-            symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType) 
-            }
+            case None =>
+              // It's a new function, insert it
+              symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
           }
-          case None =>
-            print("function is new \n")
-            //  It's a new function, insert it
-            symbolTable.insertSymbolwithValue(func.functionName, "func", func.params.getType :+ func.returnType.getType)
-        }
-        print(" leave overloaded checking \n")
         }
 
-        
         for (func <- funcList) {
           semanticCheck(func)
         }
@@ -48,7 +40,7 @@ class semanticsChecker(symbolTable: SymbolTable) {
         symbolTable.exitMain(funcList) 
         symbolTable.exitScope()
 
-      // ------------------- when function declaration : when function name is same, check if it's overloaded
+      // ------------------ when function declaration : when function name is same, check if it's overloaded
       case n@Func(returnType, functionName, params, body) =>
       
         semanticCheck(returnType)
@@ -58,7 +50,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(body)
         symbolTable.exitFunc()
         symbolTable.exitScope()
-        // print(" ------------------ leave the function \n")
 
       case n@Return(expr) =>
         semanticCheck(expr)
@@ -246,7 +237,6 @@ class semanticsChecker(symbolTable: SymbolTable) {
         semanticCheck(args)
         // lookup this function in the symbol table
         val potentialOverloads = symbolTable.lookupFunctionOverloads(Ident(funcName.value))
-        print("now i call the function " + funcName.value + "\n")
 
         potentialOverloads match {
           case Some(overloads) => 

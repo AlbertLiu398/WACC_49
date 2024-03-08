@@ -58,7 +58,7 @@ class SymbolTable {
   // Insert a symbol table entry with value
   def insertSymbolwithValue(value_name: LValue, varType: String, value: List[String]): Boolean = {
     varCounter += 1
-    // print("before inserting the scope is: " + scopeStack + "\n")
+    print("before inserting the scope is: " + scopeStack + "\n")
     var name = Ident(getIdent(value_name).value)
 
     /*  ------------ insertion rule :
@@ -85,7 +85,7 @@ class SymbolTable {
       // If the symbol doesn't exist in the current scope, add it
       currentScopeMap(name) = ListBuffer(symbolEntry)
     }
-    // print("after insert now the scope is: " + scopeStack + "\n")
+    print("after insert now the scope is: " + scopeStack + "\n")
     return true
   }
 
@@ -104,12 +104,12 @@ class SymbolTable {
     val name = Ident('f' +: funcName.value)
     scopeStack.find(_.contains(name)) match {
       case Some(scopeMap) => {
-        // print(" now i find the function " + name + "\n" )
+        print(" now i find the function " + name + "\n" )
         val funcEntries = scopeMap(name).filter(_.varType == "func")
         if (funcEntries.isEmpty) {
           None
         } else {
-          // print("funcEntries.toList: " + funcEntries.toList + "\n")
+          print("funcEntries.toList: " + funcEntries.toList + "\n")
           Some(funcEntries.toList)
         }
       }

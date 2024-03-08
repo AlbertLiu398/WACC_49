@@ -36,10 +36,10 @@ object Main {
 
                             /* 1. create assembly file 
                                2. generate assembly code and write to asm file */
-                            FileConverter.convertToAssembly(filePath, prog, sT.getVarList())
-                            println(s"Assembly file path: $filePath")
-                            println("Generated Assembly Code:")
-                            println(FileConverter.generateAssemblyCode(prog, sT.getVarList()))
+                            //FileConverter.convertToAssembly(filePath, prog, sT.getVarList())
+                            //println(s"Assembly file path: $filePath")
+                            //println("Generated Assembly Code:")
+                            //println(FileConverter.generateAssemblyCode(prog, sT.getVarList()))
                             
                  
                         case Failure(msg) => 

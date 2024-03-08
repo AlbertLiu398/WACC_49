@@ -30,12 +30,12 @@ object PeepholeOptimisation {
                 case I_Store(_, _, _, _, _) => {
                     changed = optimiseStore(i, i + 1)
                 }
-                case I_LoadPair(_, _, _, _, _) => {
-                    stackChanged = optimisePopPush(i, i + 1)
-                }
                 case I_StorePair(_, _, _, _, _) => {
                     stackChanged = optimisePushPop(i, i + 1)
                 }
+                // case I_LoadPair(_, _, _, _, _) => {
+                //     stackChanged = optimisePopPush(i, i + 1)
+                // }
                 case _ => {}
             }
             // if no change, move to next instruction
@@ -280,41 +280,13 @@ object PeepholeOptimisation {
 
     // ---------STACK------------
 
-    def optimisePopPush(fstIndex: Int, sndIndex: Int): Boolean = {
-        /* 
-        POP x1
-        POP x2
-        PUSH x2
-        PUSH x1
-        */
-
-        val fstInstr = resultList(fstIndex)
-        fstInstr match {
-            case I_LoadPair(dst1, dst2, Content(reg1, ImmVal(0), _), ImmVal(n1), false) => {
-                val sndInstr = resultList(sndIndex)
-                sndInstr match {
-                    case I_StorePair(src1, src2, Content(reg2, ImmVal(n2), _), ImmVal(0), true) => {
-                        if (src1.equals(dst1) && src2.equals(dst2) && reg1.equals(reg2) && (n1 + n2 == 0)) {
-                            // remove both instructions
-                            resultList.remove(sndIndex)
-                            resultList.remove(fstIndex)
-                            return true
-                        }
-                    }
-                    case _ => {}
-                }
-            }
-            case _ => {}
-        }
-        return false
-    }
-
     def optimisePushPop(fstIndex: Int, sndIndex: Int): Boolean = {
         /* 
         PUSH x1
         PUSH x2
         POP x2
         POP x1
+        is equivalent to doing nothing
         */
         val fstInstr = resultList(fstIndex)
         fstInstr match {
@@ -336,7 +308,35 @@ object PeepholeOptimisation {
         }
         return false
     }
-    
+
+    // def optimisePopPush(fstIndex: Int, sndIndex: Int): Boolean = {
+    //     /* 
+    //     POP x1
+    //     POP x2
+    //     PUSH x2
+    //     PUSH x1
+    //     */
+
+    //     val fstInstr = resultList(fstIndex)
+    //     fstInstr match {
+    //         case I_LoadPair(dst1, dst2, Content(reg1, ImmVal(0), _), ImmVal(n1), false) => {
+    //             val sndInstr = resultList(sndIndex)
+    //             sndInstr match {
+    //                 case I_StorePair(src1, src2, Content(reg2, ImmVal(n2), _), ImmVal(0), true) => {
+    //                     if (src1.equals(dst1) && src2.equals(dst2) && reg1.equals(reg2) && (n1 + n2 == 0)) {
+    //                         // remove both instructions
+    //                         resultList.remove(sndIndex)
+    //                         resultList.remove(fstIndex)
+    //                         return true
+    //                     }
+    //                 }
+    //                 case _ => {}
+    //             }
+    //         }
+    //         case _ => {}
+    //     }
+    //     return false
+    // }
 
     
 

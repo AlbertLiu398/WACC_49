@@ -212,7 +212,7 @@ class semanticsChecker(sT: SymbolTable) {
           case Some(length) =>
             if (length < 0) {
               errors.append(SemanticError("Static analysis error: Negative array indexing"))
-            } else if (symbolTable.getConstant(name).getOrElse(ARR_NOT_FOUND) <= length) {
+            } else if (symbolTable.getConstant(name).getOrElse(ARR_NOT_FOUND) < length) {
               errors.append(SemanticError("Static analysis error: Array index out of bounds"))
             }
           case None => 

@@ -611,6 +611,7 @@ class semanticsChecker(sT: SymbolTable) {
   private def getTypeForPair(str: String, number: Int): String = {
     val startIndex = str.indexOf('(')
     val endIndex = str.indexOf(')')
+    if (startIndex == -1 | endIndex == -1) return ""
     val substring = str.substring(startIndex + 1, endIndex)
 
     // Split the substring using comma and get the first part

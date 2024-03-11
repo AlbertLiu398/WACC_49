@@ -147,9 +147,10 @@ object parser {
     
     private lazy val expr: Parsley[Expr]= (atomic(operators) | atom).label("expression").explain("expression needed")
     private lazy val operators: Parsley[Expr] = (precedence(atom)(
-        Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr),
+        Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr, "~" #> BitNot),
         Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod),
         Ops(InfixL)("+" #> Add, "-" #> Sub),
+        Ops(InfixL)("|" #> BitOr, "&" #> BitAnd),
         Ops(InfixN)(">=" #> GreaterThanEq, "<=" #> LessThanEq, ">" #> GreaterThan, "<" #> LessThan),
         Ops(InfixN)("==" #> Eq, "!=" #> NotEq),
         Ops(InfixR)("&&" #> And),

@@ -18,6 +18,10 @@ object ast{
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
         var getType: String =  s"pair(${first.getType},${second.getType})"
     }
+    
+    case object VoidType extends Type{
+        var getType: String = "void"
+    }
 
 
     sealed trait PairElemType extends ASTNode{

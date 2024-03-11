@@ -47,15 +47,28 @@ class semanticsChecker(sT: SymbolTable) {
 
       // ------------------ when function declaration : when function name is same, check if it's overloaded
       case n@Func(returnType, functionName, params, body) =>
-      
-        semanticCheck(returnType)
-        symbolTable.enterScope()
-        symbolTable.enterFunc(returnType)
-        semanticCheck(params)
-        semanticCheck(body)
-        symbolTable.exitFunc()
-        symbolTable.exitScope()
 
+        returnType match {
+          // Handle functions with void return type
+          case VoidType =>
+            symbolTable.enterScope()
+            symbolTable.enterFunc(VoidType)
+            if (containsReturn(body)) {
+              errors.append(SemanticError("Void function cannot return a value"))
+            }
+
+          // Handle functions with a non-void return type
+          case _ =>
+            semanticCheck(returnType)
+            symbolTable.enterScope()
+            symbolTable.enterFunc(returnType)
+        }
+          semanticCheck(params)
+          semanticCheck(body)
+          symbolTable.exitFunc()
+          symbolTable.exitScope()
+      
+        
       case n@Return(expr) =>
         semanticCheck(expr)
         if (!symbolTable.isInFunc()) {
@@ -681,9 +694,20 @@ class semanticsChecker(sT: SymbolTable) {
     for (i <- 0 to existParamsType.length - 1) {
       if (!compareType(existParamsType(i), newParamsType(i))){
         return true
-      }
+      } 
     }
     return false 
+  }
+
+  private def containsReturn(stmt : Stmt) : Boolean = {
+    stmt match {
+      case Return(_) => true
+      case SeqStmt(first, second) => containsReturn(first) || containsReturn(second)
+      case Begin(stmt) => containsReturn(stmt)
+      case If(_, thenBranch, elseBranch) => containsReturn(thenBranch) || containsReturn(elseBranch)
+      case While(_, body) => containsReturn(body)
+      case _ => false
+    }
   }
 
 }

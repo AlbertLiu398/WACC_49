@@ -62,7 +62,9 @@ object parser {
 
     // ------------------------- Functions -------------------------
     private lazy val func: Parsley[Func] = atomic(Func.lift(allType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> funcStmt <~ "end")) |
-                                           atomic(Func.lift(allType, ident, paramList, "is" ~> funcStmt <~ "end"))   
+                                           atomic(Func.lift(allType, ident, paramList, "is" ~> funcStmt <~ "end"))|
+                                           atomic(Func.lift(voidType, ident, "("~> ParamList.lift(pure(List())) <~")", "is" ~> funcStmtForVoid <~ "end")) |
+                                           atomic(Func.lift(voidType, ident, paramList, "is" ~> funcStmtForVoid <~ "end"))
 
     // ------------------------- ParamList -------------------------                             
     private lazy val paramList: Parsley[ParamList] = "(" ~> ParamList.lift(commaSep1_(param)) <~ ")"
@@ -88,6 +90,7 @@ object parser {
                 //  -------------  Statement (for function only) -----------
     // funcStmt : used to check function statement is valid 
     private lazy val funcStmt = stmt.filter(checkTermination).label ("funcStmt").explain("Function statement needed")
+    private lazy val funcStmtForVoid = stmt.filter(checkTerminationForVoid).label ("funcStmt").explain("Function statement needed")
     
     // checkTermination : used to check if this statement contains terminating(exit, return) statement
     def checkTermination(stmt: Stmt): Boolean = stmt match {
@@ -97,6 +100,14 @@ object parser {
         case While(_, stmt) => checkTermination(stmt)
         case Exit(_) => true
         case Return(_) => true
+        case _ => false
+    }
+    def checkTerminationForVoid(stmt: Stmt): Boolean = stmt match {
+        case SeqStmt(_, stmt) => checkTerminationForVoid(stmt)
+        case Begin(stmt) => checkTerminationForVoid(stmt)
+        case If(_, thenStmt, elseStmt) => checkTerminationForVoid(thenStmt) && checkTerminationForVoid(elseStmt)
+        case While(_, stmt) => checkTerminationForVoid(stmt)
+        case Exit(expr) => true
         case _ => false
     }
 
@@ -133,10 +144,16 @@ object parser {
 
 
     // -------------------------- Types -------------------------------- 
-    private lazy val allType: Parsley[Type] = (atomic(arrayType) | notArrayType).label("type").explain("Type needed")
+    private lazy val allType: Parsley[Type]  = (atomic(arrayType) | notArrayType).label("type").explain("Type needed")
+    private lazy val voidType: Parsley[Type] = "void" #> VoidType
     private lazy val notArrayType: Parsley[Type] = baseType | pairType 
 
-    private lazy val baseType = "int" ~> BaseType.lift(pure("int")) | "bool" ~> BaseType.lift(pure("bool")) | "char" ~> BaseType.lift(pure("char")) | "string" ~> BaseType.lift(pure("string"))
+    private lazy val baseType = "int" ~> BaseType.lift(pure("int")) |
+                                "bool" ~> BaseType.lift(pure("bool")) |
+                                "char" ~> BaseType.lift(pure("char")) |
+                                "string" ~> BaseType.lift(pure("string")) 
+                      
+
     private lazy val arrayType = chain.postfix1(notArrayType)("[]".as(ArrayType))
     private lazy val pairType: Parsley[Type] = "pair" ~> "(" ~> PairType.lift(pairElemType, "," ~> pairElemType <~ ")")
 

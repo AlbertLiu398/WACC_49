@@ -513,6 +513,42 @@ class semanticsChecker(sT: SymbolTable) {
           case None => 
         }
 
+      case n@BitOr(expr1, expr2) => 
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (!compareType(expr1.getType,expr2.getType)) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          if (expr1.getType != "int") {
+            errors.append(SemanticError("Bitwise operator should only apply on int"))
+          } else {
+            n.getType = "int"
+          }
+        }
+
+      case n@BitAnd(expr1, expr2) => 
+        semanticCheck(expr1)
+        semanticCheck(expr2)
+        if (!compareType(expr1.getType,expr2.getType)) {
+          errors.append(SemanticError("expression type mismatch"))
+        }
+        else {
+          if (expr1.getType != "int") {
+            errors.append(SemanticError("Bitwise operator should only apply on int"))
+          } else {
+            n.getType = "int"
+          }
+        }
+
+      case n@BitNot(expr) => 
+        semanticCheck(expr)
+        if (expr.getType != "int") {
+            errors.append(SemanticError("Bitwise operator should only apply on int"))
+          } else {
+            n.getType = "int"
+        }
+
       case n@FstPairElem(values) =>
         semanticCheck(values)
         symbolTable.lookupSymbol(values) match {

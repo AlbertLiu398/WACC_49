@@ -14,6 +14,19 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
     def XReg(n: Int): Register = Reg(n, X_REGISTER_SIZE)
     def WReg(n: Int): Register = Reg(n, W_REGISTER_SIZE)
 
+    // ---------------Add---------------
+
+    it should "optimize redundant add-move instructions (only through x8)" in {
+        val instructions = List(
+            I_Add(XReg(8), XReg(8), ImmVal(0)),
+            I_Move(XReg(0), XReg(8))
+        )
+        val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
+        optimizedInstructions.toList shouldEqual List(
+            I_Add(XReg(0), XReg(8), ImmVal(0)),
+        )
+    }
+
     // ---------------Move---------------
 
     it should "optimize redundant move-move duplicate instructions" in {
@@ -57,18 +70,6 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
         val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
         optimizedInstructions.toList shouldEqual List(
             I_Move(WReg(2), WReg(1))
-        )
-    }
-
-    it should "optimize redundant move-move-move instructions" ignore {
-        val instructions = List(
-            I_Move(XReg(8), XReg(1)),
-            I_Move(XReg(2), XReg(8)),
-            I_Move(XReg(3), XReg(2))
-        )
-        val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
-        optimizedInstructions.toList shouldEqual List(
-            I_Move(XReg(3), XReg(1))
         )
     }
 
@@ -203,15 +204,6 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
         optimizedInstructions.toList shouldEqual List()
     }
 
-    it should "optimize redundant pop-push instructions" ignore {
-        val instructions = List(
-            I_LoadPair(XReg(8), xzr, Content(sp), ImmVal(16), false),
-            I_StorePair(XReg(8), xzr, Content(sp, ImmVal(-16)), ImmVal(0), true)
-        )
-        val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
-        optimizedInstructions.toList shouldEqual List()
-    }
-
     it should "optimize redundant nested push-pop instructions" in {
         val instructions = List(
             I_StorePair(XReg(2), xzr, Content(sp, ImmVal(16)), ImmVal(0), true),
@@ -223,16 +215,6 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
         optimizedInstructions.toList shouldEqual List()
     }
 
-    it should "optimize redundant nested pop-push instructions" ignore {
-        val instructions = List(
-            I_LoadPair(XReg(1), xzr, Content(sp), ImmVal(-16), false),
-            I_LoadPair(XReg(2), xzr, Content(sp), ImmVal(-16), false),
-            I_StorePair(XReg(2), xzr, Content(sp, ImmVal(16)), ImmVal(0), true),
-            I_StorePair(XReg(1), xzr, Content(sp, ImmVal(16)), ImmVal(0), true)
-        )
-        val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
-        optimizedInstructions.toList shouldEqual List()
-    }
 
     // Add more tests for other optimizations
 

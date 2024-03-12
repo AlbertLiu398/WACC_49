@@ -22,6 +22,9 @@ object PeepholeOptimisation {
             var changed = false
             var stackChanged = false
             resultList(i) match {
+                case I_Add(Constant.x8, Constant.x8, _, _) => {
+                    changed = optimiseAdd(i, i + 1)
+                }
                 case I_Move(_, _) => {
                     changed = optimiseMove(i, i + 1)
                 }
@@ -36,11 +39,12 @@ object PeepholeOptimisation {
                 }
                 case _ => {}
             }
-            // if no change, move to next instruction
 
+            // if no change, move to next instruction
             if (!changed && !stackChanged) {
                 i += 1
             }
+            // if two instructions are removed in stack optimisation, move to previous instruction
             if (stackChanged && i > 0) {
                 i -= 1
             }
@@ -50,6 +54,35 @@ object PeepholeOptimisation {
     }
 
 // -------------peephole size 2---------------
+
+    def optimiseAdd(fstIndex: Int, sndIndex: Int): Boolean = {
+        /*
+        1. Redundant Add-Move (only through x8)
+        e.g.
+            add     x8, x8, #0
+            mov     x0, x8
+        can be replaced with
+            add     x0, x8, #0
+        */
+        val fstInstr = resultList(fstIndex)
+        fstInstr match {
+            case I_Add(Constant.x8, Constant.x8, op1, false) => {
+                val sndInstr = resultList(sndIndex)
+                sndInstr match {
+                    case I_Move(dst2, x8) => {
+                        // remove the second instruction
+                        resultList.remove(sndIndex)
+                        // rewrite the first instruction
+                        resultList(fstIndex) = I_Add(dst2, x8.asInstanceOf[Reg], op1, false)
+                        return true
+                    }
+                    case _ => {}
+                }
+            }
+            case _ => {}
+        }     
+        return false
+    }
 
     def optimiseMove(fstIndex: Int, sndIndex: Int): Boolean = {
 

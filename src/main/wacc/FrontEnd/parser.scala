@@ -150,11 +150,11 @@ object parser {
         Ops(Prefix)("-" #> Negate, "!" #> Invert, "len" #> Len, "ord" #> Ord, "chr" #> Chr, "~" #> BitNot),
         Ops(InfixL)("*" #> Mul, "/" #> Div, "%" #> Mod),
         Ops(InfixL)("+" #> Add, "-" #> Sub),
-        Ops(InfixL)("|" #> BitOr, "&" #> BitAnd),
         Ops(InfixN)(">=" #> GreaterThanEq, "<=" #> LessThanEq, ">" #> GreaterThan, "<" #> LessThan),
         Ops(InfixN)("==" #> Eq, "!=" #> NotEq),
         Ops(InfixR)("&&" #> And),
         Ops(InfixR)("||" #> Or),   
+        Ops(InfixL)("|" #> BitOr, "&" #> BitAnd)
     )).label("expression").explain("expression needed")
 
     private lazy val atom : Parsley[Expr] = "(" ~> expr <~ ")"| atomic(ident <~ notFollowedBy("[")) | arr | intLiter | boolLiter | charLiter | stringLiter| pairLiter 

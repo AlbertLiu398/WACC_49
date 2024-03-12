@@ -99,8 +99,9 @@ object Instruction {
     case class I_And(dest: Register, src: Register, op: Operand) extends Instruction 
     case class I_Xor(dest: Register, src: Register, op: Operand) extends Instruction 
     case class I_Orr(dest: Register, src: Register, op: Operand) extends Instruction 
-    case class I_Neg(dest: Register, src: Register, shift: Shifts) extends Instruction 
-    
+    case class I_Neg(dest: Register, src: Register, shift: Shifts) extends Instruction
+    case class I_Mvn(dest: Register, src: Register) extends Instruction
+
     case class I_Cmp(src: Register, op: Operand) extends Instruction 
     case class I_Cmp_Shift(src: Register, op: Operand, shift: Shifts) extends Instruction 
 

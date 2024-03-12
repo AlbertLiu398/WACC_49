@@ -91,7 +91,8 @@ object ArmAssemblyWriter extends AssemblyWriter {
         case I_Xor(dest, src, op) => printInstr3("eor", dest, src, op)
         case I_Orr(dest, src, op) => printInstr3("orr", dest, src, op)
         case I_Neg(dest, src, shift) => printInstr3("neg", dest, src, shift)
-        
+        case I_Mvn(dest, src) => printInstr2("mvn", dest, src)
+
         case I_Cmp(src, op) => printInstr2("cmp", src, op)
         case I_Cmp_Shift(src, op, shift) => printInstr3("cmp", src, op, shift)
         

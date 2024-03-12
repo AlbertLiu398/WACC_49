@@ -14,11 +14,18 @@ class VoidTypeTest extends AnyFlatSpec with Matchers {
     it should "parse voidType function" in {
         val result = parser.parse("begin void f() is return end skip end")
         result shouldBe Success(Program(List(Func(VoidType, Ident("f"), ParamList(List()), ReturnVoid)), Skip))
+        semanticsChecker.semanticCheck(result.get)
+        semanticsChecker.getSemanticErrors shouldBe List()
+        cleanForNextTest()
+
     }
 
     it should "parse voidType function with parameters" in {
         val result = parser.parse("begin void f(int x, bool y) is return end skip end")
         result shouldBe Success(Program(List(Func(VoidType, Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")), Param(BaseType("bool"), Ident("y")))), ReturnVoid)), Skip))
+        semanticsChecker.semanticCheck(result.get)
+        semanticsChecker.getSemanticErrors shouldBe List()
+        cleanForNextTest()
     }
 
     it should "parse voidType: void function should not return value" in {
@@ -28,21 +35,20 @@ class VoidTypeTest extends AnyFlatSpec with Matchers {
         cleanForNextTest()
     }
 
-    it should "parse voidType: void function does not return value" in {
-        val result = parser.parse("begin void f() is return end skip end")
-        semanticsChecker.semanticCheck(result.get)
-        semanticsChecker.getSemanticErrors shouldBe List()
-        cleanForNextTest()
-    }
-
-     it should "parse voidType: void function end up with exit " in {
+    it should "parse voidType: void function end up with exit " in {
         val result = parser.parse("begin void f(int x) is exit x end skip end")
         semanticsChecker.semanticCheck(result.get)
         semanticsChecker.getSemanticErrors shouldBe List()
         cleanForNextTest()
     }
 
-    
+
+    it should "parse non voidType: when non-void function return nothing" in {
+        val result = parser.parse("begin int f() is return end skip end")
+        semanticsChecker.semanticCheck(result.get)
+        semanticsChecker.getSemanticErrors shouldBe List(SemanticError("Function does not return a value"))
+        cleanForNextTest()
+    }
 
     private def cleanForNextTest(): Unit = {
         symbolTable.clean()

@@ -10,8 +10,9 @@ import FileConverter._
 
 class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
 
-    // Helper function to create a 64-bit register for tesing purposes
+    // Helper function to create a 64/32-bit register for tesing purposes
     def XReg(n: Int): Register = Reg(n, X_REGISTER_SIZE)
+    def WReg(n: Int): Register = Reg(n, W_REGISTER_SIZE)
 
     // ---------------Move---------------
 
@@ -45,6 +46,17 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
         val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
         optimizedInstructions.toList shouldEqual List(
             I_Move(XReg(2), ImmVal(1))
+        )
+    }
+
+    it should "optimize redundant move-move (through x8, with only lower 32-bit) instructions" in {
+        val instructions = List(
+            I_Move(XReg(8), XReg(1)),
+            I_Move(WReg(2), WReg(8))
+        )
+        val optimizedInstructions = PeepholeOptimisation.runPeeopholeOptimisation(instructions)
+        optimizedInstructions.toList shouldEqual List(
+            I_Move(WReg(2), WReg(1))
         )
     }
 

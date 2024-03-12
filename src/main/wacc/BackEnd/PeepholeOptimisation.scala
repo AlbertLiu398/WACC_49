@@ -2,6 +2,7 @@ package wacc
 
 import scala.collection.mutable
 import Instruction._
+import Constant._
 
 object PeepholeOptimisation {       
 
@@ -33,9 +34,6 @@ object PeepholeOptimisation {
                 case I_StorePair(_, _, _, _, _) => {
                     stackChanged = optimisePushPop(i, i + 1)
                 }
-                // case I_LoadPair(_, _, _, _, _) => {
-                //     stackChanged = optimisePopPush(i, i + 1)
-                // }
                 case _ => {}
             }
             // if no change, move to next instruction
@@ -85,6 +83,17 @@ object PeepholeOptimisation {
             case I_Move(dst1@Reg(n1, size1), src1) => {
                 val sndInstr = resultList(sndIndex)
                 sndInstr match {
+                    // Move-Move, where second instuction uses only w registers, (only through x8/w8)
+                    case I_Move(dst2@Reg(n2, W_REGISTER_SIZE), src2@Reg(8, W_REGISTER_SIZE)) => {
+                        if (src1.isInstanceOf[Register] && n1 == 8 && size1 == X_REGISTER_SIZE) {
+                            // remove the second instruction
+                            resultList.remove(sndIndex)
+                            // rewrite the first instruction
+                            val src1_n = src1.asInstanceOf[Reg].n
+                            resultList(fstIndex) = I_Move(dst2, Reg(src1_n, W_REGISTER_SIZE))
+                        }
+                        
+                    }
                     // Move-Move
                     case I_Move(dst2, src2@Reg(n2, size2)) => {
                         // If two instructions are the same, remove the second one

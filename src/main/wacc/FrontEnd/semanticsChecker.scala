@@ -51,21 +51,20 @@ class semanticsChecker(sT: SymbolTable) {
         returnType match {
           // Handle functions with void return type
           case VoidType =>
-            semanticCheck(VoidType)
-            symbolTable.enterScope()
-            symbolTable.enterFunc(VoidType)
-             if (containsReturn(body)) {
+            if (containsReturn(body)) {
               errors.append(SemanticError("Void function cannot return a value"))
             }       
+
           // Handle functions with a non-void return type
           case _ =>
-            semanticCheck(returnType)
             if (!containsReturn(body)) {
               errors.append(SemanticError("Function does not return a value"))
             }
-            symbolTable.enterScope()
-            symbolTable.enterFunc(returnType)
+           
         }
+          semanticCheck(returnType)
+          symbolTable.enterScope()
+          symbolTable.enterFunc(returnType)
           semanticCheck(params)
           semanticCheck(body)
           symbolTable.exitFunc()

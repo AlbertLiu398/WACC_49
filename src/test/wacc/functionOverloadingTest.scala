@@ -10,7 +10,6 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
   val semanticsChecker = new semanticsChecker(symbolTable)
 
   it should "function overloading (function declare aspect)" in {
-    // Create two functions with the same name but different parameter types
     val program = Program(List(
     Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1)))),
     Func(BaseType("bool"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))
@@ -25,7 +24,6 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
 
     it should "function not overloading (function declare aspect)" in {
-    // Create two functions with the same name but different parameter types
     val program = Program(List(
     Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1)))),
     Func(BaseType("int"), Ident("y"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))
@@ -39,9 +37,7 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
 
   it should "function not overloading (function aspect)" in {
-    // Create two functions with the same name but different parameter types
-    // func1 : int add(int a) is a + 1end 
-    // func2 : int add(bool a) is a + 1 end
+    // Create two same functions
     val program = Program(List(
     Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Return(Add(Ident("a"), IntLiter(1)))),
     Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Return(Add(Ident("a"), IntLiter(1))))
@@ -58,7 +54,7 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
  
   it should "matching overloadedFunction (function call aspect)" in {
-    // Create two functions with the same name but different parameter types
+    // Create two functions with the same name but different parameter types and return types
 
     val program = Program(List(
       Func(BaseType("bool"),Ident("f1"),ParamList(List(Param(BaseType("bool"),Ident("x")))),Return(Ident("x"))),
@@ -73,7 +69,6 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
   }
 
   it should "matching non overloadedFunction (function call aspect)" in {
-    // Create two functions with the same name but different parameter types
     val program = Program(List(
       Func(BaseType("bool"),Ident("f1"),ParamList(List(Param(BaseType("bool"),Ident("x")))),Return(Ident("x"))),
       Func(BaseType("int"),Ident("f1"),ParamList(List(Param(BaseType("int"),Ident("x")))),Return(Ident("x")))),
@@ -85,7 +80,6 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
 
   it should "overloadedFunction : not match argsType (function call aspect)" in {
-    // Create two functions with the same name but different parameter types
     val program = Program(List(
       Func(BaseType("bool"),Ident("f1"),ParamList(List(Param(BaseType("bool"),Ident("x")))),Return(Ident("x"))),
       Func(BaseType("int"),Ident("f1"),ParamList(List(Param(BaseType("int"),Ident("x")))),Return(Ident("x")))),

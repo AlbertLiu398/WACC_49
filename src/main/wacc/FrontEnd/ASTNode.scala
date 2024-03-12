@@ -51,6 +51,10 @@ object ast{
     case class NotEq(expr1: Expr, expr2: Expr) extends BinaryOperation
     case class And(expr1: Expr, expr2: Expr) extends BinaryOperation
     case class Or(expr1: Expr, expr2: Expr) extends BinaryOperation
+    
+    case class BitOr(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class BitAnd(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class BitNot(expr: Expr) extends UnaryOperation
 
     case class Invert(expr: Expr) extends UnaryOperation
     case class Negate(expr: Expr) extends UnaryOperation

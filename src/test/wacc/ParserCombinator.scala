@@ -25,6 +25,10 @@ it should "parse function" in {
     funcParse("int f(int x) is return x + 1 end") shouldBe  Success(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1)))))
 }
 
+it should "parse void function" in {
+    funcParse("void f(int x) is exit x end") shouldBe  Success(Func(VoidType, Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Exit(Ident("x"))))
+}
+
 
 it should "parse paramList" in {
   paramListParse("(int x, bool y)") shouldBe Success(ParamList(List(Param(BaseType("int"), Ident("x")), Param(BaseType("bool"), Ident("y")))))

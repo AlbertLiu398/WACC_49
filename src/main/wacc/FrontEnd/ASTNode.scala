@@ -18,6 +18,10 @@ object ast{
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
         var getType: String =  s"pair(${first.getType},${second.getType})"
     }
+    
+    case object VoidType extends Type{
+        var getType: String = "void"
+    }
 
 
     sealed trait PairElemType extends ASTNode{
@@ -108,6 +112,7 @@ object ast{
     case class Read(lvalue: LValue) extends Stmt //
     case class Free(expr: Expr) extends Stmt //
     case class Return(expr: Expr) extends Stmt //
+    case object ReturnVoid extends Stmt //
     case class Exit(expr: Expr) extends Stmt 
     case class Print(expr: Expr, newline: Boolean) extends Stmt //
     case class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) extends Stmt //

@@ -40,11 +40,11 @@ class FunctionOverloadingTest extends AnyFlatSpec with Matchers {
 
   it should "function not overloading (function aspect)" in {
     // Create two functions with the same name but different parameter types
-    // func1 : int add(int a) is skip end 
-    // func2 : int add(bool b) is skip end
+    // func1 : int add(int a) is a + 1end 
+    // func2 : int add(bool a) is a + 1 end
     val program = Program(List(
-    Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip),
-    Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Skip)
+    Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Return(Add(Ident("a"), IntLiter(1)))),
+    Func(BaseType("int"), Ident("add"), ParamList(List(Param(BaseType("int"), Ident("a")))), Return(Add(Ident("a"), IntLiter(1))))
   ), Skip)
   
 

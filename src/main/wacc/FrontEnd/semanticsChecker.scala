@@ -41,7 +41,7 @@ class semanticsChecker(sT: SymbolTable) {
         for (func <- funcList) {
           semanticCheck(func)
         }
-        semanticCheck(stmts)
+        val new_stmts = semanticCheck(stmts)
         symbolTable.exitMain(funcList) 
         symbolTable.exitScope()
 
@@ -147,7 +147,10 @@ class semanticsChecker(sT: SymbolTable) {
                 symbolTable.insertSymbolwithValue(name, value.getType, List(value.getFst, value.getSnd))
               }
             } else {
+
               symbolTable.insertSymbol(name, identType.getType)
+              value.getType = identType.getType
+              println(value.getType)
             }
         }
         // Map down idents holding arrays to their array length
@@ -205,7 +208,7 @@ class semanticsChecker(sT: SymbolTable) {
         }
         value.foreach(semanticCheck)
         // Check if array indexing is integer
-        if (!value.forall(x=> x.getType == "int")) {
+        if (!value.forall(x=> x.getType.startsWith("int"))) {
           errors.append(SemanticError("Array index should be an Int"))
         }
         // Check if array indexing has too many dimensions
@@ -324,11 +327,11 @@ class semanticsChecker(sT: SymbolTable) {
       case n@Add(expr1, expr2) =>
         semanticCheck(expr1)
         semanticCheck(expr2)
-        if (!compareType(expr1.getType,expr2.getType)) {
+        if (!compareType(expr1.getType, expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = getIntType(expr1, expr2)
         }
         // Check for overflow
         (constantFold(expr1), constantFold(expr2)) match {
@@ -346,7 +349,7 @@ class semanticsChecker(sT: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = getIntType(expr1, expr2)
         }
         // Check for overflow
         (constantFold(expr1), constantFold(expr2)) match {
@@ -364,7 +367,7 @@ class semanticsChecker(sT: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = getIntType(expr1, expr2)
         }
         // Check for overflow
         (constantFold(expr1), constantFold(expr2)) match {
@@ -381,7 +384,7 @@ class semanticsChecker(sT: SymbolTable) {
         if (!compareType(expr1.getType,expr2.getType)) {
           errors.append(SemanticError("expression type mismatch"))
         } else {
-          n.getType = expr1.getType
+          n.getType = getIntType(expr1, expr2)
         }
         // Check for division by zero
         constantFold(expr2) match {
@@ -396,7 +399,7 @@ class semanticsChecker(sT: SymbolTable) {
           errors.append(SemanticError("expression type mismatch"))
         }
         else {
-          n.getType = expr1.getType
+          n.getType = getIntType(expr1, expr2)
         }
         // Check for division by zero
         constantFold(expr2) match {
@@ -648,6 +651,7 @@ class semanticsChecker(sT: SymbolTable) {
   def compareType(s1: String, s2: String): Boolean = {
     var fstStr = s1
     var sndStr = s2
+    if (s1.startsWith("int") & s2.startsWith("int")) return true
     if  (s1.startsWith("pair") & s2.startsWith("pair")) return true
     if (s1 == "char[]") {
       fstStr = "string"
@@ -675,6 +679,10 @@ class semanticsChecker(sT: SymbolTable) {
     expr match {
 
       case IntLiter(value) => Some(value)
+
+      case ShortIntLiter(value) => Some(value.toInt)
+
+      case ByteIntLiter(value) => Some(value.toInt)
 
       case Negate(expr) =>
         for {
@@ -745,5 +753,14 @@ class semanticsChecker(sT: SymbolTable) {
       case While(_, body) => containsReturn(body)
       case _ => false
     }
+  }
+
+  private def getIntType(expr1: Expr, expr2: Expr): String = {
+    val t1 = expr1.getType
+    val t2 = expr2.getType
+    if (t1.startsWith("int") & t2.startsWith("int")) {
+      if (t1.length >= t2.length) t1 else t2
+    }
+    t1
   }
 }

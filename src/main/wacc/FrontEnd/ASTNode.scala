@@ -126,6 +126,12 @@ object ast{
     case class IntLiter(value: Int) extends Liter {
         var getType = "int"
     }
+    case class ShortIntLiter(value: Short) extends Liter {
+        var getType: String = "int_short"
+    }
+    case class ByteIntLiter(value: Byte) extends Liter {
+        var getType: String = "int_Byte"
+    }
     case class BoolLiter(value: Boolean) extends Liter {
         var getType = "bool" 
     }

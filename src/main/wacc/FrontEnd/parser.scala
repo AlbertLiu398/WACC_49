@@ -44,10 +44,22 @@ object parser {
     private val exprParser = fully(expr)
 
     // -------------------------- Literals -------------------------
-    private lazy val intLiter = (integer.map(IntLiter) | 
+    private lazy val intLiter = (
+                                atomic(integer_8.map(ByteIntLiter)) | 
+                                atomic(integer_16.map(ShortIntLiter)) |
+                                integer.map(IntLiter) | 
                                "+" ~> integer.map(IntLiter) | 
                                "-" ~> integer.map(IntLiter)).label("intLiter").explain("Integer needed")
 
+    private lazy val int_short = (integer_16.map(ShortIntLiter) | 
+                               "+" ~> integer_16.map(ShortIntLiter) | 
+                               "-" ~> integer_16.map(ShortIntLiter)).label("shortintLiter").explain("short needed")
+
+    private lazy val int_byte = (integer_8.map(ByteIntLiter) | 
+                               "+" ~> integer_8.map(ByteIntLiter) | 
+                               "-" ~> integer_8.map(ByteIntLiter)).label("byteintLiter").explain("short needed")
+
+                               
     private lazy val ident = identifier.map(Ident)
     private lazy val boolLiter = "true" #> BoolLiter(true) | 
                                  "false" #> BoolLiter(false)
@@ -140,7 +152,9 @@ object parser {
     private lazy val voidType: Parsley[Type] = "void" #> VoidType
     private lazy val notArrayType: Parsley[Type] = baseType | pairType 
 
-    private lazy val baseType = "int" ~> BaseType.lift(pure("int")) |
+    private lazy val baseType = "int_byte_8" ~> BaseType.lift(pure("int_byte_8")) |
+                                "int_short" ~> BaseType.lift(pure("int_short")) |
+                                "int" ~> BaseType.lift(pure("int")) |
                                 "bool" ~> BaseType.lift(pure("bool")) |
                                 "char" ~> BaseType.lift(pure("char")) |
                                 "string" ~> BaseType.lift(pure("string"))

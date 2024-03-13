@@ -595,13 +595,19 @@ class CodeGenerator (varList: List[Int]) {
           printCharFlag = true
           branchLink(PRINT_CHAR_LABEL)
 
-        case "int" =>
+        case ("int") =>
           printIntFlag = true
           branchLink(PRINT_INT_LABEL)
 
         case _ =>
-          printPFlag = true
-          branchLink(PRINT_P_LABEL)
+          if (expr.getType.startsWith("int")) {
+            printIntFlag = true
+            branchLink(PRINT_INT_LABEL)
+          } else {
+            printPFlag = true
+            branchLink(PRINT_P_LABEL)
+          }
+          
         
       }
   
@@ -730,6 +736,12 @@ class CodeGenerator (varList: List[Int]) {
       // Call helper function to check and load immediate value
       loadImmediate(value)
          
+    case ShortIntLiter(value) => 
+      loadImmediate(value.toInt)
+
+    case ByteIntLiter(value) => 
+      loadImmediate(value.toInt)
+
     case BoolLiter(value) => 
       value match {
         case true => instructions.append(I_Move(x8, ImmVal(1)))

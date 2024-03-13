@@ -651,7 +651,7 @@ class semanticsChecker(sT: SymbolTable) {
   def compareType(s1: String, s2: String): Boolean = {
     var fstStr = s1
     var sndStr = s2
-    if (s1.startsWith("int") & s2.startsWith("int")) return true
+    if (s1.startsWith("int") & s2.startsWith("int") & !s1.contains("[]") & !s2.contains("[]")) return true
     if  (s1.startsWith("pair") & s2.startsWith("pair")) return true
     if (s1 == "char[]") {
       fstStr = "string"

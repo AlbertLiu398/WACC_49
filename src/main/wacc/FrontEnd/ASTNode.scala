@@ -18,6 +18,10 @@ object ast{
     case class PairType(first: PairElemType, second: PairElemType) extends Type{
         var getType: String =  s"pair(${first.getType},${second.getType})"
     }
+    
+    case object VoidType extends Type{
+        var getType: String = "void"
+    }
 
 
     sealed trait PairElemType extends ASTNode{
@@ -51,6 +55,10 @@ object ast{
     case class NotEq(expr1: Expr, expr2: Expr) extends BinaryOperation
     case class And(expr1: Expr, expr2: Expr) extends BinaryOperation
     case class Or(expr1: Expr, expr2: Expr) extends BinaryOperation
+    
+    case class BitOr(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class BitAnd(expr1: Expr, expr2: Expr) extends BinaryOperation
+    case class BitNot(expr: Expr) extends UnaryOperation
 
     case class Invert(expr: Expr) extends UnaryOperation
     case class Negate(expr: Expr) extends UnaryOperation
@@ -104,6 +112,7 @@ object ast{
     case class Read(lvalue: LValue) extends Stmt //
     case class Free(expr: Expr) extends Stmt //
     case class Return(expr: Expr) extends Stmt //
+    case object ReturnVoid extends Stmt //
     case class Exit(expr: Expr) extends Stmt 
     case class Print(expr: Expr, newline: Boolean) extends Stmt //
     case class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) extends Stmt //

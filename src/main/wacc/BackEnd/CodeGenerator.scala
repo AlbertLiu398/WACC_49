@@ -151,7 +151,7 @@ class CodeGenerator (varList: List[Int]) {
             instructions.append((I_Sub(x8.toW(), fstReg.toW(), x8.toW(), true)))
           } else {
             pushToStack()
-      }
+        }
       }
       // Branch to overflow handler if condition is set
       checkOverflowHandler()
@@ -393,6 +393,34 @@ class CodeGenerator (varList: List[Int]) {
         
         case _ => 
       }
+    
+    case BitAnd(expr1, expr2) => 
+      generateInstructions(expr1)
+      instructions.append(I_Move(unused_TempRegs.head, x8))
+          if (true){
+            val fstReg = allocateTempReg()
+            generateInstructions(expr2)
+            instructions.append((I_And(x8, fstReg, x8)))
+          } else {
+            pushToStack()
+        }
+
+    case BitOr(expr1, expr2) => 
+      generateInstructions(expr1)
+      instructions.append(I_Move(unused_TempRegs.head, x8))
+          if (true){
+            val fstReg = allocateTempReg()
+            generateInstructions(expr2)
+            instructions.append((I_Orr(x8, fstReg, x8)))
+          } else {
+            pushToStack()
+        }
+
+    case BitNot(expr) => 
+      arithmeticFlag = true
+      generateInstructions(expr)
+      instructions.append(I_Mvn(x8, x8))
+      checkOverflowHandler()
 
    /* ----------------------------------Statements-------------------------------------- */
     case Read(lValue) =>

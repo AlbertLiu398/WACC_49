@@ -81,7 +81,7 @@ class semanticsChecker(sT: SymbolTable) {
       
       case n@Exit(expr)=>
         semanticCheck(expr)
-        if  (expr.getType != "int") {
+        if (!expr.getType.startsWith("int")) {
           errors.append(SemanticError("Exit code need to be Int"))
         }
 
@@ -255,7 +255,7 @@ class semanticsChecker(sT: SymbolTable) {
 
       case n@Read(lvalue) =>
         semanticCheck(lvalue)
-        if (lvalue.getType != "int" & lvalue.getType != "char") {
+        if (!lvalue.getType.startsWith("int") & lvalue.getType != "char") {
           errors.append(SemanticError("Read can only read int or char"))
         }
 

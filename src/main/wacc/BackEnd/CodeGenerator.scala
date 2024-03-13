@@ -353,12 +353,17 @@ class CodeGenerator (varList: List[Int]) {
       expr match {
         case IntLiter(value) => 
           loadImmediate(-value)
-        case _=>
+        case ShortIntLiter(value) =>
+          loadImmediate(-value.toInt)
+        case ByteIntLiter(value) =>
+          loadImmediate(-value.toInt)
+        case _ => 
           generateInstructions(expr)
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
           instructions.append(I_Move(x8, ImmVal(0)))
-          instructions.append(I_Sub(x8.toW(), x8.toW(), x9.toW(), true))
+          val reg = allocateTempReg()
+          instructions.append(I_Sub(x8.toW(), x8.toW(), reg.toW(), true))
           checkOverflowHandler()
       }
 

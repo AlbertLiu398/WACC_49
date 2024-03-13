@@ -800,7 +800,7 @@ class CodeGenerator (varList: List[Int]) {
       var arrSize = 0
       e match {
         case StringLiter("empty") => arrSize = 0
-        case _=> arrSize = es.length + 1
+        case _=> arrSize = (es.length + 1)
       }
       instructions.append(I_Move(x8, ImmVal(arrSize)))
 
@@ -925,8 +925,8 @@ class CodeGenerator (varList: List[Int]) {
         e match {
           case StringLiter("empty") => return 0
           case _=> 
-            val sizes = (e::es).map(elem => getSize(elem))
-          return sizes.sum + ARRAY_ELEM_SIZE
+            val sizes = ((e::es).length) * 4
+          return sizes + ARRAY_ELEM_SIZE
 
         }
       case CallRValue(func, args) =>

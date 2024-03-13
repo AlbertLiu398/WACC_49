@@ -812,7 +812,7 @@ class CodeGenerator (varList: List[Int]) {
           generateInstructions(expr)
           // StoreByte for char and bool
           instructions.append(I_Store(x8, Content(x16, ImmVal(arrPointer))))
-          arrPointer += getSize(expr)
+          arrPointer += 4
         }
       }
     
@@ -909,6 +909,10 @@ class CodeGenerator (varList: List[Int]) {
   def getSize(ast: ASTNode): Int = {
     ast match {
       case IntLiter(_) => return INT_SIZE
+
+      case ShortIntLiter(value) => INT_SIZE
+
+      case ByteIntLiter(value) => INT_SIZE
          
       case BoolLiter(_) => return BOOL_SIZE
 

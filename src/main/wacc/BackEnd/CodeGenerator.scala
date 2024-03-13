@@ -605,7 +605,7 @@ class CodeGenerator (varList: List[Int]) {
           branchLink(PRINT_INT_LABEL)
 
         case _ =>
-          if (expr.getType.startsWith("int")) {
+          if (expr.getType.startsWith("int") & !expr.getType.contains("[]")) {
             printIntFlag = true
             branchLink(PRINT_INT_LABEL)
           } else {

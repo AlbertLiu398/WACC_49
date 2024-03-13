@@ -119,6 +119,7 @@ class semanticsChecker(sT: SymbolTable) {
           case ArrLiter(StringLiter("empty"), es) => 
           case _ =>
             if (!compareType(identType.getType, value.getType)) {
+              println(value.getType)
               errors.append(SemanticError("New assignment type mismatch"))
             }
         }
@@ -150,7 +151,6 @@ class semanticsChecker(sT: SymbolTable) {
 
               symbolTable.insertSymbol(name, identType.getType)
               value.getType = identType.getType
-              println(value.getType)
             }
         }
         // Map down idents holding arrays to their array length
@@ -651,7 +651,7 @@ class semanticsChecker(sT: SymbolTable) {
   def compareType(s1: String, s2: String): Boolean = {
     var fstStr = s1
     var sndStr = s2
-    if (s1.startsWith("int") & s2.startsWith("int") & !s1.contains("[]") & !s2.contains("[]")) return true
+    if (s1.startsWith("int") & s2.startsWith("int") & (countOccurrences(s1, "[]") == countOccurrences(s2, "[]"))) return true
     if  (s1.startsWith("pair") & s2.startsWith("pair")) return true
     if (s1 == "char[]") {
       fstStr = "string"

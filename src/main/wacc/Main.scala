@@ -9,9 +9,13 @@ import java.io._
 object Main {
     final val semanticError = 200
     final val syntaxError = 100
+    final val optimisationFlag = "-o"
+
     def main(args: Array[String]): Unit = {
 
         try {
+            val optimise = args.contains(optimisationFlag)
+        
             args.headOption match {
                 case Some(filePath) => 
                   {
@@ -36,10 +40,10 @@ object Main {
 
                             /* 1. create assembly file 
                                2. generate assembly code and write to asm file */
-                            FileConverter.convertToAssembly(filePath, prog, sT.getVarList())
+                            FileConverter.convertToAssembly(filePath, prog, sT.getVarList(), optimise)
                             println(s"Assembly file path: $filePath")
                             println("Generated Assembly Code:")
-                            println(FileConverter.generateAssemblyCode(prog, sT.getVarList()))
+                            println(FileConverter.generateAssemblyCode(prog, sT.getVarList(), optimise))
                             
                  
                         case Failure(msg) => 
@@ -49,6 +53,7 @@ object Main {
                     } 
                 case None => println("please enter a file name")
             }
+
         } catch {
             case _: Throwable => throw new Exception("Invalid file path")
         }

@@ -10,21 +10,19 @@ import PeepholeOptimisation._
 object FileConverter {
   // genearte assembly code use the codeGenerator 
 
-  val peepholeOptimised: Boolean = true
 
-  def generateAssemblyCode(prog : ast.ASTNode, list : List[Int]): StringBuilder = {
+  def generateAssemblyCode(prog : ast.ASTNode, list : List[Int], optimise: Boolean): StringBuilder = {
     val codeGenerator = new CodeGenerator(list)
     val instrus = codeGenerator.generateInstructions(prog)
     var resultInstrus = codeGenerator.getInstructions()
-
-    if (peepholeOptimised) {
+    if (optimise) {
       resultInstrus = PeepholeOptimisation.runPeeopholeOptimisation(resultInstrus)
     } 
     ArmAssemblyWriter.translateProgram(resultInstrus)
 
   }
 
-  def convertToAssembly(filePath: String, prog: ast.ASTNode, list: List[Int]): Unit = {
+  def convertToAssembly(filePath: String, prog: ast.ASTNode, list: List[Int], optimise: Boolean): Unit = {
     val waccFile = new File(filePath)
 
     if (waccFile.exists() && waccFile.isFile && filePath.endsWith(".wacc")) {
@@ -36,7 +34,7 @@ object FileConverter {
         val writer = new BufferedWriter(new OutputStreamWriter(fos))
 
         // generate assembly code and write to asm file
-        writer.write(generateAssemblyCode(prog, list).toString())
+        writer.write(generateAssemblyCode(prog, list, optimise).toString())
 
         writer.close()
 

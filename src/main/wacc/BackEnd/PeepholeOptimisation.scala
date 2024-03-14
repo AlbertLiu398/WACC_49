@@ -9,7 +9,7 @@ object PeepholeOptimisation {
     var resultList: mutable.ListBuffer[Instruction] = mutable.ListBuffer()
 
     def runPeeopholeOptimisation(instructions: List[Instruction]): List[Instruction] = {
-        
+    
         resultList = mutable.ListBuffer(instructions: _*)
         runPeeopholeSize2(resultList)
         resultList.toList
@@ -350,50 +350,5 @@ object PeepholeOptimisation {
         }
         return false
     }
-
-    // def optimisePopPush(fstIndex: Int, sndIndex: Int): Boolean = {
-    //     /* 
-    //     POP x1
-    //     POP x2
-    //     PUSH x2
-    //     PUSH x1
-    //     */
-
-    //     val fstInstr = resultList(fstIndex)
-    //     fstInstr match {
-    //         case I_LoadPair(dst1, dst2, Content(reg1, ImmVal(0), _), ImmVal(n1), false) => {
-    //             val sndInstr = resultList(sndIndex)
-    //             sndInstr match {
-    //                 case I_StorePair(src1, src2, Content(reg2, ImmVal(n2), _), ImmVal(0), true) => {
-    //                     if (src1.equals(dst1) && src2.equals(dst2) && reg1.equals(reg2) && (n1 + n2 == 0)) {
-    //                         // remove both instructions
-    //                         resultList.remove(sndIndex)
-    //                         resultList.remove(fstIndex)
-    //                         return true
-    //                     }
-    //                 }
-    //                 case _ => {}
-    //             }
-    //         }
-    //         case _ => {}
-    //     }
-    //     return false
-    // }
-
-    
-
-    // ----------ARITHMETIC------------
-
-
-
-
-
-// -------------peephole size 3---------------
-
-    
-
-
-    
-
 
 }

@@ -42,14 +42,12 @@ object Main {
                                2. generate assembly code and write to asm file */
                             FileConverter.convertToAssembly(filePath, prog, sT.getVarList(), optimise)
                             println(s"Assembly file path: $filePath")
-                            println("Generated Assembly Code:")
-                            println(FileConverter.generateAssemblyCode(prog, sT.getVarList(), optimise))
                             
                  
                         case Failure(msg) => 
                             println(msg)
                             sys.exit(syntaxError)
-                        }
+                        }                    
                     } 
                 case None => println("please enter a file name")
             }

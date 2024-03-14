@@ -812,7 +812,7 @@ class CodeGenerator (varList: List[Int]) {
           generateInstructions(expr)
           // StoreByte for char and bool
           instructions.append(I_Store(x8, Content(x16, ImmVal(arrPointer))))
-          arrPointer += 4
+          arrPointer += getSize(expr)
         }
       }
     

@@ -138,6 +138,8 @@ object lexer {
     // lexer instance used in parser 
     private val lexer = new Lexer(desc,errConfig)
     val integer = lexer.lexeme.integer.decimal32
+    val integer_8 = lexer.lexeme.integer.decimal8
+    val integer_16 = lexer.lexeme.integer.decimal16
     val floating = lexer.lexeme.floating.number
     val intOrFloat = lexer.lexeme.unsignedCombined.number
     val string = lexer.lexeme.string.ascii

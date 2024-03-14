@@ -15,14 +15,13 @@ it should "parse program" in {
 }
 
 it should "parse program with function" in {
-    parse("begin int f(int x) is return x + 1 end skip end") shouldBe Success(Program(List(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1))))), Skip))
+    parse("begin int f(int x) is return x + 1 end skip end") shouldBe Success(Program(List(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), ByteIntLiter(1))))), Skip))
 }
 it should "parse program with function2" in {
-    parse ("begin int f(int x) is return x + 2 end skip end") shouldBe Success(Program(List(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(2))))), Skip))
+    parse ("begin int f(int x) is return x + 2 end skip end") shouldBe Success(Program(List(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), ByteIntLiter(2))))), Skip))
 }
-
 it should "parse function" in {
-    funcParse("int f(int x) is return x + 1 end") shouldBe  Success(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), IntLiter(1)))))
+    funcParse("int f(int x) is return x + 1 end") shouldBe  Success(Func(BaseType("int"), Ident("f"), ParamList(List(Param(BaseType("int"), Ident("x")))), Return(Add(Ident("x"), ByteIntLiter(1)))))
 }
 
 it should "parse void function" in {
@@ -44,7 +43,7 @@ it should "parse statement" in {
     stmtParse("skip") shouldBe Success(Skip)
 
     // Assignment statement
-    stmtParse("x = 5") shouldBe Success(Assignment(Ident("x"), IntLiter(5)))
+    stmtParse("x = 5") shouldBe Success(Assignment(Ident("x"), ByteIntLiter(5)))
 
     // If statement
     stmtParse("if true then skip else skip fi") shouldBe Success(If(BoolLiter(true), Skip, Skip))
@@ -59,7 +58,7 @@ it should "parse statement" in {
     // Println statement    
     stmtParse("println x") shouldBe Success(Print(Ident("x"), true))
     stmtParse("println (a)") shouldBe Success(Print(Ident("a"), true))
-    stmtParse("println 1-+2") shouldBe Success(Print(Sub(IntLiter(1),(IntLiter(2))), true))
+    stmtParse("println 1-+2") shouldBe Success(Print(Sub(ByteIntLiter(1), ByteIntLiter(2)), true))
 
     // Begin statement
     stmtParse("begin skip end") shouldBe Success(Begin(Skip))
@@ -77,11 +76,11 @@ it should "parse statement" in {
     stmtParse("exit x") shouldBe Success(Exit(Ident("x")))
 
     // New assignment statement
-    stmtParse("int x = 5") shouldBe Success(NewAssignment(BaseType("int"), Ident("x"), IntLiter(5)))
+    stmtParse("int x = 5") shouldBe Success(NewAssignment(BaseType("int"), Ident("x"), ByteIntLiter(5)))
 
     // New pair assignment statement
-    stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseType("int"), BaseType("bool")), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
-    stmtParse("pair(pair, pair) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(PairTypeElem, PairTypeElem), Ident("x"), NewPairRValue(IntLiter(1), BoolLiter(true))))
+    stmtParse("pair(int, bool) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(BaseType("int"), BaseType("bool")), Ident("x"), NewPairRValue(ByteIntLiter(1), BoolLiter(true))))
+    stmtParse("pair(pair, pair) x = newpair(1, true)") shouldBe Success(NewAssignment(PairType(PairTypeElem, PairTypeElem), Ident("x"), NewPairRValue(ByteIntLiter(1), BoolLiter(true))))
 
     // Seq statement
     stmtParse("skip; skip") shouldBe Success(SeqStmt(Skip, Skip))
@@ -104,32 +103,32 @@ it should "parse rValue" in {
     rValueParse("x") shouldBe Success(Ident("x"))
 
     // Array literal rValue
-    rValueParse("[1, 2, 3]") shouldBe Success(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3))))
+    rValueParse("[1, 2, 3]") shouldBe Success(ArrLiter(ByteIntLiter(1), List(ByteIntLiter(2), ByteIntLiter(3))))
 
     // New pair rValue
-    rValueParse("newpair(1, 2)") shouldBe Success(NewPairRValue(IntLiter(1), IntLiter(2)))
+    rValueParse("newpair(1, 2)") shouldBe Success(NewPairRValue(ByteIntLiter(1), ByteIntLiter(2)))
 
     // Pair element rValue
     rValueParse("fst x") shouldBe Success(FstPairElem(Ident("x")))
     // Call rValue
-    rValueParse("call f(1, 2)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(IntLiter(1), IntLiter(2)))))
+    rValueParse("call f(1, 2)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(ByteIntLiter(1), ByteIntLiter(2)))))
     rValueParse("call f(true)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(BoolLiter(true)))))
-    rValueParse("call f(1, true, 3)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(IntLiter(1), BoolLiter(true), IntLiter(3)))))
+    rValueParse("call f(1, true, 3)") shouldBe Success(CallRValue(Ident("f"), ArgList(List(ByteIntLiter(1), BoolLiter(true), ByteIntLiter(3)))))
 }
 
 it should "parse argsList" in {
-    argsListParse("1, 2, 3") shouldBe Success(ArgList(List(IntLiter(1), IntLiter(2), IntLiter(3))))
+    argsListParse("1, 2, 3") shouldBe Success(ArgList(List(ByteIntLiter(1), ByteIntLiter(2), ByteIntLiter(3))))
 }
 
 
 it should "parse arrl" in {
-    arrlParse("x[1]") shouldBe Success(ArrElem(Ident("x"), List(IntLiter(1))))
+    arrlParse("x[1]") shouldBe Success(ArrElem(Ident("x"), List(ByteIntLiter(1))))
 }
 
 it should "parse arrLiter" in {
     arrLiterParse("[]") shouldBe Success(ArrLiter(StringLiter("empty"), List()))
-    arrLiterParse("[1]") shouldBe Success(ArrLiter(IntLiter(1), List()))
-    arrLiterParse("[1, 2, 3]") shouldBe Success(ArrLiter(IntLiter(1), List(IntLiter(2), IntLiter(3))))
+    arrLiterParse("[1]") shouldBe Success(ArrLiter(ByteIntLiter(1), List()))
+    arrLiterParse("[1, 2, 3]") shouldBe Success(ArrLiter(ByteIntLiter(1), List(ByteIntLiter(2), ByteIntLiter(3))))
 }
 
 // ----------- Expression Parser Tests -----------
@@ -137,15 +136,15 @@ it should "parse arrLiter" in {
   it should "parse expression" in {
 
     // Literal expression
-    exprParse("1") shouldBe Success(IntLiter(1))
+    exprParse("1") shouldBe Success(ByteIntLiter(1))
 
     // Binary operation
-    exprParse("1 + 2") shouldBe Success(Add(IntLiter(1), IntLiter(2)))
-    exprParse("1 - 2 - 5") shouldBe Success(Sub(Sub(IntLiter(1), IntLiter(2)), IntLiter(5)))
+    exprParse("1 + 2") shouldBe Success(Add(ByteIntLiter(1), ByteIntLiter(2)))
+    exprParse("1 - 2 - 5") shouldBe Success(Sub(Sub(ByteIntLiter(1), ByteIntLiter(2)), ByteIntLiter(5)))
     // exprParse("p && q && r") shouldBe Success(And(Ident("p"),(And(Ident("q"), Ident("r")))))
     
     // Unary operation
-    exprParse("-1") shouldBe Success(Negate(IntLiter(1)))
+    exprParse("-1") shouldBe Success(Negate(ByteIntLiter(1)))
 
     // atom expression
     exprParse("x") shouldBe Success(Ident("x"))

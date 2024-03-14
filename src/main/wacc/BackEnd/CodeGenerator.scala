@@ -353,12 +353,17 @@ class CodeGenerator (varList: List[Int]) {
       expr match {
         case IntLiter(value) => 
           loadImmediate(-value)
-        case _=>
+        case ShortIntLiter(value) =>
+          loadImmediate(-value.toInt)
+        case ByteIntLiter(value) =>
+          loadImmediate(-value.toInt)
+        case _ => 
           generateInstructions(expr)
           instructions.append(I_StorePair(x8, xzr, Content(sp, ImmVal(-16)), ImmVal(0), true))
           instructions.append(I_LoadPair(x9, xzr, Content(sp), ImmVal(16)))
           instructions.append(I_Move(x8, ImmVal(0)))
-          instructions.append(I_Sub(x8.toW(), x8.toW(), x9.toW(), true))
+          val reg = allocateTempReg()
+          instructions.append(I_Sub(x8.toW(), x8.toW(), reg.toW(), true))
           checkOverflowHandler()
       }
 
@@ -595,13 +600,19 @@ class CodeGenerator (varList: List[Int]) {
           printCharFlag = true
           branchLink(PRINT_CHAR_LABEL)
 
-        case "int" =>
+        case ("int") =>
           printIntFlag = true
           branchLink(PRINT_INT_LABEL)
 
         case _ =>
-          printPFlag = true
-          branchLink(PRINT_P_LABEL)
+          if (expr.getType.startsWith("int") & !expr.getType.contains("[]")) {
+            printIntFlag = true
+            branchLink(PRINT_INT_LABEL)
+          } else {
+            printPFlag = true
+            branchLink(PRINT_P_LABEL)
+          }
+          
         
       }
   
@@ -730,6 +741,12 @@ class CodeGenerator (varList: List[Int]) {
       // Call helper function to check and load immediate value
       loadImmediate(value)
          
+    case ShortIntLiter(value) => 
+      loadImmediate(value.toInt)
+
+    case ByteIntLiter(value) => 
+      loadImmediate(value.toInt)
+
     case BoolLiter(value) => 
       value match {
         case true => instructions.append(I_Move(x8, ImmVal(1)))
@@ -783,7 +800,7 @@ class CodeGenerator (varList: List[Int]) {
       var arrSize = 0
       e match {
         case StringLiter("empty") => arrSize = 0
-        case _=> arrSize = es.length + 1
+        case _=> arrSize = (es.length + 1)
       }
       instructions.append(I_Move(x8, ImmVal(arrSize)))
 
@@ -892,6 +909,10 @@ class CodeGenerator (varList: List[Int]) {
   def getSize(ast: ASTNode): Int = {
     ast match {
       case IntLiter(_) => return INT_SIZE
+
+      case ShortIntLiter(value) => INT_SIZE
+
+      case ByteIntLiter(value) => INT_SIZE
          
       case BoolLiter(_) => return BOOL_SIZE
 
@@ -908,8 +929,8 @@ class CodeGenerator (varList: List[Int]) {
         e match {
           case StringLiter("empty") => return 0
           case _=> 
-            val sizes = (e::es).map(elem => getSize(elem))
-          return sizes.sum + ARRAY_ELEM_SIZE
+            val sizes = ((e::es).length) * 4
+          return sizes + ARRAY_ELEM_SIZE
 
         }
       case CallRValue(func, args) =>

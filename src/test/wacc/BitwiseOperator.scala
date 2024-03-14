@@ -16,8 +16,8 @@ import scala.io.Source
 
 class BitwiseOperator extends AnyFlatSpec with Matchers {
     it should "parse BitwiseOperator" in {
-        exprParse("1 & 2") shouldBe Success(BitAnd(IntLiter(1),IntLiter(2)))
-        exprParse("1 | 2") shouldBe Success(BitOr(IntLiter(1),IntLiter(2)))
-        exprParse("~2") shouldBe Success(BitNot(IntLiter(2)))
+        exprParse("1 & 2") shouldBe Success(BitAnd(ByteIntLiter(1), ByteIntLiter(2)))
+        exprParse("1 | 2") shouldBe Success(BitOr(ByteIntLiter(1), ByteIntLiter(2)))
+        exprParse("~2") shouldBe Success(BitNot(ByteIntLiter(2)))
     }
 }

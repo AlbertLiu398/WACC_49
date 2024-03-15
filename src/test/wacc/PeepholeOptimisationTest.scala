@@ -216,8 +216,6 @@ class PeepholeOptimisationTest extends AnyFlatSpec with Matchers {
     }
 
 
-    // Add more tests for other optimizations
-
 }
 
 

@@ -8,13 +8,13 @@ object PeepholeOptimisation {
 
     var resultList: mutable.ListBuffer[Instruction] = mutable.ListBuffer()
 
-    def runPeeopholeOptimisation(instructions: List[Instruction]): List[Instruction] = {
-    
+    def runPeeopholeOptimisation(instructions: List[Instruction]): List[Instruction] = {    
         resultList = mutable.ListBuffer(instructions: _*)
         runPeeopholeSize2(resultList)
         resultList.toList
     }
 
+    // Traverse the list of instructions and apply peephole optimisation on each pair of instructions
     def runPeeopholeSize2(instructions: mutable.ListBuffer[Instruction]): Unit = {
         var length = resultList.length
         var i = 0
@@ -85,7 +85,6 @@ object PeepholeOptimisation {
     }
 
     def optimiseMove(fstIndex: Int, sndIndex: Int): Boolean = {
-
     /*
         1. Redundant Move-Move (only through x8)
         e.g.
@@ -249,11 +248,8 @@ object PeepholeOptimisation {
                 }
             }
             case _ => {}
-
         }
         return false
-
-
     }
 
     def optimiseStore(fstIndex: Int, sndIndex: Int): Boolean = {
@@ -281,7 +277,6 @@ object PeepholeOptimisation {
             str     w0, [fp,#28]
         (remove second instruction)
     */
-
         val fstInstr = resultList(fstIndex)
         fstInstr match {
             case I_Store(src1, dst1, op2_1, us, false) => {
